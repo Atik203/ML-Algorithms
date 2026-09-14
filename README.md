@@ -27,6 +27,11 @@ d:/ML/Assignment/
 │   ├── 09_support_vector_machine.ipynb           # SVC (Linear/Poly/RBF) & SVR with Epsilon Tube
 │   ├── 10_large_language_model.ipynb             # Hugging Face Transformers, Inference & Fine-Tuning
 │   └── 11_generalized_regression_neural_network.ipynb # Specht GRNN Architecture & Spread Optimization
+├── pdf/                                          # Print-ready A4 PDFs with all outputs
+│   ├── 00_combined_all_notebooks.pdf             # Every notebook in a single document
+│   └── 01_..._11_*.pdf                           # One PDF per notebook
+├── scripts/
+│   └── export_pdf.py                             # Rebuilds pdf/ (nbconvert -> HTML -> Chromium print)
 ├── image.jpg                                     # Original Assignment Prompt Image
 └── README.md                                     # Project Documentation & Guide
 ```
@@ -81,3 +86,12 @@ To re-run any notebook headlessly and refresh all outputs:
 .venv\Scripts\jupyter nbconvert --to notebook --execute notebooks/01_clustering_algorithms.ipynb --inplace
 ```
 All 11 notebooks in this repository are pre-executed and verified with this kernel (Python 3.12.13, zero cell errors).
+
+### 5. Exporting to A4 PDF (Print / Submission)
+The `pdf/` folder already contains print-ready A4 PDFs with all outputs (one per notebook + `00_combined_all_notebooks.pdf`). To regenerate them after editing a notebook:
+```bash
+.venv\Scripts\python scripts\export_pdf.py                                  # all notebooks + combined PDF
+.venv\Scripts\python scripts\export_pdf.py 01_clustering_algorithms.ipynb   # a single notebook
+.venv\Scripts\python scripts\export_pdf.py --combined-only                  # rebuild only the combined PDF
+```
+The exporter converts each notebook to HTML with nbconvert and prints it using headless Edge/Chrome with an A4 print stylesheet (minimal margins, enlarged code/output fonts, wrapped lines, MathJax equations). The first run needs internet access so MathJax can load. When printing choose **A4** paper and **100% / Actual size** scaling; the combined PDF prints as a single job.
