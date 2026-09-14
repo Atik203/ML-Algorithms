@@ -60,7 +60,13 @@ The project uses the dedicated Python 3.12 environment configured in `.venv`:
 .venv\Scripts\Activate.ps1
 ```
 
-### 2. Launching Jupyter Lab or Notebook
+### 2. Kernel Registration (One-Time Setup)
+Every notebook is pinned to the **`Python (ML Assignment)`** kernel, which launches the `.venv` interpreter. Register it once with:
+```bash
+.venv\Scripts\python -m ipykernel install --user --name ml_assignment --display-name "Python (ML Assignment)"
+```
+
+### 3. Launching Jupyter Lab or Notebook
 To explore or re-run the notebooks in your browser:
 ```bash
 .venv\Scripts\jupyter lab
@@ -69,8 +75,9 @@ To explore or re-run the notebooks in your browser:
 ```
 In Jupyter or VS Code, select the registered kernel: **`Python (ML Assignment)`**.
 
-### 3. Re-executing Notebooks via Command Line
+### 4. Re-executing Notebooks via Command Line
 To re-run any notebook headlessly and refresh all outputs:
 ```bash
 .venv\Scripts\jupyter nbconvert --to notebook --execute notebooks/01_clustering_algorithms.ipynb --inplace
 ```
+All 11 notebooks in this repository are pre-executed and verified with this kernel (Python 3.12.13, zero cell errors).
