@@ -26,6 +26,7 @@ import subprocess
 import sys
 
 from nbconvert import HTMLExporter
+from pygments.formatters import HtmlFormatter
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 NB_DIR = ROOT / "notebooks"
@@ -73,6 +74,19 @@ PRINT_CSS = """
   section.notebook:first-of-type { page-break-before: auto; }
 </style>
 """
+
+# --- Rich syntax highlighting for code cells (Pygments "tango" theme) -------
+# The default JupyterLab theme is subtle; tango gives vivid, print-friendly colors
+# on a light background. These rules are appended after the template CSS so they win.
+PYGMENTS_CSS = HtmlFormatter(style="tango").get_style_defs(".highlight")
+EXTRA_CODE_CSS = """
+  /* Light code-block background that keeps colors readable on paper */
+  .highlight, .jp-InputArea-editor { background: #f8f8f8 !important; }
+  .jp-InputArea-editor .highlight { border: none !important; }
+  /* Inline code in markdown cells */
+  .jp-RenderedHTMLCommon code { color: #C7254E !important; background: #F9F2F4 !important; padding: 0 2px; border-radius: 2px; }
+"""
+PRINT_CSS = PRINT_CSS.replace("</style>", PYGMENTS_CSS + EXTRA_CODE_CSS + "</style>")
 
 
 def find_browser() -> str:
