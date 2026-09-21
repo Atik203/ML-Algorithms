@@ -14,7 +14,8 @@ d:/ML/Assignment/
 │   ├── mall_customers.csv                        # Mall Customers Segmentation dataset
 │   ├── airline_passengers.csv                    # Monthly Airline Passengers Time Series
 │   ├── heart_disease.csv                         # Heart Disease dataset (numerical & categorical)
-│   └── market_regimes.csv                        # Financial asset returns and volatility regimes
+│   ├── market_regimes.csv                        # Financial asset returns and volatility regimes
+│   └── earthquakes.csv                           # USGS global earthquake catalogue (2023)
 ├── notebooks/                                    # Executed Jupyter Notebooks
 │   ├── 01_clustering_algorithms.ipynb            # K-Means, Bisecting K-Means, Hierarchical, FCM
 │   ├── 02_density_based_learning.ipynb           # DBSCAN and HDBSCAN on non-convex manifolds
@@ -43,7 +44,7 @@ d:/ML/Assignment/
 | # | Notebook | Algorithms Covered | Primary Libraries | Datasets Used | Key Visualizations & Outputs |
 | :---: | :--- | :--- | :--- | :--- | :--- |
 | **01** | [`01_clustering_algorithms.ipynb`](notebooks/01_clustering_algorithms.ipynb) | • K-Means<br>• Bisecting K-Means<br>• Hierarchical (Ward)<br>• Fuzzy C-Means (FCM) | `scikit-learn`<br>`scipy`<br>`numpy` | Mall Customers (`data/mall_customers.csv`) | Elbow/silhouette plot, dendrogram, combined 2x2 partition grid, metrics table. |
-| **02** | [`02_density_based_learning.ipynb`](notebooks/02_density_based_learning.ipynb) | • DBSCAN<br>• HDBSCAN | `scikit-learn` | Non-convex interlocking moons, concentric circles & noise | $k$-distance graph for $\epsilon$, DBSCAN core/border/noise map, HDBSCAN cluster map, summary table. |
+| **02** | [`02_density_based_learning.ipynb`](notebooks/02_density_based_learning.ipynb) | • DBSCAN<br>• HDBSCAN | `scikit-learn` | USGS earthquakes 2023 (`data/earthquakes.csv`, 7,638 events, lat/lon + haversine) | $k$-distance graph for $\epsilon$, DBSCAN/HDBSCAN world maps with noise, largest-cluster region check, summary table. |
 | **03** | [`03_semi_supervised_learning.ipynb`](notebooks/03_semi_supervised_learning.ipynb) | • Self-Training Classifier | `scikit-learn` | Breast Cancer Wisconsin (85% masked as unlabeled) | Convergence log and comparison table: baseline (15%) vs semi-supervised vs fully supervised ceiling. |
 | **04** | [`04_ensemble_learning.ipynb`](notebooks/04_ensemble_learning.ipynb) | • Random Forest Regression (RFR)<br>• Random Forest Classification (RFC)<br>• XGBoost<br>• AdaBoost<br>• CatBoost | `scikit-learn`<br>`xgboost`<br>`catboost` | California Housing (Regression) & Heart Disease (Classification) | Regression comparison table (RFR/XGBoost/AdaBoost/CatBoost) and RFC classification metrics. |
 | **05** | [`05_multilayer_perceptron.ipynb`](notebooks/05_multilayer_perceptron.ipynb) | • Scikit-Learn MLPClassifier<br>• PyTorch Deep MLP | `scikit-learn`<br>`torch` | MNIST Handwritten Digits (8x8 grayscale images) | Scikit-Learn loss curve and classification report for both MLP implementations. |

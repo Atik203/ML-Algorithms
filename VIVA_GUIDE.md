@@ -15,7 +15,7 @@ All numbers are real outputs of the executed notebooks in this repository. Code 
 | # | Notebook | Algorithms | Dataset | One-line result |
 |---|---|---|---|---|
 | [01](#01--clustering) | Clustering | K-Means, Modified K-Means, Hierarchical, Fuzzy C-Means | Mall Customers | K=5, silhouette 0.55 |
-| [02](#02--density-based-learning) | Density-based | DBSCAN, HDBSCAN | Synthetic moons/circles | 3 clusters, ARI ≈ 0.46 |
+| [02](#02--density-based-learning) | Density-based | DBSCAN, HDBSCAN | USGS earthquakes 2023 | 55 clusters, 13.5% noise |
 | [03](#03--semi-supervised-learning) | Semi-supervised | Self-Training (SVC) | Breast Cancer (15% labels) | 0.9298 → 0.9415 accuracy |
 | [04](#04--ensemble-learning) | Ensembles | RFR, RFC, XGBoost, AdaBoost, CatBoost | California Housing + Heart Disease | XGB/CatBoost R² ≈ 0.80 |
 | [05](#05--multilayer-perceptron-mlp) | Neural net | MLP (sklearn + PyTorch) | Digits (8x8) | 0.9889 test accuracy |
@@ -157,100 +157,105 @@ U = inv_dist_p / inv_dist_p.sum(axis=1, keepdims=True)   # membership update
 # 02 – Density-Based Learning
 
 ## 0. In one paragraph
-DBSCAN and HDBSCAN cluster a deliberately hard synthetic benchmark (two moons + two circles + one blob + uniform noise, 600 points) by density: points in dense regions form clusters and sparse points are labeled noise. ε is chosen from the k-distance elbow; both algorithms recover the 3 shape families with ARI ≈ 0.46 and flag ~4% outliers.
+DBSCAN and HDBSCAN cluster **real earthquake epicenters** from the 2023 USGS catalogue: 16,190 global events at magnitude ≥ 4.0, filtered to 7,638 events at magnitude ≥ 4.5 for a well-recorded subset. Coordinates are converted to radians and clustered with the **haversine** (great-circle) metric because lat/lon degrees are not Euclidean. DBSCAN (ε = 0.03 rad ≈ 191 km, MinPts = 10) finds 55 clusters with 13.5% noise; HDBSCAN (min_cluster_size = 50) finds 40 clusters with 21.5% noise. The largest clusters correspond to real seismic zones (Philippines, Papua New Guinea, Tonga, Japan, Turkey) - a real-world validation with no labels needed.
 
 ## 1. Quick facts
 | | |
 |---|---|
-| **Algorithms** | DBSCAN, HDBSCAN |
-| **Dataset** | Synthetic: moons (250) + circles (200) + blob (100) + uniform noise (50), 2D |
-| **Preprocessing** | StandardScaler |
-| **Key parameters** | DBSCAN: eps=0.22, min_samples=6. HDBSCAN: min_cluster_size=15, min_samples=6 |
-| **Results** | DBSCAN: 3 clusters, 28 noise (4.7%), ARI 0.4637, silhouette 0.434. HDBSCAN: 3 clusters, 22 noise (3.7%), ARI 0.4578 |
+| **Algorithms** | DBSCAN, HDBSCAN (scikit-learn, haversine metric) |
+| **Dataset** | `data/earthquakes.csv` - USGS global catalogue 2023; 16,190 events (M ≥ 4.0), **7,638 used (M ≥ 4.5)** |
+| **Features** | Epicenter latitude/longitude (converted to radians); magnitude/depth available but not clustered on |
+| **Key parameters** | DBSCAN: eps = 0.03 rad (≈ 191 km), min_samples = 10. HDBSCAN: min_cluster_size = 50, min_samples = 10 |
+| **Results** | DBSCAN: 55 clusters, 13.5% noise, silhouette 0.326 (3k sample). HDBSCAN: 40 clusters, 21.5% noise, silhouette **0.631** |
 
 ## 2. How the algorithm works
 **DBSCAN** defines clusters as connected regions of density:
-- **ε-neighborhood:** N_ε(p) = {q : dist(p,q) ≤ ε}.
-- **Core point:** |N_ε(p)| ≥ MinPts. **Border:** within ε of a core point but not core. **Noise:** neither.
-- Clusters are grown by chaining core points that are density-reachable; border points attach to a neighboring core's cluster. Everything else gets label −1.
-- Requires one global ε; struggles when clusters have different densities.
+- **ε-neighborhood:** N_ε(p) = {q : haversine(p,q) ≤ ε}.
+- **Core point:** |N_ε(p)| ≥ MinPts. **Border:** within ε of a core. **Noise:** neither (label −1).
+- Clusters grow by chaining density-reachable core points; border points join a neighboring core's cluster.
+- One global ε means varying-density data is hard to handle.
 
 **HDBSCAN** removes ε:
 1. core distance d_core(p) = distance to its k-th nearest neighbor;
 2. mutual reachability d_mreach(a,b) = max{d_core(a), d_core(b), d(a,b)};
-3. build a minimum spanning tree over mutual reachability;
-4. convert to a cluster hierarchy and condense it (track births/deaths);
+3. minimum spanning tree over mutual reachability;
+4. hierarchy → condensed tree (cluster births/deaths);
 5. keep clusters with the best stability S(C) = Σ (λ_p − λ_birth(C)).
-It also outputs membership probabilities.
+It also outputs membership probabilities and handles varying density.
+
+**Why haversine?** Latitude/longitude form a sphere, not a plane; haversine gives the true great-circle distance. In scikit-learn the metric expects **radian** coordinates, and eps is in radians (0.03 rad × 6371 km ≈ 191 km).
 
 ## 3. Parameters & tuning
 | Parameter | Value | What it does | If increased | If decreased |
 |---|---|---|---|---|
-| DBSCAN `eps` | 0.22 | neighborhood radius | fewer, bigger clusters; noise ↓ | more noise; clusters fragment |
-| DBSCAN `min_samples` | 6 | MinPts density threshold | more noise, fewer clusters | merges clusters, more border points |
-| HDBSCAN `min_cluster_size` | 15 | smallest allowed cluster | fewer/larger clusters | more small clusters |
-| HDBSCAN `min_samples` | 6 | conservativeness (k for core distance) | more noise, more conservative | more clusters |
+| DBSCAN `eps` | 0.03 rad (~191 km) | neighborhood radius | fewer/larger clusters, less noise | more noise, clusters fragment |
+| DBSCAN `min_samples` | 10 | MinPts density threshold | stricter, more noise | merges clusters |
+| HDBSCAN `min_cluster_size` | 50 | smallest allowed cluster | fewer/larger clusters | many small clusters |
+| HDBSCAN `min_samples` | 10 | conservativeness (k for core distance) | more noise, more conservative | more clusters |
+| Distance metric | haversine | great-circle on the sphere | — | euclidean on degrees = wrong |
 
 ## 4. Step-by-step implementation (with key code)
-1. **Build the composite dataset** (`make_moons`, `make_circles`, `make_blobs`, uniform noise) and stack into `X_raw`; ground-truth labels with noise = −1.
-2. **Scale** so ε means the same distance on both axes.
-3. **Choose ε** with the k-distance graph:
+1. **Load + filter** the USGS catalogue; print shape and preview.
+2. **Convert to radians** for the spherical metric:
 ```python
-nbrs = NearestNeighbors(n_neighbors=min_samples).fit(X)
-distances, _ = nbrs.kneighbors(X)
-k_distances = np.sort(distances[:, -1])        # 6th-NN distance, sorted
+quakes = df[df['mag'] >= 4.5].reset_index(drop=True)
+X_rad = np.radians(quakes[['latitude', 'longitude']].values)   # [lat, lon] in radians
 ```
-the knee ≈ 0.22.
-4. **DBSCAN fit + identify core points:**
+3. **Choose ε** from the k-distance graph (haversine):
 ```python
-dbscan = DBSCAN(eps=0.22, min_samples=6)
-db_labels = dbscan.fit_predict(X)
-core_samples_mask = np.zeros_like(db_labels, dtype=bool)
+nbrs = NearestNeighbors(n_neighbors=10, metric='haversine').fit(X_rad)
+distances, _ = nbrs.kneighbors(X_rad)
+k_distances = np.sort(distances[:, -1])          # knee ~0.03 rad
+```
+4. **DBSCAN fit + core points:**
+```python
+dbscan = DBSCAN(eps=0.03, min_samples=10, metric='haversine')
+db_labels = dbscan.fit_predict(X_rad)
 core_samples_mask[dbscan.core_sample_indices_] = True
 ```
-5. Plot core (circles), border (triangles) and noise (black x).
-6. **HDBSCAN fit** (no ε):
+5. **Plot epicenters**: clustered events in color, noise as black crosses (world map layout).
+6. **Real-world check**: for the six largest clusters print size, centroid and the dominant region from the USGS `place` column (Philippines, Papua New Guinea, Tonga, Japan, South Sandwich Islands, Turkey).
+7. **HDBSCAN fit:**
 ```python
-hdb = HDBSCAN(min_cluster_size=15, min_samples=6, store_centers='centroid', copy=False)
-hdb_labels = hdb.fit_predict(X)
+hdb = HDBSCAN(min_cluster_size=50, min_samples=10, metric='haversine', copy=False)
+hdb_labels = hdb.fit_predict(X_rad)
 ```
-7. Plot clusters + noise; **summary table** (ARI, noise %, silhouette on non-noise points).
+8. **Summary table** with cluster count, noise %, largest cluster, silhouette (3,000-event sample for tractability).
 
 ## 5. Results & interpretation
-| Algorithm | Clusters | Noise % | ARI ↑ | Silhouette (non-noise) ↑ |
+| Algorithm | Clusters | Noise | Largest cluster | Silhouette (3k sample) ↑ |
 |---|---|---|---|---|
-| DBSCAN | 3 | 4.7% | 0.4637 | 0.4342 |
-| HDBSCAN | 3 | 3.7% | 0.4578 | 0.4334 |
+| DBSCAN | 55 | 13.5% | 1,629 (Philippines) | 0.326 |
+| HDBSCAN | 40 | 21.5% | 560 | **0.631** |
 
-- ARI ≈ 0.46 = moderate agreement with the truth; the 3 shape families occupy 5 "true" groups (2 moons + 2 circles + 1 blob), so finding 3 clean density groups is a sensible compromise for DBSCAN/HDBSCAN.
-- Both label only ~4% as noise - close to the true 8.3% but conservative.
-- HDBSCAN finds the structure with zero parameter tuning for ε.
+- **Real-world validation:** the largest clusters are the Philippines (1,629 events), Papua New Guinea (1,068), Tonga (947), Japan (895), South Sandwich Islands (253) and Turkey (207) - exactly the tectonically active boundaries (Ring of Fire, Alpine belt).
+- **Noise = isolated seismicity:** ~1,000-1,600 events far from any plate boundary (intraplate events) are labeled −1.
+- **HDBSCAN silhouette is roughly double DBSCAN's:** DBSCAN's fixed ε chains elongated arc clusters along an entire boundary into one large, elongated group; HDBSCAN's adaptive density splits them into compact regions.
+- **No ARI here:** the catalogue has no ground-truth cluster labels, so quality is judged by noise share, silhouette and the region sanity-check.
 
 ## 6. Limitations & how to improve
-- DBSCAN's single ε fails on very different densities → HDBSCAN (used here) or OPTICS.
-- High dimensions degrade density estimates (curse of dimensionality) → reduce dimensions first (PCA/UMAP).
-- Both are sensitive to `min_samples`/`min_cluster_size`; sweep values if results look unstable.
-- Improve: tune eps on a validation heuristic; use HDBSCAN probabilities to filter uncertain assignments.
+- Distance-based density estimation on a sphere is fine for 2D but the method degrades in high dimensions (curse of dimensionality).
+- Cluster shapes are elongated (fault lines) - compactness metrics like silhouette penalize them; use region validation as done here.
+- `min_cluster_size`/`min_samples` still need judgment; HDBSCAN reduces but does not eliminate tuning.
+- Improvements: cluster in 3D Cartesian coordinates (unit sphere) for convenience, add depth/magnitude as features, or use a grid-based method (DBSCAN on projected UTM tiles).
 
 ## 7. Viva questions
-- **Why can't K-Means handle this dataset?** It forces spherical boundaries and cannot label noise.
-- **Define core/border/noise.** Core: ≥ MinPts within ε; border: in ε-neighborhood of a core; noise: neither.
-- **How is ε selected?** k-distance graph knee with k=MinPts (0.22 here).
-- **DBSCAN vs HDBSCAN?** Fixed radius vs hierarchy over density levels; HDBSCAN handles varying density and gives probabilities.
-- **What does MinPts control?** Minimum local density; larger → stricter clusters, more noise.
-- **What is ARI?** Chance-adjusted agreement with ground truth; 0 random, 1 perfect.
-- **Why exclude noise from silhouette?** Noise belongs to no cluster; including it distorts cohesion/separation.
-- **When would you still choose DBSCAN?** When densities are uniform and you want speed/simplicity.
+- **Why haversine instead of Euclidean?** Lat/lon are spherical coordinates; haversine gives true great-circle distances (eps in radians).
+- **Why filter to M ≥ 4.5?** Catalogue completeness and recording quality improve with magnitude; also keeps computation tractable.
+- **How was ε chosen?** k-distance graph knee (k = 10) → 0.03 rad ≈ 191 km.
+- **What is noise here physically?** Isolated earthquakes far from plate boundaries (intraplate seismicity).
+- **Define core/border/noise.** Core: ≥ MinPts within ε; border: in ε of a core; noise: neither.
+- **Why is HDBSCAN's silhouette higher?** Variable-density clusters split arc chains into compact groups instead of one elongated DBSCAN cluster.
+- **Why no ARI?** No ground-truth labels exist for real seismicity clustering.
+- **What do the big clusters represent?** Known seismic zones - Philippines, Papua New Guinea, Tonga, Japan, Turkey.
 
 ## 8. Common mistakes
-- Using unscaled features → ε becomes meaningless.
-- Expecting DBSCAN to find the "true" cluster count on multi-density data.
-- Evaluating density clusters with accuracy-style metrics.
+- Passing degrees to a haversine metric (scikit-learn silently gives wrong distances).
+- Expecting all plate-boundary events in one cluster - fault zones are elongated, so several clusters appear.
+- Comparing DBSCAN/HDBSCAN cluster counts directly: their noise definitions and density rules differ.
 
 ## 9. One-line summary
-"Density-based clustering finds arbitrary shapes and outliers where K-Means fails: ε=0.22 from the k-distance knee, both methods recover the 3 shape families (ARI ≈ 0.46) while flagging ~4% noise."
-
----
+"DBSCAN/HDBSCAN on 7,638 real 2023 earthquakes: ε = 0.03 rad (~191 km) from the k-distance knee; 55/40 clusters with 13.5%/21.5% noise, and the largest clusters match the Philippines, Papua New Guinea, Tonga, Japan and Turkey - real seismic zones discovered without labels."
 
 # 03 – Semi-Supervised Learning
 
@@ -865,6 +870,7 @@ svr_model.fit(X_svr, y_svr)
 - **What is the kernel trick?** Inner products in feature space without explicit mapping.
 - **Why is the solution sparse?** Only support vectors have non-zero dual coefficients.
 - **What is the ε-tube?** Zero-loss zone in SVR; only outside points become support vectors.
+- **Why haversine distance for earthquakes?** Latitude/longitude are spherical coordinates; haversine gives true great-circle distances (radians input; 0.03 rad ≈ 191 km).
 - **Why scale features?** The kernel uses Euclidean distance; unscaled features distort it.
 - **SVC vs SVR?** Classification (separating hyperplane) vs regression (tube around a function).
 
@@ -1069,7 +1075,7 @@ best_sigma = sigma_candidates[np.argmin(cv_scores)]     # 0.069
 | **Silhouette** | 01, 02 | (b−a)/max(a,b): cohesion vs separation | −1…1 | >0.5 good, 0.25-0.5 weak, <0 overlapping |
 | **Davies-Bouldin** | 01 | average similarity between each cluster and its most similar one | ≥0 | lower better; <1 good |
 | **Calinski-Harabasz** | 01 | between-cluster vs within-cluster dispersion | ≥0 | higher better; compare models only |
-| **ARI** | 02 | change-corrected agreement with ground truth | −0.5…1 | 0 = random, >0.5 strong, 1 perfect |
+| **ARI** | concept only (no labeled clustering in this repo) | chance-corrected agreement with ground truth | −0.5…1 | 0 = random, >0.5 strong, 1 perfect |
 | **Accuracy** | 03, 04, 05, 09 | fraction correct | 0…1 | >0.9 strong on these datasets |
 | **Precision** | 05 | TP/(TP+FP) | 0…1 | high when false positives are costly |
 | **Recall** | 05 | TP/(TP+FN) | 0…1 | high when misses are costly |
@@ -1109,7 +1115,7 @@ best_sigma = sigma_candidates[np.argmin(cv_scores)]     # 0.069
 | Data | Notebook | Size | Target / use |
 |---|---|---|---|
 | Mall Customers (`data/mall_customers.csv`) | 01 | 200 x 5 | Cluster income + spending |
-| Synthetic moons/circles/blob + noise | 02 | 600 x 2 | Non-convex clustering + noise |
+| USGS earthquakes 2023 (`data/earthquakes.csv`) | 02 | 16,190 (7,638 with M ≥ 4.5 used) | Lat/lon epicenters -> density clustering |
 | Breast Cancer (sklearn) | 03, 09 | 569 x 30 | Malignant/benign |
 | California Housing (sklearn, 5k sample) | 04 | 5,000 x 8 | Median house value |
 | Heart Disease (`data/heart_disease.csv`) | 04 | 303 x 13 | Disease 0/1 |
@@ -1134,7 +1140,7 @@ best_sigma = sigma_candidates[np.argmin(cv_scores)]     # 0.069
 # Appendix E – Rapid-fire 30-second answers
 
 1. **01** - "Four clustering algorithms on scaled income/spending; K=5 by elbow+silhouette; K-Means/FCM best (silhouette 0.55), Bisecting gives balanced sizes."
-2. **02** - "DBSCAN/HDBSCAN on moons+circles+noise; ε=0.22 from the k-distance knee; 3 clusters each, ARI ≈ 0.46, outliers flagged as noise."
+2. **02** - "DBSCAN/HDBSCAN on 7,638 real USGS earthquakes (2023, M≥4.5): ε=0.03 rad (~191 km) from the k-distance knee; 55 clusters/13.5% noise (DBSCAN) and 40/21.5% (HDBSCAN); largest clusters match Philippines, Papua New Guinea, Tonga, Japan, Turkey."
 3. **03** - "With 15% labels, self-training lifted SVC accuracy 0.9298 → 0.9415, below the fully supervised 0.9766 ceiling."
 4. **04** - "RFR/XGBoost/AdaBoost/CatBoost on housing (XGB/Cat R² ≈ 0.80) plus RFC on heart disease (accuracy 0.78, AUC 0.87)."
 5. **05** - "MLP on 8x8 digits: sklearn 96.3% with early stopping; custom PyTorch with BatchNorm+Dropout 98.9% test accuracy."
