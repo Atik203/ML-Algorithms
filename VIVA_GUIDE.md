@@ -1,12 +1,12 @@
-# Viva / Presentation Preparation Guide
+# Viva / Presentation Preparation Guide (Deep Edition)
 
-**How to use this guide (2-hour plan):**
-1. Read the **Index** (2 min) to see the whole map.
-2. Read each notebook section in order: **Quick facts → Step-by-step → Key concepts → Results → Likely questions** (≈ 8-10 min each, ~100 min total).
-3. Skim the **Metrics cheat sheet** and **Validation/CV** appendices (10 min) - these answer cross-cutting questions.
-4. Finish with the **Rapid-fire 30-second answers** (5 min) the night before / morning of the viva.
+**How to use this guide (within 2 hours):**
+1. Skim the **Index** (2 min).
+2. Read each notebook section in order (≈ 9-11 min each, ~110 min total). Each section is structured the same way:
+   **0** 60-second explanation → **1** Quick facts → **2** How it works → **3** Parameters → **4** Step-by-step + key code → **5** Results → **6** Limitations → **7** Viva Q&A → **8** Common mistakes → **9** One-line summary.
+3. Finish with **Appendices A-E** (10 min): metrics, validation, datasets, cross-cutting questions, rapid-fire answers.
 
-Everything below is based on the actual executed notebooks in this repository; every number is a real output.
+All numbers are real outputs of the executed notebooks in this repository. Code excerpts are copied from the notebooks (shortened).
 
 ---
 
@@ -14,7 +14,7 @@ Everything below is based on the actual executed notebooks in this repository; e
 
 | # | Notebook | Algorithms | Dataset | One-line result |
 |---|---|---|---|---|
-| [01](#01--clustering) | Clustering | K-Means, Modified K-Means, Hierarchical, Fuzzy C-Means | Mall Customers | K=5 clusters, silhouette 0.55 |
+| [01](#01--clustering) | Clustering | K-Means, Modified K-Means, Hierarchical, Fuzzy C-Means | Mall Customers | K=5, silhouette 0.55 |
 | [02](#02--density-based-learning) | Density-based | DBSCAN, HDBSCAN | Synthetic moons/circles | 3 clusters, ARI ≈ 0.46 |
 | [03](#03--semi-supervised-learning) | Semi-supervised | Self-Training (SVC) | Breast Cancer (15% labels) | 0.9298 → 0.9415 accuracy |
 | [04](#04--ensemble-learning) | Ensembles | RFR, RFC, XGBoost, AdaBoost, CatBoost | California Housing + Heart Disease | XGB/CatBoost R² ≈ 0.80 |
@@ -23,516 +23,1042 @@ Everything below is based on the actual executed notebooks in this repository; e
 | [07](#07--self-organizing-map-som) | Topological | Kohonen SOM | Wine (178x13) | QE 0.1965, TE 0.0393 |
 | [08](#08--hidden-markov-model-hmm) | Probabilistic | Gaussian HMM + Viterbi | Market Regimes | log-lik 3018.45, EM converged |
 | [09](#09--support-vector-machines-svm) | Margin-based | SVC (3 kernels), SVR | Moons, Breast Cancer, 1D sine | SVC 0.9790, SVR R² 0.9864 |
-| [10](#10--large-language-models-llm) | Transformer | DistilBERT/DistilGPT2 tokenize, infer, generate, fine-tune | SST-2 + custom domain | correct domain classification |
+| [10](#10--large-language-models-llm) | Transformer | DistilBERT/DistilGPT2 | SST-2 + custom domain | correct domain classification |
 | [11](#11--generalized-regression-neural-network-grnn) | Kernel regression | GRNN (from scratch) | Noisy 1D function | σ=0.069, test R² 0.9473 |
-| [A](#appendix-a--metrics-cheat-sheet) | **Appendix A** | Metrics cheat sheet | - | what/good values |
-| [B](#appendix-b--validation--cross-validation-used) | **Appendix B** | Validation & CV used | - | where and why |
-| [C](#appendix-c--datasets-used) | **Appendix C** | Datasets used | - | sizes and targets |
-| [D](#appendix-d--cross-cutting-questions) | **Appendix D** | Common cross-cutting questions | - | scaling, seeds, leakage |
-| [E](#appendix-e--rapid-fire-30-second-answers) | **Appendix E** | Rapid-fire 30-second answers | - | final revision |
+| [A](#appendix-a--metrics-cheat-sheet) | Appendix A | Metrics cheat sheet | - | definitions + good values |
+| [B](#appendix-b--validation--cross-validation-used) | Appendix B | Validation & CV | - | where and why |
+| [C](#appendix-c--datasets-used) | Appendix C | Datasets | - | sizes, targets |
+| [D](#appendix-d--cross-cutting-questions) | Appendix D | Cross-cutting Q&A | - | scaling, leakage, overfitting |
+| [E](#appendix-e--rapid-fire-30-second-answers) | Appendix E | Rapid-fire answers | - | last-minute revision |
 
 ---
 
 # 01 – Clustering
 
-### Quick facts
+## 0. In one paragraph
+Four clustering algorithms - K-Means (Lloyd's), Modified K-Means (K-Means++ init + Bisecting), Hierarchical (Ward) and Fuzzy C-Means (implemented from scratch) - partition 200 Mall Customers into K=5 groups using Annual Income and Spending Score. K is chosen by the elbow + silhouette curves; all four partitions are then compared with three internal metrics.
+
+## 1. Quick facts
 | | |
 |---|---|
-| **Algorithms** | K-Means (Lloyd), Modified K-Means (K-Means++ init + Bisecting), Hierarchical (Agglomerative/Ward), Fuzzy C-Means (from scratch) |
-| **Dataset** | Mall Customers (`data/mall_customers.csv`), 200 rows |
-| **Features used** | Annual Income (k$) + Spending Score (1-100) - 2 features so clusters can be plotted |
-| **Key parameters** | K=5, K-Means++ init, n_init=20; Ward linkage; FCM m=2.0, tol=1e-5, 150 max iterations |
-| **Result** | Silhouette: K-Means 0.5547, Hierarchical 0.5538, Bisecting 0.4807; Davies-Bouldin ≈ 0.57 |
+| **Algorithms** | K-Means, Modified K-Means (K-Means++ / Bisecting), Hierarchical (Agglomerative/Ward), Fuzzy C-Means (custom NumPy class) |
+| **Dataset** | `data/mall_customers.csv`, 200 rows; features: Annual Income (k$), Spending Score (1-100) |
+| **Preprocessing** | StandardScaler (mean 0, std 1) |
+| **Key parameters** | K=5; `init='k-means++'`, `n_init=20`; Ward linkage; FCM m=2.0, tol=1e-5, 150 iterations |
+| **Results** | Silhouette: K-Means 0.5547, Hierarchical 0.5538, Bisecting 0.4807, FCM 0.5547; DB index ≈ 0.57; Calinski-Harabasz ≈ 249 (K-Means) |
 
-### Step-by-step (what the code does)
-1. **Import** clustering models, `StandardScaler`, three clustering metrics, scipy `linkage`/`dendrogram`.
-2. **Load** the CSV and print shape/head - exploratory check.
-3. **Preprocess:** keep the two features → `StandardScaler` (mean 0, std 1) so both dimensions contribute equally to Euclidean distance.
-4. **Choose K:** loop K = 2…10, fit K-Means, record inertia (WCSS) and silhouette → plot elbow + silhouette curves → elbow/peak at **K = 5**.
-5. **Final K-Means:** fit with K=5, `init='k-means++'`, `n_init=20`; print silhouette and Davies-Bouldin.
-6. **Modified K-Means:** K-Means++ is already used in the standard model; additionally fit `BisectingKMeans` which repeatedly splits the largest-inertia cluster with 2-means until 5 clusters exist; print metrics.
-7. **Hierarchical:** build the Ward linkage matrix → plot the dendrogram (horizontal cut ⇒ 5 clusters) → fit `AgglomerativeClustering(n_clusters=5, linkage='ward')`; print metrics.
-8. **FCM:** define the `FuzzyCMeans` class (random membership matrix U → alternate centroid update v_k = Σu_ik^m x_i / Σu_ik^m and membership update u_ik ∝ 1/d_ik^(2/(m-1)) until convergence) → fit → hard labels = argmax membership.
-9. **Visual summary:** one 2x2 figure showing all four partitions.
-10. **Evaluate:** table with Silhouette / Davies-Bouldin / Calinski-Harabasz for all four.
+## 2. How the algorithm works
+**K-Means (Lloyd's):** minimize the within-cluster sum of squares
+J = Σₖ Σ_{x∈Cₖ} ‖x − μₖ‖².
+1) Initialize K centroids; 2) assign each point to the nearest centroid; 3) set each centroid to the mean of its assigned points; 4) repeat until assignments stop changing. Each step never increases J, so it converges - but only to a **local** minimum, which is why initialization matters.
 
-### Key concepts
-- **K-Means objective:** minimize within-cluster sum of squares (inertia).
-- **K-Means++:** spreads initial centroids (probability ∝ squared distance to nearest centroid) → more stable, faster convergence.
-- **Bisecting K-Means:** divisive hierarchical variant; splits the worst cluster repeatedly - good, balanced cluster sizes.
-- **Ward linkage:** merge the pair of clusters whose merge increases within-cluster variance the least.
-- **FCM:** soft assignment; each point has membership degrees over all clusters that sum to 1; fuzzifier m controls fuzziness (m→1 ≈ hard K-Means).
-- **Elbow method:** inertia always drops with K - pick the "knee" where the drop slows.
-- **Silhouette:** (b-a)/max(a,b) per point; a = mean intra-cluster distance, b = mean nearest-cluster distance.
+**Modified variants:**
+- *K-Means++* picks the first centroid at random, then each next centroid with probability proportional to D(x)² = squared distance to the nearest chosen centroid. This spreads centroids out and avoids bad local minima.
+- *Bisecting K-Means* is divisive: start with one cluster, repeatedly split the cluster with the largest inertia using 2-means until K clusters exist. Gives more balanced sizes.
 
-### How to read the results
-- Silhouette 0.55 = reasonably well-separated clusters (0.5+ is good on real data).
-- Davies-Bouldin 0.57 (< 1 is good) - clusters are compact and separated.
-- FCM matches K-Means here (same silhouette) because the clusters are fairly separated; soft memberships matter most at boundaries.
-- Bisecting is slightly worse on this data (0.48) but gives more uniform cluster sizes.
+**Hierarchical (Ward):** start with N single-point clusters; repeatedly merge the pair (A,B) that increases within-cluster variance the least: ΔW(A,B) = (n_A n_B)/(n_A+n_B)·‖μ_A−μ_B‖². The dendrogram shows all merges; cutting it at a height gives the partition.
 
-### Likely questions
-- **Why standardize?** Distance-based algorithms: income (0-137) would dominate spending (1-99) without scaling.
-- **How did you pick K=5?** Elbow (inertia) + silhouette peak over K=2..10 both point to 5.
-- **Difference K-Means vs Fuzzy C-Means?** Hard vs soft membership; FCM tells you how ambiguous each point is.
-- **What exactly is "Modified K-Means"?** K-Means++ initialization and the Bisecting (divisive) variant - both fix weaknesses of plain random-init K-Means.
-- **Why did you show the dendrogram?** It visualizes the full merge hierarchy and justifies the horizontal cut that yields K=5.
-- **What does Calinski-Harabasz say?** Ratio of between-cluster to within-cluster dispersion; higher is better; K-Means/FCM scored highest (~249 vs ~151 for Bisecting).
+**Fuzzy C-Means:** soft version of K-Means. Each point x_i has membership u_ik ∈ [0,1] over all clusters with Σₖ u_ik = 1. Alternates:
+- centroid update: v_k = Σᵢ u_ik^m x_i / Σᵢ u_ik^m
+- membership update: u_ik = 1 / Σⱼ (d_ik/d_ij)^(2/(m−1))
+until memberships stop changing. Hard labels = argmax_k u_ik.
 
-### One-line summary
-"Four clustering algorithms compared on the same 2-feature scaled customer data; K=5 chosen by elbow+silhouette; K-Means/FCM give the best separation (silhouette 0.55)."
+## 3. Parameters & tuning
+| Parameter | Value | What it does | If increased | If decreased |
+|---|---|---|---|---|
+| `n_clusters` K | 5 | number of clusters | finer clusters; lower inertia | coarser; higher inertia |
+| `init` | `k-means++` | centroid seeding | — | `random` → unstable inertia across seeds |
+| `n_init` | 20 | restarts (best kept) | more stable, slower | faster, less stable |
+| `bisecting_strategy` | `biggest_inertia` | which cluster to split | — | `largest_cluster` splits by size |
+| FCM `m` | 2.0 | fuzziness | softer memberships | →1 hard K-Means |
+| FCM `tol` | 1e-5 | convergence tolerance | fewer iterations | more precise convergence |
+
+## 4. Step-by-step implementation (with key code)
+1. **Load + inspect** the CSV (shape, head).
+2. **Select 2 features + scale** - clustering is distance-based, so feature scales must match:
+```python
+X_mall = df_mall[['Annual Income (k$)', 'Spending Score (1-100)']].values
+scaler = StandardScaler()
+X_mall_scaled = scaler.fit_transform(X_mall)
+```
+3. **Choose K** by looping K=2…10 and recording inertia + silhouette:
+```python
+for k in k_range:
+    kmeans = KMeans(n_clusters=k, init='k-means++', n_init=10, random_state=42)
+    kmeans.fit(X_mall_scaled)
+    wcss.append(kmeans.inertia_)
+    silhouette_scores.append(silhouette_score(X_mall_scaled, kmeans.labels_))
+```
+Elbow + silhouette peak both point to K=5.
+4. **Final K-Means** (K=5):
+```python
+kmeans_model = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
+kmeans_labels = kmeans_model.fit_predict(X_mall_scaled)
+```
+5. **Bisecting variant:**
+```python
+bisecting_km = BisectingKMeans(n_clusters=5, random_state=42, bisecting_strategy='biggest_inertia')
+bisecting_labels = bisecting_km.fit_predict(X_mall_scaled)
+```
+6. **Hierarchical:** Ward linkage matrix → dendrogram → final fit:
+```python
+linkage_matrix = linkage(X_mall_scaled, method='ward')
+agg_model = AgglomerativeClustering(n_clusters=5, metric='euclidean', linkage='ward')
+agg_labels = agg_model.fit_predict(X_mall_scaled)
+```
+7. **FCM:** the custom class alternates the two update equations; the core loop:
+```python
+Um = U ** self.m
+centers = np.dot(Um.T, X) / Um.sum(axis=0)[:, np.newaxis]
+dist = np.linalg.norm(X[:, np.newaxis, :] - centers[np.newaxis, :, :], axis=2)
+U = inv_dist_p / inv_dist_p.sum(axis=1, keepdims=True)   # membership update
+```
+8. **Visual summary:** one 2x2 figure with all four partitions.
+9. **Evaluate:** silhouette, Davies-Bouldin, Calinski-Harabasz for each partition.
+
+## 5. Results & interpretation
+| Algorithm | Silhouette ↑ | Davies-Bouldin ↓ | Calinski-Harabasz ↑ |
+|---|---|---|---|
+| Standard K-Means | 0.5547 | 0.5722 | 248.65 |
+| Bisecting K-Means | 0.4807 | 0.6788 | 150.94 |
+| Hierarchical (Ward) | 0.5538 | 0.5779 | 244.41 |
+| Fuzzy C-Means | 0.5547 | 0.5722 | 248.65 |
+
+- Silhouette ≈ 0.55 means compact, well separated clusters (0.5+ is good on real data).
+- FCM converging to the same partition as K-Means shows the clusters are mostly unambiguous; soft memberships would matter more with overlapping groups.
+- Bisecting is slightly weaker here but produces more uniform cluster sizes - its advantage is robustness, not raw separation.
+
+## 6. Limitations & how to improve
+- K-Means assumes spherical, similar-sized clusters → fails on moons/circles (demonstrated in notebook 02).
+- Means are not robust: outliers pull centroids → K-Medoids or trimming would help.
+- K must be supplied externally → elbow/silhouette (used here), gap statistic, or BIC for GMMs.
+- FCM is O(N·K·d) per iteration and sensitive to initialization; multiple restarts recommended.
+
+## 7. Viva questions
+- **Why standardize?** Income (0-137) would dominate spending (1-99) in Euclidean distance.
+- **How was K chosen?** Elbow (inertia) + silhouette over K=2..10 → K=5.
+- **K-Means vs Fuzzy C-Means?** Hard vs soft membership; FCM quantifies ambiguity at boundaries.
+- **What exactly is "Modified K-Means"?** K-Means++ initialization and the Bisecting divisive variant.
+- **Why K-Means++ better than random init?** Probabilistic spread of seeds → lower and more consistent inertia.
+- **What does the dendrogram tell us?** The merge order and distances; the cut height determines K.
+- **Which metric is best for clustering?** No single one - silhouette + DB + CH together; ARI only if labels exist.
+- **Why is inertia not comparable across K?** It always decreases with K, so it cannot be a quality score.
+
+## 8. Common mistakes
+- Forgetting to scale features.
+- Treating inertia like accuracy (always decreases when K grows).
+- Reporting a single metric; clustering quality is multi-faceted.
+
+## 9. One-line summary
+"Four clustering algorithms on the same scaled customer data; K=5 chosen by elbow+silhouette; K-Means/FCM achieve the best separation (silhouette 0.55, DB 0.57)."
 
 ---
 
 # 02 – Density-Based Learning
 
-### Quick facts
+## 0. In one paragraph
+DBSCAN and HDBSCAN cluster a deliberately hard synthetic benchmark (two moons + two circles + one blob + uniform noise, 600 points) by density: points in dense regions form clusters and sparse points are labeled noise. ε is chosen from the k-distance elbow; both algorithms recover the 3 shape families with ARI ≈ 0.46 and flag ~4% outliers.
+
+## 1. Quick facts
 | | |
 |---|---|
-| **Algorithms** | DBSCAN and HDBSCAN |
-| **Dataset** | Synthetic: 2 interleaving moons + 2 concentric circles + 1 Gaussian blob + uniform noise = 600 points, 2D |
+| **Algorithms** | DBSCAN, HDBSCAN |
+| **Dataset** | Synthetic: moons (250) + circles (200) + blob (100) + uniform noise (50), 2D |
+| **Preprocessing** | StandardScaler |
 | **Key parameters** | DBSCAN: eps=0.22, min_samples=6. HDBSCAN: min_cluster_size=15, min_samples=6 |
-| **Result** | DBSCAN 3 clusters / 4.7% noise / ARI 0.4637; HDBSCAN 3 clusters / 3.7% noise / ARI 0.4578 |
+| **Results** | DBSCAN: 3 clusters, 28 noise (4.7%), ARI 0.4637, silhouette 0.434. HDBSCAN: 3 clusters, 22 noise (3.7%), ARI 0.4578 |
 
-### Step-by-step (what the code does)
-1. **Generate data** with `make_moons`, `make_circles`, `make_blobs` plus uniform random noise → stack into one matrix `X_raw`; build ground-truth labels (noise = -1).
-2. **Preprocess:** `StandardScaler` so ε is a comparable distance in both axes.
-3. **Choose ε:** for every point compute the distance to its 6th nearest neighbor; sort ascending and plot the **k-distance graph**; the "knee" (~0.22) marks where dense clusters transition to sparse noise.
-4. **DBSCAN:** fit with `eps=0.22, min_samples=6`; identify core points via `core_sample_indices_`; count clusters and noise; print ARI vs ground truth; plot core/border/noise points.
-5. **HDBSCAN:** fit with `min_cluster_size=15, min_samples=6` (no ε needed); count clusters/noise; print ARI; plot clusters + noise.
-6. **Evaluate:** summary table with clusters found, noise %, ARI, silhouette computed only on non-noise points.
+## 2. How the algorithm works
+**DBSCAN** defines clusters as connected regions of density:
+- **ε-neighborhood:** N_ε(p) = {q : dist(p,q) ≤ ε}.
+- **Core point:** |N_ε(p)| ≥ MinPts. **Border:** within ε of a core point but not core. **Noise:** neither.
+- Clusters are grown by chaining core points that are density-reachable; border points attach to a neighboring core's cluster. Everything else gets label −1.
+- Requires one global ε; struggles when clusters have different densities.
 
-### Key concepts
-- **ε-neighborhood:** all points within distance ε of a point.
-- **Core point:** has ≥ MinPts neighbors inside its ε-neighborhood. **Border:** within ε of a core point. **Noise:** neither (label -1).
-- **Density-reachability:** chains of core points connect into one cluster.
-- **DBSCAN limitation:** one global ε struggles when clusters have very different densities.
-- **HDBSCAN:** builds a hierarchy over all density scales (core distance → mutual reachability → minimum spanning tree → condensed tree), then keeps the most *stable* clusters. Outputs membership probabilities.
-- **ARI (Adjusted Rand Index):** agreement with ground truth corrected for chance.
+**HDBSCAN** removes ε:
+1. core distance d_core(p) = distance to its k-th nearest neighbor;
+2. mutual reachability d_mreach(a,b) = max{d_core(a), d_core(b), d(a,b)};
+3. build a minimum spanning tree over mutual reachability;
+4. convert to a cluster hierarchy and condense it (track births/deaths);
+5. keep clusters with the best stability S(C) = Σ (λ_p − λ_birth(C)).
+It also outputs membership probabilities.
 
-### How to read the results
-- ARI ≈ 0.46: moderate agreement - expected because the benchmark is deliberately hard (3 shape families + uniform noise).
-- Noise detection: DBSCAN 4.7%, HDBSCAN 3.7% - close to the true 50/600 ≈ 8.3% noise, both conservative.
-- Silhouette (non-noise) ≈ 0.43 - meaningful separation for non-convex shapes.
-- HDBSCAN finds the same 3 groups without any ε tuning.
+## 3. Parameters & tuning
+| Parameter | Value | What it does | If increased | If decreased |
+|---|---|---|---|---|
+| DBSCAN `eps` | 0.22 | neighborhood radius | fewer, bigger clusters; noise ↓ | more noise; clusters fragment |
+| DBSCAN `min_samples` | 6 | MinPts density threshold | more noise, fewer clusters | merges clusters, more border points |
+| HDBSCAN `min_cluster_size` | 15 | smallest allowed cluster | fewer/larger clusters | more small clusters |
+| HDBSCAN `min_samples` | 6 | conservativeness (k for core distance) | more noise, more conservative | more clusters |
 
-### Likely questions
-- **Why does K-Means fail on this data?** It assumes spherical clusters and splits the moons/circles with straight boundaries; also it cannot label noise.
-- **How is ε selected?** k-distance elbow heuristic with k = MinPts.
-- **What does MinPts control?** Minimum density for a region to be considered a cluster; larger = more noise, fewer clusters.
-- **DBSCAN vs HDBSCAN?** Fixed radius vs hierarchy over density levels; HDBSCAN removes the ε parameter and handles multi-density data.
-- **Why is silhouette computed without noise points?** Noise has no cluster, so it would distort the metric.
+## 4. Step-by-step implementation (with key code)
+1. **Build the composite dataset** (`make_moons`, `make_circles`, `make_blobs`, uniform noise) and stack into `X_raw`; ground-truth labels with noise = −1.
+2. **Scale** so ε means the same distance on both axes.
+3. **Choose ε** with the k-distance graph:
+```python
+nbrs = NearestNeighbors(n_neighbors=min_samples).fit(X)
+distances, _ = nbrs.kneighbors(X)
+k_distances = np.sort(distances[:, -1])        # 6th-NN distance, sorted
+```
+the knee ≈ 0.22.
+4. **DBSCAN fit + identify core points:**
+```python
+dbscan = DBSCAN(eps=0.22, min_samples=6)
+db_labels = dbscan.fit_predict(X)
+core_samples_mask = np.zeros_like(db_labels, dtype=bool)
+core_samples_mask[dbscan.core_sample_indices_] = True
+```
+5. Plot core (circles), border (triangles) and noise (black x).
+6. **HDBSCAN fit** (no ε):
+```python
+hdb = HDBSCAN(min_cluster_size=15, min_samples=6, store_centers='centroid', copy=False)
+hdb_labels = hdb.fit_predict(X)
+```
+7. Plot clusters + noise; **summary table** (ARI, noise %, silhouette on non-noise points).
 
-### One-line summary
-"Density-based methods find arbitrary-shaped clusters that K-Means cannot; ε from the k-distance knee; both algorithms recover the 3 shape families and flag outliers as noise."
+## 5. Results & interpretation
+| Algorithm | Clusters | Noise % | ARI ↑ | Silhouette (non-noise) ↑ |
+|---|---|---|---|---|
+| DBSCAN | 3 | 4.7% | 0.4637 | 0.4342 |
+| HDBSCAN | 3 | 3.7% | 0.4578 | 0.4334 |
+
+- ARI ≈ 0.46 = moderate agreement with the truth; the 3 shape families occupy 5 "true" groups (2 moons + 2 circles + 1 blob), so finding 3 clean density groups is a sensible compromise for DBSCAN/HDBSCAN.
+- Both label only ~4% as noise - close to the true 8.3% but conservative.
+- HDBSCAN finds the structure with zero parameter tuning for ε.
+
+## 6. Limitations & how to improve
+- DBSCAN's single ε fails on very different densities → HDBSCAN (used here) or OPTICS.
+- High dimensions degrade density estimates (curse of dimensionality) → reduce dimensions first (PCA/UMAP).
+- Both are sensitive to `min_samples`/`min_cluster_size`; sweep values if results look unstable.
+- Improve: tune eps on a validation heuristic; use HDBSCAN probabilities to filter uncertain assignments.
+
+## 7. Viva questions
+- **Why can't K-Means handle this dataset?** It forces spherical boundaries and cannot label noise.
+- **Define core/border/noise.** Core: ≥ MinPts within ε; border: in ε-neighborhood of a core; noise: neither.
+- **How is ε selected?** k-distance graph knee with k=MinPts (0.22 here).
+- **DBSCAN vs HDBSCAN?** Fixed radius vs hierarchy over density levels; HDBSCAN handles varying density and gives probabilities.
+- **What does MinPts control?** Minimum local density; larger → stricter clusters, more noise.
+- **What is ARI?** Chance-adjusted agreement with ground truth; 0 random, 1 perfect.
+- **Why exclude noise from silhouette?** Noise belongs to no cluster; including it distorts cohesion/separation.
+- **When would you still choose DBSCAN?** When densities are uniform and you want speed/simplicity.
+
+## 8. Common mistakes
+- Using unscaled features → ε becomes meaningless.
+- Expecting DBSCAN to find the "true" cluster count on multi-density data.
+- Evaluating density clusters with accuracy-style metrics.
+
+## 9. One-line summary
+"Density-based clustering finds arbitrary shapes and outliers where K-Means fails: ε=0.22 from the k-distance knee, both methods recover the 3 shape families (ARI ≈ 0.46) while flagging ~4% noise."
 
 ---
 
 # 03 – Semi-Supervised Learning
 
-### Quick facts
+## 0. In one paragraph
+With only 15% of the training labels available (61 of 398) on Breast Cancer, a self-training classifier wraps an RBF SVC and iteratively converts its most confident predictions on the unlabeled pool into pseudo-labels. This lifts test accuracy from 0.9298 (baseline) to 0.9415, partially closing the gap to the 100%-label ceiling (0.9766).
+
+## 1. Quick facts
 | | |
 |---|---|
-| **Algorithm** | Self-Training Classifier with an RBF-kernel SVC base estimator |
-| **Dataset** | Breast Cancer Wisconsin (569 samples, 30 features, binary) |
-| **Setup** | 70/30 stratified split. Training set 398 samples: only **15% (61) labeled**, 85% (337) masked -1 (unlabeled). Test: 171 samples |
-| **Key parameters** | threshold τ=0.80, max_iter=15, SVC(C=1, RBF, probability=True) |
-| **Result** | baseline 0.9298 / F1 0.9469 → self-training **0.9415 / 0.9554** → fully supervised ceiling 0.9766 / 0.9813 |
+| **Algorithm** | Self-Training Classifier (`SelfTrainingClassifier`) with SVC (RBF, probability=True) |
+| **Dataset** | Breast Cancer Wisconsin: 569 x 30, binary; 70/30 stratified split |
+| **Semi-supervised setup** | Training = 398 samples: 61 labeled (15%), 337 masked −1 (unlabeled); test = 171 |
+| **Key parameters** | threshold τ=0.80, criterion='threshold', max_iter=15, SVC(C=1.0) |
+| **Results** | Baseline 0.9298 / F1 0.9469 → Self-training **0.9415 / 0.9554** → Ceiling 0.9766 / 0.9813; 321 pseudo-labels added over 4 iterations, stop reason `no_change` |
 
-### Step-by-step (what the code does)
-1. **Import** self-training wrapper, SVC, metrics; load Breast Cancer.
-2. **Split** train/test with `stratify=y` to keep the class ratio (this matters - the test set must mirror the real distribution).
-3. **Scale** features: `StandardScaler` fit on training data only (no test leakage).
-4. **Hide labels:** generate a random mask; 85% of training labels set to `-1` (scikit-learn's "unlabeled" convention). Count and print labeled/unlabeled.
-5. **Baseline:** SVC trained only on the 61 labeled samples → test accuracy/F1.
-6. **Self-training:** wrap the SVC in `SelfTrainingClassifier(threshold=0.80, max_iter=15)` and fit on **all 398 training samples** (labeled + unlabeled). The wrapper iteratively: predicts probabilities → adds predictions with confidence ≥ 0.80 as pseudo-labels → refits. It printed 4 iterations, then stopped (`no_change`); 321 pseudo-labels were added.
-7. **Ceiling:** train the same SVC on all 398 true labels for an upper reference.
-8. **Summary table** comparing the three.
+## 2. How the algorithm works
+Given labeled set L and unlabeled pool U:
+1. train classifier f on L;
+2. compute f's class probabilities on U;
+3. select samples with max P(y|x) ≥ τ and add (x, argmax) to L as **pseudo-labels**;
+4. remove them from U;
+5. repeat until no new labels pass the threshold or max_iter is reached.
+The model never sees the test set. The threshold τ controls the purity/quantity trade-off: low τ pollutes training with mistakes (**confirmation bias**), high τ accepts almost nothing.
 
-### Key concepts
-- **Semi-supervised learning:** use a small labeled set + a large unlabeled set.
-- **Pseudo-labeling:** treat confident predictions as if they were true labels.
-- **Confidence threshold τ:** controls the purity/quantity trade-off; too low → wrong labels pollute training ("confirmation bias"); too high → too few labels added.
-- **Self-training loop:** train → predict → select confident → augment → repeat.
-- **Why `probability=True`?** The wrapper needs `predict_proba`; SVC normally outputs only decision values, so Platt scaling is enabled.
+## 3. Parameters & tuning
+| Parameter | Value | What it does | If increased | If decreased |
+|---|---|---|---|---|
+| `threshold` τ | 0.80 | confidence needed for a pseudo-label | fewer but purer pseudo-labels | more labels, more errors |
+| `criterion` | `threshold` | selection rule | — | `k_best` picks fixed count instead |
+| `max_iter` | 15 | max self-training rounds | more chances to label, slower | may stop too early |
+| SVC `probability` | True | enables `predict_proba` | — | no probabilities → wrapper unusable |
+| SVC `C` | 1.0 | margin penalty | stricter fit | softer margin |
 
-### How to read the results
-- Self-training adds **+1.2 accuracy points** over the 15%-labeled baseline using *no extra human labels*.
-- It stays below the 100%-labeled ceiling (0.977) - expected, pseudo-labels are noisier than true labels.
-- 382/398 samples ended up labeled → almost the whole unlabeled pool was used.
-- Convergence behavior: labels added per iteration dropped 292 → 22 → 5 → 2 then stopped - a healthy sign (no runaway confirmation bias).
+## 4. Step-by-step implementation (with key code)
+1. **Load + split + scale** (fit scaler on train only, stratify to preserve class ratio).
+2. **Mask labels to simulate scarcity:**
+```python
+random_unlabeled_points = rng.rand(len(y_train_full)) < 0.85
+y_train_semi = np.copy(y_train_full)
+y_train_semi[random_unlabeled_points] = -1        # -1 = unlabeled convention
+```
+3. **Baseline:** SVC trained only on `y_train_semi != -1` (61 samples).
+4. **Self-training:**
+```python
+self_training_svc = SelfTrainingClassifier(
+    estimator=SVC(kernel='rbf', probability=True, C=1.0, random_state=42),
+    threshold=0.80, criterion='threshold', max_iter=15, verbose=True)
+self_training_svc.fit(X_train_full_scaled, y_train_semi)   # labeled + unlabeled
+```
+The wrapper logs: iter1 +292 labels, iter2 +22, iter3 +5, iter4 +2, then `no_change`.
+5. **Ceiling:** same SVC trained on all 398 true labels.
+6. **Summary table** comparing accuracy/F1 for the three settings.
 
-### Likely questions
-- **Why did accuracy improve?** Confident pseudo-labels expose the classifier to the structure of the unlabeled data.
-- **What if τ was 0.60 or 0.99?** Lower τ risks wrong pseudo-labels; higher τ accepts almost nothing and behaves like the baseline.
-- **How do you detect confirmation bias?** Watch iteration counts and validation performance; here the additions decayed quickly.
-- **Why is the test set untouched during self-training?** It simulates real deployment - the model never sees test labels.
+## 5. Results & interpretation
+| Setting | Accuracy | F1 | Training samples |
+|---|---|---|---|
+| Baseline (15% labeled) | 0.9298 | 0.9469 | 61 |
+| Self-training | **0.9415** | **0.9554** | 382 |
+| Fully supervised ceiling | 0.9766 | 0.9813 | 398 |
 
-### One-line summary
-"With only 15% of labels, self-training on the unlabeled pool recovered about 1.2 accuracy points without any new human annotations."
+- Self-training gains +1.2 accuracy points over the baseline with no extra human labeling.
+- 382/398 samples eventually received labels; the decaying label additions (292→22→5→2) indicate stable convergence rather than runaway error accumulation.
+- The remaining gap to the ceiling is the price of noisy pseudo-labels.
+
+## 6. Limitations & how to improve
+- Confirmation bias: wrong confident predictions reinforce themselves → use curriculum thresholds (start low, raise), or co-training with two views.
+- Assumes the unlabeled data comes from the same distribution as the labeled data.
+- Base estimator must expose probabilities → SVC needs Platt calibration (`probability=True`).
+- Improve: label propagation, contrastive/self-supervised pretraining, or active learning for the most uncertain points.
+
+## 7. Viva questions
+- **What is self-training?** Iterative pseudo-labeling of confident unlabeled predictions.
+- **Why did accuracy improve?** Pseudo-labels expose the classifier to the unlabeled distribution.
+- **What is confirmation bias?** The model reinforcing its own mistakes when pseudo-labels are wrong.
+- **How do you choose τ?** Trade-off: high confidence = purity but fewer labels; 0.80 balanced here (converged in 4 iterations).
+- **Why `probability=True`?** The wrapper needs `predict_proba` to compute confidence.
+- **Why a stratified split?** To keep the malignant/benign ratio identical in train and test.
+- **Could you use unlabeled test data?** No - transductive use of the test set would break the evaluation.
+- **What's the ceiling?** Fully supervised accuracy with all labels - the upper bound self-training approaches.
+
+## 8. Common mistakes
+- Letting the test set participate in pseudo-labeling (leakage).
+- Using too low a threshold and reporting the inflated training accuracy.
+- Forgetting that pseudo-labels are not ground truth in the error analysis.
+
+## 9. One-line summary
+"Self-training with 85% hidden labels recovers +1.2 accuracy points on Breast Cancer (0.9298 → 0.9415) by iteratively adding high-confidence pseudo-labels, while staying below the fully supervised ceiling."
 
 ---
 
 # 04 – Ensemble Learning
 
-### Quick facts
+## 0. In one paragraph
+Five ensemble methods are implemented: Random Forest Regression and Classification (bagging) plus XGBoost, AdaBoost and CatBoost (boosting). Regression runs on a 5,000-row California Housing sample and classification on Heart Disease. Gradient boosting wins the regression benchmark (XGBoost R² 0.8025, CatBoost 0.8029), Random Forest gives a robust baseline with free OOB validation (0.7415), and RFC classifies heart disease at ROC-AUC 0.87.
+
+## 1. Quick facts
 | | |
 |---|---|
-| **Algorithms** | Random Forest Regression (RFR), XGBoost, AdaBoost, CatBoost (regression) + Random Forest Classification (RFC) |
-| **Datasets** | California Housing (5,000-row sample, 8 features) for regression; Heart Disease (`data/heart_disease.csv`, 303 rows) for classification |
-| **Key parameters** | RFR 150 trees/depth 12; XGB 150 trees, lr 0.08, depth 6, subsample 0.8; AdaBoost 100, lr 0.1; CatBoost 200 iters, depth 6, L2 3; RFC 120 trees/depth 8 |
-| **Result** | XGBoost R² 0.8025 / CatBoost 0.8029 / RFR 0.7415 / AdaBoost 0.5888. RFC: acc 0.7763, F1 0.8046, ROC-AUC 0.8704 |
+| **Algorithms** | RFR, RFC, XGBoost, AdaBoost, CatBoost |
+| **Datasets** | California Housing (5,000 x 8, regression); Heart Disease (303 x 13, classification) |
+| **Key parameters** | RFR 150 trees/depth 12; XGB 150 trees, lr 0.08, depth 6, subsample 0.8; AdaBoost 100, lr 0.1; CatBoost 200 iters, depth 6; RFC 120 trees/depth 8 |
+| **Results** | R²: XGB 0.8025, Cat 0.8029, RFR 0.7415 (OOB 0.7513), Ada 0.5888. RFC: acc 0.7763, F1 0.8046, AUC 0.8704 |
 
-### Step-by-step (what the code does)
-1. **Load & sample** California Housing (5,000 rows for speed), 80/20 train/test split.
-2. **RFR:** bag 150 trees on bootstrap samples; each split considers a random feature subset; average predictions; report OOB R², test R², RMSE, MAE.
-3. **XGBoost:** gradient-boosted trees; each round fits a tree to the 1st/2nd-order gradients (Taylor expansion) of the squared loss with L1/L2 regularization and subsampling; report metrics.
-4. **AdaBoost:** sequentially re-weight samples - mispredicted points get bigger weights; final prediction = weighted median; report metrics.
-5. **CatBoost:** ordered boosting (avoids target leakage) with oblivious (symmetric) trees; report metrics.
-6. **Comparison table** of the four regressors (highlight best R², lowest errors).
-7. **Classification (RFC):** load heart CSV, one-hot encode categoricals, stratified 75/25 split, fit 120-tree forest; report accuracy/F1/ROC-AUC.
+## 2. How the algorithm works
+**Bagging (Random Forest):** train B trees on bootstrap samples, each split considers a random feature subset; regression averages outputs, classification takes a majority vote. Averaging decorrelated trees reduces **variance**. OOB score: each tree is validated on the ~37% of samples it did not receive.
 
-### Key concepts
-- **Bagging (Random Forest):** parallel trees on bootstrap samples + random feature subsets → reduces **variance**; the average is more stable than a single tree.
-- **OOB score:** each tree validates on the ~37% of samples it never saw (bootstrap out-of-bag) → free internal validation.
-- **Boosting:** sequential models, each correcting the previous ensemble's errors → reduces **bias**.
-- **XGBoost:** 2nd-order (Newton) boosting with explicit regularization Ω(f) = γT + ½λΣw².
-- **AdaBoost:** exponential loss, sample re-weighting; sensitive to noisy/outlier points.
-- **CatBoost:** ordered boosting + symmetric trees + native categorical handling (target statistics on permutations).
-- **Why RFC for classification?** Majority vote of trees; `predict_proba` gives probability of the positive class for ROC-AUC.
+**Boosting:** sequential models where each new learner focuses on the current ensemble's errors → reduces **bias**.
+- **AdaBoost:** increase weights of mispredicted samples; learner weight α_m = ½ ln((1−ε_m)/ε_m); final = weighted vote (classification) or weighted median (regression).
+- **XGBoost:** 2nd-order Taylor expansion of the loss: L ≈ Σ[g_i f_t(x_i) + ½ h_i f_t²(x_i)] + Ω(f), with Ω(f) = γT + ½λΣw_j². Gradients/Hessians drive tree growth; subsampling + regularization fight overfitting.
+- **CatBoost:** ordered boosting (compute leaf values on permutations to avoid target leakage/prediction shift) + oblivious (symmetric) trees; strong native handling of categorical features.
 
-### How to read the results
-- XGBoost and CatBoost essentially tie at the top (R² ≈ 0.80, RMSE ≈ 0.516) - both are gradient boosting with regularization.
-- RFR 0.7415 is respectable for out-of-the-box settings; OOB 0.7513 ≈ test 0.7415 → no overfit-signs.
-- AdaBoost 0.5888 is clearly weaker - exponential loss is sensitive to outliers in housing prices.
-- RMSE/MAE are in $100k units (target MedHouseVal): RMSE 0.516 ≈ $51.6k average error.
-- RFC on heart: AUC 0.87 = good discriminative power for a small dataset; accuracy 0.776 with class-imbalance-aware F1 0.80.
+## 3. Parameters & tuning
+| Parameter | Value | Effect | If increased | If decreased |
+|---|---|---|---|---|
+| `n_estimators` | 150-200 | number of trees/rounds | better fit, slower, risk of overfit (boosting) | underfit |
+| `learning_rate` (boosting) | 0.08-0.1 | step size per round | faster fit, less stable | slower, usually better generalization |
+| `max_depth` | 4-12 | tree complexity | captures interactions, overfits | underfits |
+| `subsample`/`colsample_bytree` | 0.8 | row/column sampling | (higher) less regularization | more stochastic, regularized |
+| `reg_lambda`/`reg_alpha` | 1.0 / 0.1 | L2/L1 penalties | stronger regularization | weaker |
+| `l2_leaf_reg` (CatBoost) | 3.0 | leaf penalty | smoother leaves | sharper leaves |
 
-### Likely questions
+## 4. Step-by-step implementation (with key code)
+1. **Load + sample** California Housing; 80/20 split.
+2. **RFR with OOB:**
+```python
+rf_reg = RandomForestRegressor(n_estimators=150, max_depth=12, oob_score=True, random_state=42, n_jobs=-1)
+rf_reg.fit(X_train_reg, y_train_reg)
+print(rf_reg.oob_score_, r2_score(y_test_reg, rf_reg.predict(X_test_reg)))
+```
+3. **XGBoost:**
+```python
+xgb_reg = xgb.XGBRegressor(n_estimators=150, learning_rate=0.08, max_depth=6,
+                           subsample=0.8, colsample_bytree=0.8,
+                           reg_alpha=0.1, reg_lambda=1.0, random_state=42)
+```
+4. **AdaBoost:** `AdaBoostRegressor(n_estimators=100, learning_rate=0.1, random_state=42)`.
+5. **CatBoost:** `CatBoostRegressor(iterations=200, learning_rate=0.08, depth=6, l2_leaf_reg=3.0, verbose=False)`.
+6. **Comparison table** with R², RMSE, MAE.
+7. **RFC:** one-hot encode heart data, stratified split, fit:
+```python
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+```
+then accuracy / F1 / ROC-AUC on the test set.
+
+## 5. Results & interpretation
+| Model | R² ↑ | RMSE ↓ | MAE ↓ |
+|---|---|---|---|
+| Random Forest Regressor | 0.7415 (OOB 0.7513) | 0.5908 | 0.3999 |
+| AdaBoost Regressor | 0.5888 | 0.7452 | 0.5842 |
+| XGBoost Regressor | 0.8025 | 0.5165 | 0.3467 |
+| CatBoost Regressor | 0.8029 | 0.5160 | 0.3535 |
+
+- XGBoost/CatBoost tie at the top (R² ≈ 0.80): both are regularized gradient boosting.
+- RFR's OOB (0.7513) ≈ test R² (0.7415) → no overfitting, and the OOB estimate is free.
+- AdaBoost is weakest: exponential loss is sensitive to noisy/outlier house prices.
+- RMSE is in $100k units (target MedHouseVal): 0.516 ≈ $51.6k average error.
+- RFC on heart: accuracy 0.7763, F1 0.8046, ROC-AUC 0.8704 → good ranking quality on a small dataset.
+
+## 6. Limitations & how to improve
+- Hyperparameters were fixed, not tuned → grid search/random search would gain a few points.
+- California sample (5k) loses some geographic diversity; full data would help.
+- AdaBoost assumptions (low noise) are violated by housing data.
+- Improvements: hyperparameter search, early stopping for boosting rounds, feature engineering (distance to coast), target transforms.
+
+## 7. Viva questions
 - **Bagging vs boosting?** Parallel variance reduction vs sequential bias reduction.
-- **Why does XGBoost beat AdaBoost here?** Regularized 2nd-order optimization vs sensitive exponential loss on noisy data.
-- **What does CatBoost add?** Better categorical handling and reduced target leakage - but here all data is numeric, so it ties XGBoost.
-- **Is RFR overfitting?** No: OOB ≈ test R², and more trees always reduce variance without overfitting.
-- **What is ROC-AUC?** Probability that a random positive is ranked above a random negative; 0.5 = random, > 0.8 = good.
+- **What is OOB and why is it useful?** Free validation from bootstrap out-of-bag samples; no extra split needed.
+- **Why does XGBoost beat AdaBoost here?** Regularized 2nd-order optimization vs sensitive exponential loss.
+- **What makes CatBoost special?** Ordered boosting + symmetric trees + native categorical support.
+- **RFR vs RFC?** Regression averages tree values; classification votes/is prob-averages.
+- **What is ROC-AUC?** Probability a random positive is ranked above a random negative (0.5 = random).
+- **Why subsample rows/columns?** Stochasticity decorrelates trees/rounds and regularizes.
+- **How would you detect overfitting in boosting?** Validation curve turning up while training loss falls; fix with lower depth/lr or early stopping.
 
-### One-line summary
-"Five ensembles benchmarked: gradient-boosted XGBoost/CatBoost lead regression (R² 0.80), Random Forest gives a strong baseline plus OOB validation, and RFC handles the heart-disease classification at AUC 0.87."
+## 8. Common mistakes
+- Comparing RMSE across different target units/transforms.
+- Reading OOB as test performance for models other than bagging (boosting has no OOB).
+- Forgetting `stratify` for the imbalanced heart target.
+
+## 9. One-line summary
+"Five ensembles on two tasks: gradient boosting (XGBoost/CatBoost) leads housing regression at R² ≈ 0.80, Random Forest provides a variance-reduced baseline with free OOB validation, and RFC classifies heart disease at AUC 0.87."
 
 ---
 
 # 05 – Multilayer Perceptron (MLP)
 
-### Quick facts
+## 0. In one paragraph
+Two MLP implementations classify 8x8 handwritten digits: a scikit-learn `MLPClassifier` (128-64 ReLU, early stopping) reaching 0.9630 test accuracy, and a custom PyTorch network (64→128→64→10 with BatchNorm + Dropout, Adam + LR scheduling) reaching **0.9889**. The notebook covers the full training loop, validation tracking, and per-class evaluation.
+
+## 1. Quick facts
 | | |
 |---|---|
-| **Algorithms** | MLP with scikit-learn (`MLPClassifier`) and a custom PyTorch deep MLP |
-| **Dataset** | Handwritten digits, 1,797 samples, 8x8 = 64 features, 10 classes |
-| **Split** | 70% train / 15% validation / 15% test (stratified) |
-| **Key parameters** | sklearn: (128,64) ReLU, Adam, alpha=0.001, early stopping. PyTorch: 64→128→64→10, BatchNorm + Dropout(0.25/0.20), CrossEntropyLoss, Adam lr 0.003 + weight decay 1e-4, batch 32, 50 epochs, ReduceLROnPlateau |
-| **Result** | sklearn 0.9630 test accuracy (15 iterations); PyTorch **0.9889** test accuracy |
+| **Algorithms** | Scikit-Learn MLPClassifier; custom PyTorch `DeepMLP` |
+| **Dataset** | Digits: 1,797 samples, 64 features (8x8), 10 classes |
+| **Split** | 70% train / 15% validation / 15% test, stratified |
+| **Key parameters** | sklearn: (128,64), ReLU, Adam, alpha=0.001, early stopping. PyTorch: BatchNorm + Dropout(0.25/0.20), CrossEntropyLoss, Adam lr 0.003, weight decay 1e-4, batch 32, 50 epochs, ReduceLROnPlateau |
+| **Results** | sklearn 0.9630 (15 iterations); PyTorch **0.9889** test accuracy |
 
-### Step-by-step (what the code does)
-1. **Load digits**, print shape; split train/val/test with stratification; `StandardScaler` fit on train only.
-2. **sklearn MLP:** build `MLPClassifier(hidden_layer_sizes=(128,64), activation='relu', solver='adam', alpha=0.001, batch_size=64, early_stopping=True, validation_fraction=0.15)`; fit; test accuracy; plot training loss curve (and validation error).
-3. **PyTorch MLP:** wrap arrays in Tensors/DataLoaders (shuffle train only, batch 32); define `DeepMLP` = Linear→BatchNorm→ReLU→Dropout ×2 then Linear(10).
-4. **Training loop (50 epochs):** for each batch - forward pass, `CrossEntropyLoss`, `backward()`, Adam step; after each epoch - validation pass under `torch.no_grad()`; scheduler reduces LR when validation loss plateaus; track loss/accuracy history.
-5. **Final evaluation:** predict the test set and print a per-class classification report.
+## 2. How the algorithm works
+An MLP stacks fully connected layers with non-linear activations:
+a⁽¹⁾ = σ(W⁽¹⁾x + b⁽¹⁾), …, ŷ = softmax(W⁽ᴸ⁺¹⁾a⁽ᴸ⁾ + b⁽ᴸ⁺¹⁾).
+Training minimizes cross-entropy L = −Σᵢ Σₖ y_ik ln ŷ_ik (+ L2 penalty) with backpropagation:
+1. forward pass → predictions; 2. loss; 3. backward pass (chain rule) → gradients; 4. optimizer update. Repeat over mini-batches/epochs.
 
-### Key concepts
-- **Forward pass:** a⁽ˡ⁾ = σ(W⁽ˡ⁾a⁽ˡ⁻¹⁾ + b⁽ˡ⁾); output layer = 10 logits.
-- **Cross-entropy loss:** −Σ y·ln(ŷ) after softmax; standard for multi-class.
-- **Backpropagation:** chain rule to get gradients; optimizer updates weights.
-- **ReLU:** cheap non-linearity avoiding sigmoid saturation.
-- **BatchNorm:** normalizes layer inputs → stable/faster training.
-- **Dropout:** randomly zeroes neurons → regularization against overfitting.
-- **Early stopping:** stop when validation stops improving (sklearn model used only 15 iterations).
-- **Why a validation set?** Tune/stop without touching the test set.
+Regularization used here:
+- **BatchNorm:** normalizes each layer's activations → stable, faster training.
+- **Dropout:** randomly zeros neurons during training → prevents co-adaptation/overfitting.
+- **Early stopping / LR scheduling:** stop or shrink the step when validation stalls.
 
-### How to read the results
-- sklearn: 96.3% after only 15 iterations (early stopping kicked in).
-- PyTorch: **98.89%** - BatchNorm + Dropout + more epochs + LR scheduling helped.
-- Loss curve: train loss 1.20 → 0.01; validation loss tracked it without exploding → no severe overfitting.
-- Per-class report: almost all digits ≈ 1.00 precision/recall; a few confusions between visually similar digits (e.g., 8/1, 9/4) are typical.
+## 3. Parameters & tuning
+| Parameter | Value | Effect | If increased | If decreased |
+|---|---|---|---|---|
+| Hidden layers | (128, 64) / (128, 64) | capacity | more capacity, overfit risk | underfit |
+| Activation | ReLU | non-linearity | — | sigmoid/tanh saturate (vanishing gradients) |
+| `alpha` / `weight_decay` | 0.001 / 1e-4 | L2 regularization | smoother weights, underfit | overfit |
+| Dropout | 0.25 / 0.20 | neuron dropout | stronger regularization | weaker |
+| `learning_rate` | 0.005 / 0.003 | step size | unstable/diverges | very slow |
+| `batch_size` | 64 / 32 | gradient noise | smoother but slower updates | noisier, regularizing |
 
-### Likely questions
-- **Why is the PyTorch model better?** More regularization and a longer, scheduled training (LR reduction on plateau); the sklearn model stops at iteration 15.
-- **What loss and why?** Categorical cross-entropy - it directly penalizes wrong class probabilities.
-- **What is Dropout doing at test time?** Nothing - it's disabled (model.eval()); BatchNorm switches to running statistics.
-- **What would you change to improve further?** Data augmentation, deeper/wider layers, hyperparameter search, CNN for image data.
+## 4. Step-by-step implementation (with key code)
+1. **Load + split + scale** (scaler fit on train only).
+2. **sklearn MLP:**
+```python
+mlp_sklearn = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam',
+                            alpha=0.001, batch_size=64, learning_rate_init=0.005,
+                            max_iter=150, early_stopping=True, validation_fraction=0.15)
+mlp_sklearn.fit(X_train_scaled, y_train)
+```
+stopped after 15 iterations with 0.9630 test accuracy.
+3. **PyTorch model:**
+```python
+self.net = nn.Sequential(
+    nn.Linear(64, 128), nn.BatchNorm1d(128), nn.ReLU(), nn.Dropout(0.25),
+    nn.Linear(128, 64), nn.BatchNorm1d(64),  nn.ReLU(), nn.Dropout(0.20),
+    nn.Linear(64, 10))
+```
+4. **Training loop** (50 epochs):
+```python
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.003, weight_decay=1e-4)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
+# each batch: optimizer.zero_grad(); loss = criterion(model(x), y); loss.backward(); optimizer.step()
+# each epoch: validation pass under torch.no_grad(); scheduler.step(val_loss)
+```
+5. **Final evaluation:** accuracy + per-class classification report on the test set.
 
-### One-line summary
-"Two MLP implementations on 8x8 digits; the custom PyTorch network with BatchNorm + Dropout reaches 98.9% test accuracy vs 96.3% for the early-stopped scikit-learn baseline."
+## 5. Results & interpretation
+- sklearn: 0.9630 test accuracy, converged in 15 iterations (early stopping prevented overfitting).
+- PyTorch: **0.9889** (270 test images, 3 mistakes). Train loss fell 1.20 → 0.01; validation loss stayed in the same range → no severe overfitting.
+- Per-class report: nearly all digits have precision/recall ≈ 1.00; residual errors are visually similar digits.
+- Validation accuracy (0.9889 at epoch 50) matches test accuracy → the validation split was representative.
+
+## 6. Limitations & how to improve
+- MLPs ignore spatial structure of images (a CNN is the right tool for digits).
+- Fixed architecture - no systematic hyperparameter search.
+- Small dataset (1,797) → augmentation/regularization matter.
+- Improvements: CNN, data augmentation, dropout tuning, learning-rate warmup, ensembling.
+
+## 7. Viva questions
+- **What loss and why?** Categorical cross-entropy; directly penalizes wrong class probabilities.
+- **Why ReLU?** Non-saturating gradient, fast to compute.
+- **What do BatchNorm and Dropout do?** Stabilize training / regularize to prevent overfitting.
+- **Difference between parameters and hyperparameters?** Weights/biases are learned; layers, LR, dropout are chosen.
+- **Why did you need a validation set?** For early stopping and LR scheduling without touching the test set.
+- **What is backpropagation?** Reverse-mode chain rule computing gradients layer by layer.
+- **Why is PyTorch better than sklearn here?** BatchNorm + Dropout + longer scheduled training; sklearn stopped at iteration 15.
+- **How do you detect overfitting?** Train loss much lower than validation loss while validation worsens.
+
+## 8. Common mistakes
+- Scaling the test set with statistics from the test set (leakage).
+- Forgetting `model.eval()` before evaluation (Dropout/BatchNorm behave differently).
+- Comparing accuracies without checking the same split/seed.
+
+## 9. One-line summary
+"Two MLP implementations on 8x8 digits: scikit-learn reaches 96.3% with early stopping, while the custom PyTorch network with BatchNorm + Dropout and LR scheduling reaches 98.9% test accuracy."
 
 ---
 
 # 06 – Recurrent Neural Network (RNN)
 
-### Quick facts
+## 0. In one paragraph
+A vanilla Elman RNN and an LSTM forecast monthly airline passenger counts from the previous 12 months. After a chronological 80/20 split, both train identically (2 layers, hidden 64, MSE, Adam, 120 epochs). The LSTM achieves RMSE 42.17 vs 70.83 passengers for the vanilla RNN - a direct demonstration that gated memory handles long-range seasonality better.
+
+## 1. Quick facts
 | | |
 |---|---|
-| **Algorithms** | Vanilla RNN (Elman) and LSTM (both PyTorch) |
-| **Dataset** | Monthly Airline Passengers (`data/airline_passengers.csv`), 144 months |
-| **Preprocessing** | MinMaxScaler to [0,1]; sliding windows of 12 months → next month |
-| **Split** | Chronological 80/20: 105 train / 27 test sequences (no shuffling) |
-| **Key parameters** | 2 layers, hidden 64, Linear(64,1), MSE loss, Adam lr 0.005, 120 epochs |
-| **Result** | Vanilla RNN RMSE 70.83 / MAE 63.16 · **LSTM RMSE 42.17 / MAE 34.88** (passengers) |
+| **Algorithms** | Vanilla RNN (`nn.RNN`), LSTM (`nn.LSTM`), both PyTorch |
+| **Dataset** | `data/airline_passengers.csv`, 144 monthly values (1949-1960) |
+| **Preprocessing** | MinMaxScaler → [0,1]; sliding windows: 12 months → next month |
+| **Split** | Chronological 80/20 → 105 train / 27 test sequences; no shuffling |
+| **Key parameters** | 2 layers, hidden 64, Linear(64,1), MSELoss, Adam lr 0.005, 120 epochs, batch 16 |
+| **Results** | Vanilla RNN RMSE 70.83 / MAE 63.16; **LSTM RMSE 42.17 / MAE 34.88** |
 
-### Step-by-step (what the code does)
-1. **Load** the CSV; keep the `Passengers` column as float32.
-2. **Normalize** to [0,1] with MinMaxScaler - RNNs train poorly on large raw values.
-3. **Build sequences:** for each t, input = months t-12…t-1, target = month t (`create_sequences`).
-4. **Split chronologically** (first 80% train, last 20% test) and wrap in a DataLoader (shuffle train only, batch 16).
-5. **Define models:** `VanillaRNN` = `nn.RNN(input=1, hidden=64, layers=2)` + Linear; `LSTMModel` = `nn.LSTM(...)` + Linear; both take the **last time step's** hidden state.
-6. **Train** each model with the same function: MSE loss, Adam, 120 epochs, BPTT (loss.backward through time), track epoch loss.
-7. **Evaluate:** predict the test windows, invert scaling to real passenger counts, compute RMSE/MAE, print the comparison table.
-8. **Plot:** full history + test ground truth + both forecasts, with a vertical train/test cutoff line.
+## 2. How the algorithm works
+**Vanilla RNN:** h_t = tanh(W_ih x_t + b_ih + W_hh h_{t−1} + b_hh); output from the last step ŷ = W_ho h_T + b_o. Trained with backpropagation through time (BPTT). Problem: repeated multiplication by W_hh makes gradients vanish (or explode) over long sequences.
 
-### Key concepts
-- **Recurrent cell:** h_t = tanh(W_ih x_t + b + W_hh h_{t-1} + b_hh) - carries a memory of past inputs.
-- **BPTT:** backpropagation through time - gradients flow through every time step.
-- **Vanishing gradient:** repeated multiplications by W_hh shrink gradients exponentially → vanilla RNN forgets long-range patterns.
-- **LSTM gates:** forget f_t (drop old memory), input i_t + candidate c̃_t (write new memory), output o_t; cell state c_t = f_t⊙c_{t-1} + i_t⊙c̃_t is an additive "conveyor belt" that preserves gradients.
-- **Why 12-month lookback?** Captures the annual seasonality cycle.
-- **Why no shuffle?** Shuffling sequences would leak future info into training.
+**LSTM:** adds a cell state c_t with gates:
+- forget: f_t = σ(W_f x_t + U_f h_{t−1} + b_f),
+- input: i_t = σ(...), candidate: c̃_t = tanh(...),
+- cell update: c_t = f_t ⊙ c_{t−1} + i_t ⊙ c̃_t (additive → gradients flow),
+- output: o_t = σ(...), h_t = o_t ⊙ tanh(c_t).
 
-### How to read the results
-- LSTM RMSE 42.2 vs RNN 70.8 passengers - the gap directly shows the benefit of gating on 12-step dependencies.
-- MAE ~35 passengers for a series averaging ~280/month ≈ 12% error; respects both trend and seasonality visually.
-- Loss curves both decrease; LSTM converges lower.
+**Why sliding windows?** The 12-month lookback supplies one full annual cycle; the model learns seasonality + trend from position in the window.
 
-### Likely questions
-- **Why use LSTM over vanilla RNN?** Long-term memory through additive cell state; avoids vanishing gradients.
-- **What is the input shape?** (batch, 12, 1) - 12 time steps, one feature.
-- **Why MinMax and not StandardScaler?** Keeps inputs in the same [0,1] range used by the network's tanh/sigmoid activations; also makes inverting predictions trivial.
-- **How would you forecast further ahead?** Feed predictions back as inputs (autoregressive rollout); errors accumulate - a known limitation.
+## 3. Parameters & tuning
+| Parameter | Value | Effect | If increased | If decreased |
+|---|---|---|---|---|
+| `seq_length` | 12 | lookback window | more history, harder to train | less context |
+| `hidden_size` | 64 | memory capacity | more capacity, slower | underfit |
+| `num_layers` | 2 | depth of recurrence | more abstraction, overfit risk | shallow |
+| `lr` | 0.005 | Adam step | diverges | slow |
+| `epochs` | 120 | training length | overfit possible | underfit |
+| `batch_size` | 16 | gradient noise | smoother | noisier, regularizing |
 
-### One-line summary
-"Same training recipe for RNN and LSTM on 12-month windows: LSTM cuts RMSE from 70.8 to 42.2 passengers, demonstrating gating's advantage on seasonal long-range dependencies."
+## 4. Step-by-step implementation (with key code)
+1. **Load + normalize** the passenger series to [0,1].
+2. **Build sequences:**
+```python
+def create_sequences(data, seq_length=12):
+    xs, ys = [], []
+    for i in range(len(data) - seq_length):
+        xs.append(data[i:(i + seq_length)])   # 12 past months
+        ys.append(data[i + seq_length])       # next month
+    return np.array(xs), np.array(ys)
+```
+3. **Chronological split** (no shuffle) + DataLoader (shuffle train only).
+4. **Models:**
+```python
+self.rnn = nn.RNN(input_size=1, hidden_size=64, num_layers=2, batch_first=True)
+self.fc  = nn.Linear(64, 1)          # Vanilla RNN
+
+self.lstm = nn.LSTM(input_size=1, hidden_size=64, num_layers=2, batch_first=True)
+self.fc   = nn.Linear(64, 1)         # LSTM
+```
+5. **Train** (same function for both): MSE loss, Adam lr 0.005, 120 epochs:
+```python
+optimizer.zero_grad(); pred = model(x_b); loss = criterion(pred, y_b)
+loss.backward(); optimizer.step()    # BPTT through the 12 steps
+```
+6. **Evaluate:** predict test windows, invert MinMax scaling, compute RMSE/MAE.
+7. **Plot** history + test truth + both forecasts with a train/test cutoff line.
+
+## 5. Results & interpretation
+| Model | RMSE (passengers) ↓ | MAE ↓ |
+|---|---|---|
+| Vanilla RNN | 70.83 | 63.16 |
+| LSTM | **42.17** | **34.88** |
+
+- LSTM error is 40% lower than the vanilla RNN - gating preserves the seasonal signal across 12 steps.
+- MAE 35 passengers against a series averaging ~280/month ≈ 12% relative error.
+- Forecast plot: LSTM follows both the upward trend and the yearly oscillation; RNN lags.
+- Training ran ~19 s for both models on CPU (small dataset).
+
+## 6. Limitations & how to improve
+- Multi-step forecasting currently feeds true past values; a real deployment must roll predictions forward (error accumulation).
+- Only 144 data points - a small dataset; more history or covariates (holidays, GDP) would help.
+- Vanilla RNN could be improved with gradient clipping, but LSTM/GRU is the standard fix.
+- Improvements: GRU, attention/Transformer for sequences, probabilistic forecasting (quantiles).
+
+## 7. Viva questions
+- **Why does LSTM beat vanilla RNN?** Additive cell state prevents vanishing gradients over 12 steps.
+- **What is BPTT?** Backpropagation through time - chain rule across all time steps.
+- **Why 12-month windows?** One full seasonal cycle.
+- **Why no shuffling?** Shuffling would leak future values into training.
+- **Why MinMax scaling?** Matches activation ranges and makes inversion trivial.
+- **What is the input shape?** (batch, 12, 1).
+- **What would happen with a longer lookback?** More context, but vanilla RNN degrades faster; LSTM tolerates longer windows.
+- **Why MSE loss?** Regression target; penalizes larger errors more, smooth gradients.
+
+## 8. Common mistakes
+- Random train/test split on time series (leakage).
+- Forgetting to invert scaling before computing RMSE (units become meaningless).
+- Comparing RNN/LSTM with different epochs/hidden sizes (unfair benchmark).
+
+## 9. One-line summary
+"On 12-month airline windows, both models train identically; the LSTM's gated memory cuts test RMSE from 70.8 to 42.2 passengers, showing why gating matters for long-range seasonality."
 
 ---
 
 # 07 – Self-Organizing Map (SOM)
 
-### Quick facts
+## 0. In one paragraph
+A 12x12 Kohonen Self-Organizing Map learns the topology of 178 wine samples (13 chemical features) without using any labels. Training improves the quantization error from 0.445 to 0.196 and leaves a topographic error of 0.039; projecting the three true cultivars onto the U-matrix shows they occupy distinct regions - evidence of unsupervised structure discovery.
+
+## 1. Quick facts
 | | |
 |---|---|
 | **Algorithm** | Kohonen Self-Organizing Map (MiniSom) |
-| **Dataset** | UCI Wine, 178 samples, 13 chemical features; 3 cultivars used only for visualization |
-| **Key parameters** | 12x12 grid (144 neurons), Gaussian neighborhood, sigma 1.5, learning rate 0.5, PCA init, 5,000 iterations |
-| **Result** | Quantization error 0.4447 → **0.1965**; topographic error **0.0393** |
+| **Dataset** | UCI Wine: 178 x 13; 3 cultivars used only for visualization |
+| **Preprocessing** | MinMaxScaler to [0,1] |
+| **Key parameters** | 12x12 grid (144 neurons), Gaussian neighborhood, sigma=1.5, learning rate=0.5, PCA init, 5,000 iterations |
+| **Results** | Quantization error 0.4447 → **0.1965**; topographic error **0.0393** |
 
-### Step-by-step (what the code does)
-1. **Load wine**, print samples/features/classes; **MinMax scale** to [0,1] (SOM weights live in input range).
-2. **Create SOM:** 12x12 grid, each neuron has a 13-dim weight vector; Gaussian neighborhood function; sigma/learning rate decay during training.
-3. **Initialize** weights with `pca_weights_init` - neurons start spread along the data's principal directions → faster, topologically faithful convergence.
-4. **Train:** `som.train_random(X, 5000)` - repeatedly pick a random sample, find its BMU, pull the BMU and neighbors toward it.
-5. **Measure:** quantization error (avg distance sample→BMU) and topographic error (fraction of samples whose two best neurons are not adjacent).
-6. **Visualize U-Matrix:** average distance between each neuron and its neighbors (dark valleys = clusters, bright ridges = boundaries); overlay each sample on its BMU, marker shape/color = true cultivar.
+## 2. How the algorithm works
+An MxN grid of neurons, each with a weight vector w_j ∈ R^d. For each training sample:
+1. **Competition:** find the Best Matching Unit c = argmin_j ‖x − w_j‖.
+2. **Cooperation:** compute the Gaussian neighborhood h_cj = exp(−‖r_c − r_j‖²/(2σ(t)²)) on grid coordinates r.
+3. **Adaptation:** w_j ← w_j + α(t)·h_cj·(x − w_j).
+Learning rate α(t) and radius σ(t) decay over time: early on large neighborhoods organize the global layout; later small updates refine details. Result: a topology-preserving 2D projection where nearby grid neurons have similar weight vectors.
 
-### Key concepts
-- **Competitive learning:** only the winning neuron (BMU) and its neighborhood update.
-- **BMU:** argmin_j‖x − w_j‖.
-- **Adaptation:** w_j ← w_j + α(t)·h_cj(t)·(x − w_j), with Gaussian kernel h and decaying α, σ.
-- **U-Matrix:** unified distance matrix - visualizes cluster boundaries.
-- **Quantization error:** how well neurons represent the data (lower = better).
-- **Topographic error:** how well the 2D grid preserves neighborhood structure (0 = perfect, <0.05 good).
-- **Why PCA initialization?** Random init can create topological folds; PCA starts the map unfolded.
+## 3. Parameters & tuning
+| Parameter | Value | Effect | If increased | If decreased |
+|---|---|---|---|---|
+| Grid size | 12x12 | resolution | finer map, longer training | coarse map, less detail |
+| `sigma` | 1.5 | initial neighborhood radius | smoother/global organization | local, fragmented map |
+| `learning_rate` | 0.5 | initial step size | faster but unstable | slow convergence |
+| `num_iteration` | 5000 | training length | better convergence | under-trained map |
+| `neighborhood_function` | gaussian | kernel shape | — | bubble/mexican-hat alternative |
+| Init | PCA | initial weights | — | random init → possible folds |
 
-### How to read the results
-- QE halved from 0.44 → 0.196: the map learned a much better representation.
-- TE 0.039: only ~4% of samples land on non-adjacent top-2 neurons → topology well preserved.
-- On the U-matrix, the three cultivars occupy distinct regions even though labels were never used in training - evidence that SOM discovered structure.
+## 4. Step-by-step implementation (with key code)
+1. **Load wine + MinMax scale.**
+2. **Create and initialize the map:**
+```python
+som = MiniSom(x=12, y=12, input_len=13, sigma=1.5, learning_rate=0.5,
+              neighborhood_function='gaussian', random_seed=42)
+som.pca_weights_init(X)                 # spread weights along principal directions
+```
+3. **Train:**
+```python
+som.train_random(data=X, num_iteration=5000)   # random samples; BMU + neighborhood update
+```
+4. **Quality metrics:**
+```python
+qe = som.quantization_error(X)    # avg distance from samples to their BMU
+te = som.topographic_error(X)     # fraction whose top-2 BMUs are not neighbors
+```
+5. **U-Matrix:** `som.distance_map()` = average distance to neighboring neurons; plot heatmap and overlay each sample at its BMU with a marker colored by cultivar.
 
-### Likely questions
-- **Is SOM supervised?** No - labels were only used to color the map for interpretation.
-- **Why 12x12?** ~144 neurons for 178 samples - enough resolution without over-fragmenting.
-- **What is the difference from K-Means?** K-Means finds centroids only; SOM additionally arranges them on a topology-preserving grid.
-- **What do the two errors trade off?** More neurons → lower quantization error but potentially higher topographic error (folds).
+## 5. Results & interpretation
+- QE halved (0.445 → 0.196): neurons now sit close to the data they represent.
+- TE = 0.039 → only ~4% of samples are mapped to non-adjacent top-2 neurons; topology preserved.
+- On the U-matrix, the three cultivars occupy contiguous regions separated by bright ridges - the SOM discovered group structure without labels.
+- PCA initialization gave a well-unfolded map from the start (initial QE 0.445 instead of a random map's higher error).
 
-### One-line summary
-"An unsupervised Kohonen map (12x12) organizes the wine chemistry: quantization error halved to 0.196, topographic error 0.039, and the three cultivars separate on the U-matrix without labels."
+## 6. Limitations & how to improve
+- Grid size/σ/LR must be chosen manually; too large a grid fragments clusters.
+- The map is a fixed-resolution projection - distances are not exact (topology, not geometry).
+- No probabilistic interpretation; a GMM/UMAP+t-SNE gives complementary views.
+- Improvements: tune neighborhood function/iterations, add hit-map analysis, cluster the neuron weights (e.g., K-Means on codebook vectors) for automatic grouping.
+
+## 7. Viva questions
+- **What is a BMU?** The neuron whose weight vector is closest to the input.
+- **Is SOM supervised?** No - labels were used only for visualization.
+- **What does the U-Matrix show?** Average neighbor distance: dark valleys = clusters, bright ridges = boundaries.
+- **Quantization vs topographic error?** Representation quality vs topology preservation.
+- **Why does the learning rate decay?** Early coarse organization, later fine-tuning.
+- **Why 12x12?** Enough resolution for 178 samples without over-fragmenting.
+- **SOM vs K-Means?** Both compress data, but SOM adds a topology-preserving grid.
+- **What is the advantage of PCA init?** Avoids folded maps and speeds convergence.
+
+## 8. Common mistakes
+- Not scaling inputs (weights live in input space).
+- Using too few iterations and reading an under-trained map.
+- Interpreting U-matrix distances as true data distances.
+
+## 9. One-line summary
+"A 12x12 Kohonen map organizes wine chemistry without labels: quantization error halved to 0.196, topographic error 0.039, and the three cultivars separate cleanly on the U-matrix."
 
 ---
 
 # 08 – Hidden Markov Model (HMM)
 
-### Quick facts
+## 0. In one paragraph
+A 3-state Gaussian Hidden Markov Model is trained with the Baum-Welch (EM) algorithm on 1,000 days of financial returns to uncover latent market regimes. The model converges (log-likelihood 3018.45) and Viterbi decoding assigns each day to Bull, Sideways or Bear after states are sorted by volatility - revealing persistence and volatility clustering on the price chart.
+
+## 1. Quick facts
 | | |
 |---|---|
-| **Algorithm** | Gaussian HMM trained with Baum-Welch (EM), decoded with Viterbi (hmmlearn) |
-| **Dataset** | Market returns & regimes (`data/market_regimes.csv`), 1,000 trading days |
-| **Observations** | Daily returns (1D) |
-| **Key parameters** | 3 states, full covariance, 200 EM iterations, random_state=42 |
-| **Result** | EM converged (True); model log-likelihood **3018.45** |
+| **Algorithm** | Gaussian HMM (hmmlearn): Baum-Welch EM training + Viterbi decoding |
+| **Dataset** | `data/market_regimes.csv`, 1,000 trading days; observations = daily returns |
+| **Key parameters** | n_components=3, covariance_type="full", n_iter=200, random_state=42 |
+| **Results** | EM converged (True); model log-likelihood 3018.45 |
 
-### Step-by-step (what the code does)
-1. **Load** the CSV; print head; take `Daily_Return` as the observation sequence and `Close` for plotting.
-2. **Model:** define `GaussianHMM(n_components=3, covariance_type="full")` → 3 hidden regimes, each emitting returns from its own Gaussian.
-3. **Train (Baum-Welch/EM):** `fit(returns)` - E-step computes state posteriors with forward-backward; M-step re-estimates start probabilities, transition matrix A, and per-state (μ, σ).
-4. **Decode (Viterbi):** `predict(returns)` returns the most likely state sequence.
-5. **Stabilize labels:** sort states by volatility (σ) so Regime 0/1/2 always mean Bull/Sideways/Bear; reorder the transition matrix to match.
-6. **Visualize:** transition-matrix heatmap and a price chart where each daily segment is colored by its decoded regime, plus the state sequence strip.
+## 2. How the algorithm works
+An HMM is a doubly stochastic process:
+- hidden state sequence z_t (1st-order Markov): P(z_t | z_{t−1}, …, z_1) = P(z_t | z_{t−1}), summarized by the transition matrix A with A_ij = P(z_{t+1}=s_j | z_t=s_i);
+- observations x_t emitted from the active state: x_t | z_t = s_k ~ N(μ_k, σ_k²).
 
-### Key concepts
-- **Hidden vs observed:** hidden = market regime; observed = daily returns.
-- **Markov property:** next state depends only on the current state.
-- **Transition matrix A:** A_ij = P(state j at t+1 | state i at t); large diagonal = regime persistence.
-- **Emission:** each state has a Gaussian distribution over returns, P(x_t | z_t = s_k) = N(μ_k, σ_k²).
-- **Forward-backward:** computes P(state = k at time t | all observations) - used in EM.
-- **Baum-Welch:** EM for HMMs; iterates until the log-likelihood converges.
-- **Viterbi:** dynamic programming for the single most likely state path (δ_t(j) = max_i[δ_{t-1}(i)A_ij]·b_j(x_t)).
+Three classic problems:
+1. **Evaluation:** forward algorithm gives P(X | λ) (log-likelihood).
+2. **Decoding:** Viterbi dynamic programming finds the most likely state path: δ_t(j) = max_i[δ_{t−1}(i)·A_ij]·b_j(x_t).
+3. **Learning:** Baum-Welch (EM) - E-step computes posteriors with forward-backward; M-step re-estimates π, A, and Gaussian parameters; iterate until log-likelihood converges.
 
-### How to read the results
-- Log-likelihood 3018.45: higher (less negative) = better fit; meaningful for comparing HMM configurations.
-- EM converged before the 200-iteration limit - stable solution.
-- Sorting by volatility makes the regimes interpretable: low-vol (bull), medium (sideways), high-vol (bear/crisis).
-- The colored price chart shows the model switching to the high-volatility state during drawdowns - volatility clustering.
+## 3. Parameters & tuning
+| Parameter | Value | Effect | If increased | If decreased |
+|---|---|---|---|---|
+| `n_components` | 3 | number of regimes | finer regimes, overfit risk | coarse regimes |
+| `covariance_type` | full | emission covariance | more flexible (full matrix) | diag/spherical = simpler |
+| `n_iter` | 200 | EM iterations | better convergence, slower | may stop early |
+| `random_state` | 42 | reproducibility | — | runs may find different local optima |
 
-### Likely questions
-- **How do you know 3 states is right?** Domain choice (bull/sideways/bear); could be compared by log-likelihood or BIC across 2-5 states.
-- **What does the transition matrix tell you?** Regime persistence (diagonal) and switching probabilities (off-diagonal).
-- **Supervised or unsupervised?** Unsupervised - states are latent, learned only from returns.
-- **Why full covariance?** Only 1 feature, so full is effectively per-state variance; kept for generality.
+## 4. Step-by-step implementation (with key code)
+1. **Load** the CSV; `returns = df_market['Daily_Return'].values.reshape(-1, 1)`.
+2. **Fit the HMM:**
+```python
+hmm_model = GaussianHMM(n_components=3, covariance_type="full", n_iter=200, random_state=42)
+hmm_model.fit(returns)
+print(hmm_model.monitor_.converged, hmm_model.score(returns))
+```
+3. **Decode the regime path:**
+```python
+hidden_states = hmm_model.predict(returns)     # Viterbi
+```
+4. **Stabilize labels** by sorting states by volatility:
+```python
+volatilities = [np.sqrt(hmm_model.covars_[i][0][0]) for i in range(3)]
+state_order = np.argsort(volatilities)         # Bull(0) < Sideways(1) < Bear(2)
+```
+and reorder the transition matrix accordingly.
+5. **Visualize:** transition-matrix heatmap + price series colored by daily regime (Viterbi path).
 
-### One-line summary
-"A 3-state Gaussian HMM learns latent market regimes via Baum-Welch from daily returns, Viterbi decodes the regime path, and the sorted states map cleanly to bull/sideways/bear behavior."
+## 5. Results & interpretation
+- EM converged; log-likelihood 3018.45 (higher is better) - the 3-state model explains the return sequence well.
+- Sorting states by σ makes labels stable and interpretable: low-vol (bull), medium (sideways), high-vol (bear).
+- The price chart shows the model switching into the high-volatility state during drawdowns - the classic volatility-clustering behavior.
+- The transition matrix diagonal (regime persistence) is visibly larger than off-diagonal values → regimes are sticky, as expected in markets.
+
+## 6. Limitations & how to improve
+- Only returns are modeled; adding volatility/volume features (multivariate emissions) would enrich states.
+- Number of states is a modeling choice - compare 2-5 states via log-likelihood/BIC.
+- Gaussian emissions underestimate fat tails of returns (t-distributions are more realistic).
+- Improvements: hidden semi-Markov models for duration modeling, HMM + GARCH hybrids.
+
+## 7. Viva questions
+- **What is hidden vs observed?** Regimes are latent; returns are observed.
+- **What does the transition matrix tell you?** Probability of staying/switching regimes (persistence).
+- **Baum-Welch vs Viterbi?** Learning parameters vs decoding the most likely state path.
+- **Why sort states by volatility?** Deterministic labels across runs (Bull/Sideways/Bear).
+- **How do you know it converged?** `monitor_.converged` is True and log-likelihood stabilized.
+- **Is this supervised?** No - the states are learned unsupervised from returns.
+- **What are the three classic HMM problems?** Evaluation (forward), decoding (Viterbi), learning (Baum-Welch).
+- **Why is diagonal dominance expected?** Markets rarely switch regimes daily; regimes persist.
+
+## 8. Common mistakes
+- Re-training with different random seeds and comparing regimes with inconsistent labels (sorting fixes this).
+- Using raw prices instead of returns (non-stationary emissions).
+- Reading log-likelihood across different datasets - it is only comparable on the same data.
+
+## 9. One-line summary
+"A 3-state Gaussian HMM converges (log-likelihood 3018) on 1,000 daily returns; Viterbi decoding plus volatility-sorted states cleanly separates bull, sideways, and bear regimes used for the price overlay."
 
 ---
 
 # 09 – Support Vector Machines (SVM)
 
-### Quick facts
+## 0. In one paragraph
+SVC is demonstrated with linear, polynomial and RBF kernels on two interleaving moons, then applied to Breast Cancer (RBF, 0.9790 test accuracy with only 96/426 support vectors). SVR with an ε-insensitive tube fits a noisy 1D sinusoid (R² 0.9864), and the plotted tube shows how only 18/120 points actually constrain the regression curve.
+
+## 1. Quick facts
 | | |
 |---|---|
-| **Algorithms** | SVC (linear, poly, RBF kernels) and SVR (RBF, ε-insensitive tube) |
-| **Datasets** | Two-moons synthetic (250 points, 2D); Breast Cancer (569x30); 1D sinusoid + trend + noise (120 points) |
+| **Algorithms** | SVC (linear/poly/RBF kernels), SVR (RBF, ε-insensitive tube) |
+| **Datasets** | Two-moons (250 x 2); Breast Cancer (569 x 30); 1D sinusoid + trend + noise (120) |
 | **Key parameters** | SVC C=1.0, gamma='scale', degree=3; SVR C=20, epsilon=0.18, gamma=0.5 |
-| **Result** | SVC (RBF) test accuracy **0.9790** (96/426 SVs); SVR R² **0.9864**, RMSE 0.1157 (18/120 SVs) |
+| **Results** | SVC (RBF) cancer accuracy 0.9790, 96/426 SVs; SVR R² 0.9864, RMSE 0.1157, 18/120 SVs |
 
-### Step-by-step (what the code does)
-1. **Two-moons demo:** generate data, scale; train an SVC for each kernel (linear/poly/rbf); draw the decision regions, boundary (Z=0), margins (Z=±1) and highlight support vectors in a 3-panel figure.
-2. **Real-data SVC:** load Breast Cancer, stratified 75/25 split, scale; fit RBF SVC; print test accuracy and how many training points ended up as support vectors.
-3. **SVR setup:** generate a 1D non-linear target (sin + trend + noise); fit `SVR(kernel='rbf', C=20, epsilon=0.18, gamma=0.5)`.
-4. **SVR visualization:** dense grid prediction line, ±ε tube boundaries and shaded tube, highlight support vectors (points on/outside the tube).
-5. **SVR metrics:** R², RMSE, and the support-vector fraction.
+## 2. How the algorithm works
+**SVC (soft margin):** minimize ½‖w‖² + C·Σξᵢ subject to yᵢ(wᵀφ(xᵢ)+b) ≥ 1−ξᵢ, ξᵢ ≥ 0. The dual problem depends only on inner products K(xᵢ,xⱼ) - this enables the **kernel trick** (compute similarity in a high-dimensional space without mapping data there). The solution is sparse: only points with αᵢ > 0 (**support vectors**) define the boundary.
 
-### Key concepts
-- **Maximum margin:** SVC finds the hyperplane that maximizes the margin between classes.
-- **Soft margin & C:** slack variables ξ allow violations; C is the penalty. Large C = narrow margin, may overfit; small C = wider margin, more violations.
-- **Support vectors:** training points with α_i > 0 - on/inside the margin; they alone define the boundary.
-- **Kernel trick:** K(x_i, x_j) computes inner products in a high-dimensional space without mapping explicitly.
-- **γ in RBF:** width of the Gaussian; large γ = very local/wiggly boundary, small γ = smooth/linear-like.
-- **ε-insensitive tube (SVR):** residuals within ±ε cost nothing; only outside points become support vectors.
-- **Dual formulation:** solution depends only on inner products K(x_i, x_j) - enables kernels.
+**Kernels:** linear K = xᵀz; polynomial K = (γxᵀz + r)^d; RBF K = exp(−γ‖x−z‖²).
 
-### How to read the results
-- Moons figure: linear kernel underfits (straight boundary); poly and RBF separate the moons with curved boundaries; gold circles show how few points define each boundary.
-- Breast Cancer 0.9790 accuracy = strong; 96/426 SVs (22.5%) means most training points are ignorable - a sparse solution.
-- SVR R² 0.9864 (explains 98.6% of variance); 18/120 SVs (15%) - the curve is defined by a small subset.
-- ε tube (0.18) visually contains most points; only points outside drive the fit.
+**SVR:** same machinery for regression with an **ε-insensitive tube** - residuals within ±ε cost nothing; only points outside the tube get αᵢ > 0. Objective: ½‖w‖² + C·Σ(ξᵢ + ξᵢ*).
 
-### Likely questions
-- **Why does the RBF kernel work on moons?** It maps 2D data into an infinite-dimensional feature space where the classes become linearly separable.
-- **What happens if C → ∞?** No margin violations allowed → hard margin, overfitting and sensitivity to outliers.
-- **What if γ is too large?** Each point influences only a tiny region → wiggly boundary and overfitting.
-- **Why is the SVM solution sparse?** Only support vectors have non-zero Lagrange multipliers.
-- **Difference SVC vs SVR?** Classification finds a separating hyperplane; SVR fits a function with an ε-tube tolerance.
+## 3. Parameters & tuning
+| Parameter | Value | Effect | If increased | If decreased |
+|---|---|---|---|---|
+| `C` | 1.0 (SVC), 20 (SVR) | violation penalty | narrow margin, overfit | wide margin, underfit |
+| `gamma` (RBF) | 'scale' / 0.5 | kernel width | local, wiggly boundary | smooth, linear-like |
+| `kernel` | linear/poly/rbf | feature mapping | — | linear = no mapping |
+| `degree` (poly) | 3 | polynomial order | more complex | simpler |
+| `epsilon` (SVR) | 0.18 | tube half-width | fewer SVs, coarser fit | more SVs, tighter fit |
 
-### One-line summary
-"SVC with three kernels shows the kernel trick on non-linear moons, reaches 0.979 on Breast Cancer with only 22% support vectors, and SVR fits a noisy sinusoid (R² 0.986) with an explicit ε-tube."
+## 4. Step-by-step implementation (with key code)
+1. **Moons experiment** - one SVC per kernel:
+```python
+clf = SVC(kernel=k_name, C=1.0, gamma='scale', degree=3, random_state=42)
+clf.fit(X_2d_scaled, y_2d)
+Z = clf.decision_function(...)                 # draw boundary Z=0 and margins Z=±1
+ax.scatter(clf.support_vectors_[:, 0], clf.support_vectors_[:, 1], ...)  # highlight SVs
+```
+2. **Breast Cancer (real data):**
+```python
+svc_rbf = SVC(kernel='rbf', C=1.0, random_state=42)
+svc_rbf.fit(X_train_c_s, y_train_c)
+print(svc_rbf.score(X_test_c_s, y_test_c), len(svc_rbf.support_))
+```
+3. **SVR on the 1D signal:**
+```python
+svr_model = SVR(kernel='rbf', C=20.0, epsilon=0.18, gamma=0.5)
+svr_model.fit(X_svr, y_svr)
+# plot prediction, ±ε tube, and support vectors (svr_model.support_)
+```
+4. Report R², RMSE, support-vector percentage.
+
+## 5. Results & interpretation
+- Moons: the linear kernel cannot separate the classes; poly and RBF curve the boundary; SV counts (gold circles) show the sparse solution.
+- Breast Cancer: 0.9790 test accuracy; 96/426 training points are support vectors (22.5%) → 77% of the data could be discarded without changing the model.
+- SVR: R² 0.9864 (98.6% variance explained), RMSE 0.1157; 18/120 SVs (15%) anchor the curve; the ε=0.18 tube contains most residuals.
+
+## 6. Limitations & how to improve
+- Does not scale well to very large n (kernel matrix is O(n²)); use LinearSVC/SGD or Nyström approximation.
+- Requires feature scaling and careful C/γ tuning (grid search).
+- No native probability output (Platt scaling needed; used in notebook 03).
+- Improvements: kernel selection by CV, class weights for imbalance, ν-SVC for automatic margin control.
+
+## 7. Viva questions
+- **What is a support vector?** Training point on/inside the margin with α > 0; defines the boundary.
+- **Role of C?** Penalty for margin violations - high C = strict, low C = tolerant.
+- **Role of γ?** RBF width: large γ = very local; small γ = smooth.
+- **What is the kernel trick?** Inner products in feature space without explicit mapping.
+- **Why is the solution sparse?** Only support vectors have non-zero dual coefficients.
+- **What is the ε-tube?** Zero-loss zone in SVR; only outside points become support vectors.
+- **Why scale features?** The kernel uses Euclidean distance; unscaled features distort it.
+- **SVC vs SVR?** Classification (separating hyperplane) vs regression (tube around a function).
+
+## 8. Common mistakes
+- Not scaling → RBF behaves poorly.
+- Setting γ too large and reporting overfit boundaries.
+- Judging SVR with accuracy (it is regression: use R²/RMSE).
+
+## 9. One-line summary
+"SVC's three kernels demonstrate the kernel trick on moons; the RBF model reaches 0.979 on Breast Cancer using only 22% support vectors, and SVR fits a noisy sinusoid (R² 0.986) with an explicit ε-tube containing most residuals."
 
 ---
 
 # 10 – Large Language Models (LLM)
 
-### Quick facts
+## 0. In one paragraph
+Three LLM capabilities are demonstrated with Hugging Face transformers: subword tokenization (DistilBERT), zero-shot sentiment inference (SST-2 pipeline), and controllable generation (DistilGPT2 greedy vs nucleus sampling). Finally, the pretrained classifier is fine-tuned for 3 epochs on 8 domain queries (Technical vs Billing), after which both held-out queries are classified correctly (88.3% / 84.0% confidence).
+
+## 1. Quick facts
 | | |
 |---|---|
-| **Models** | DistilBERT (SST-2 fine-tuned) for tokenization + sentiment; DistilGPT2 for generation; PyTorch for mini fine-tuning |
-| **Libraries** | Hugging Face `transformers`, `torch` |
-| **Tasks** | (1) tokenization, (2) zero-shot sentiment inference, (3) greedy vs top-p generation, (4) 2-class domain fine-tune |
-| **Key parameters** | Generation: max_new_tokens=40, T=0.7, p=0.9. Fine-tune: 8 samples, 3 epochs, lr 1e-4, AdamW |
-| **Result** | Both held-out domain queries classified correctly (Billing 88.3%, Technical 84.0%) |
+| **Models** | `distilbert-base-uncased-finetuned-sst-2-english`, `distilgpt2` |
+| **Libraries** | `transformers`, `torch` |
+| **Tasks** | Tokenization, sentiment inference, text generation, 2-class fine-tuning |
+| **Key parameters** | Generation: max_new_tokens=40, T=0.7, top_p=0.9. Fine-tune: 3 epochs, lr 1e-4, AdamW, batch 4 |
+| **Results** | Held-out queries: Billing 88.3%, Technical 84.0%; fine-tune loss 2.663 → 0.041 → 0.069 |
 
-### Step-by-step (what the code does)
-1. **Load a tokenizer** (DistilBERT) and tokenize a sample sentence with padding/truncation to length 20; print the subword tokens, input IDs and attention mask (1 = real token, 0 = padding).
-2. **Sentiment pipeline:** `pipeline("sentiment-analysis")` loads the pretrained model; classify 4 sentences; display label + confidence in a table.
-3. **Text generation:** load DistilGPT2; generate from the prompt "Artificial Intelligence will fundamentally transform" using:
-   - **greedy search** (`do_sample=False`) → deterministic, most likely tokens,
-   - **nucleus sampling** (`do_sample=True, temperature=0.7, top_p=0.9`) → samples from the smallest token set whose cumulative probability ≥ 0.9.
-4. **Fine-tuning:** define 8 domain queries labeled Technical (0) / Billing (1); tokenize; wrap in a PyTorch Dataset/DataLoader; load DistilBERT with a fresh 2-class head (`ignore_mismatched_sizes=True`); train 3 epochs with AdamW (lr 1e-4) - forward pass computes the loss internally, `loss.backward()`, optimizer step; print loss per epoch.
-5. **Evaluate** on two unseen queries: tokenize, forward pass, softmax logits, argmax → predicted class + confidence.
+## 2. How the algorithm works
+**Tokenization:** text → subword tokens (WordPiece/BPE) → integer IDs; special tokens [CLS]/[SEP]; padding with an attention mask (1 = real, 0 = pad) so padding does not affect attention.
 
-### Key concepts
-- **Subword tokenization (WordPiece/BPE):** splits text into vocabulary pieces; can represent any word; special tokens [CLS]/[SEP].
-- **Attention mask:** zeros out padding so it doesn't affect attention.
-- **Transformer self-attention:** Attention(Q,K,V) = softmax(QKᵀ/√d_k + mask)V.
-- **Autoregressive generation:** predict one token at a time, append, repeat.
-- **Temperature:** scales logits before softmax; <1 sharpens, >1 flattens.
-- **Top-p (nucleus):** restricts sampling to the smallest token set with cumulative probability ≥ p.
-- **Transfer learning/fine-tuning:** reuse pretrained weights, replace the head, train briefly on domain data.
+**Transformer self-attention:** Attention(Q,K,V) = softmax(QKᵀ/√d_k + mask)·V - every token attends to every other token; stacked blocks build contextual representations.
 
-### How to read the results
-- Tokenizer: 13 real tokens + 7 padding; [CLS]/[SEP] frame the sentence; IDs map to the vocabulary.
-- Sentiment: confidence scores in the 90-99% range on clear positive/negative sentences.
-- Generation: greedy gives the "safe" continuation; nucleus sampling gives a different, more varied sentence - same core meaning.
-- Fine-tune losses: 2.663 → 0.041 → 0.069 - the model rapidly fits the 8 examples (this is a demo of the mechanics, not a production model).
-- Held-out queries both correct with 84-88% confidence → limited but successful transfer.
+**Causal generation:** predict the next token from all previous ones: P(t_n | t_1…t_{n−1}) = softmax(z_n / T).
+- Greedy: always argmax → deterministic, can loop.
+- Temperature T: <1 sharpens, >1 flattens the distribution.
+- Top-p (nucleus): keep the smallest set of tokens with cumulative probability ≥ p, sample inside it.
 
-### Likely questions
-- **Why is fine-tuning needed if the model is pretrained?** Pretraining is generic; a new task/domain needs a task head and adaptation.
-- **Why `ignore_mismatched_sizes=True`?** The original SST-2 head had 2 classes but different mapping/weights; we replace it with a fresh head.
-- **What does temperature do?** Controls randomness of sampling (lower = more deterministic).
-- **Greedy vs top-p?** Greedy is deterministic but can loop; top-p balances coherence and diversity.
-- **Any risks?** Hallucinations; tiny fine-tune sets can overfit - here it is a mechanics demo.
+**Fine-tuning:** load pretrained weights, replace the classification head (2 labels), train briefly on task data with a small learning rate (1e-4) so pretrained knowledge is preserved.
 
-### One-line summary
-"LLM notebook demonstrates the full pipeline: subword tokenization, transformer inference, controllable generation, and a 3-epoch fine-tune that correctly classifies held-out technical vs billing queries."
+## 3. Parameters & tuning
+| Parameter | Value | Effect | If increased | If decreased |
+|---|---|---|---|---|
+| `max_new_tokens` | 40 | generation length | longer text, more compute | shorter output |
+| `temperature` | 0.7 | sampling randomness | more creative/chaotic (>1) | more deterministic (<1) |
+| `top_p` | 0.9 | nucleus size | more diverse | more conservative |
+| `lr` (fine-tune) | 1e-4 | adaptation step | faster but forgetting/overfit | too slow to learn |
+| `epochs` | 3 | fine-tune passes | overfit on small data | underfit |
+| `batch_size` | 4 | samples per step | smoother gradients | noisy, regularizing |
+
+## 4. Step-by-step implementation (with key code)
+1. **Tokenize** with padding/truncation and inspect tokens/IDs/mask:
+```python
+encoded = tokenizer(text, padding="max_length", max_length=20, truncation=True, return_tensors="pt")
+tokens = tokenizer.convert_ids_to_tokens(encoded['input_ids'][0])
+```
+2. **Sentiment inference** with a pipeline:
+```python
+classifier = pipeline("sentiment-analysis", model=model_id, device=-1)
+predictions = classifier(test_sentences)      # label + confidence
+```
+3. **Generation** with explicit configs:
+```python
+generator = pipeline("text-generation", model="distilbert/distilgpt2",
+                     device=-1, clean_up_tokenization_spaces=False)
+greedy  = generator(prompt, generation_config=GenerationConfig(max_new_tokens=40, do_sample=False))
+sampled = generator(prompt, generation_config=GenerationConfig(
+            max_new_tokens=40, do_sample=True, temperature=0.7, top_p=0.9))
+```
+4. **Fine-tune** the classifier on 8 labeled queries:
+```python
+ft_model = AutoModelForSequenceClassification.from_pretrained(model_id, num_labels=2, ignore_mismatched_sizes=True)
+optimizer = torch.optim.AdamW(ft_model.parameters(), lr=1e-4)
+outputs = ft_model(input_ids=ids, attention_mask=mask, labels=labels)   # loss inside
+outputs.loss.backward(); optimizer.step()                               # 3 epochs
+```
+5. **Evaluate** on unseen queries with softmax probabilities.
+
+## 5. Results & interpretation
+- Tokenizer: 20 slots → 13 real tokens + [CLS]/[SEP] + padding; the attention mask marks the real part.
+- Sentiment: confident scores on clearly positive/negative sentences; the model's pretrained knowledge transfers without any training.
+- Generation: greedy produced the deterministic "the way we think about the world"; nucleus sampling produced a different but coherent continuation - the effect of T/top-p.
+- Fine-tuning: loss 2.663 → 0.041 → 0.069 over 3 epochs; both held-out queries correctly classified (Billing 88.3%, Technical 84.0%).
+- The tiny dataset (8 examples) makes this a **mechanics** demo, not a production classifier.
+
+## 6. Limitations & how to improve
+- 8 training examples → overfitting risk; use hundreds of examples for real tasks.
+- Small models (DistilBERT/DistilGPT2) hallucinate and have limited reasoning.
+- Generation quality depends on decoding settings; production systems use better checkpoints + repetition penalties.
+- Improvements: LoRA/adapters for cheaper fine-tuning, larger datasets, evaluation on a proper test split.
+
+## 7. Viva questions
+- **Why subword tokenization?** Fixed vocabulary can represent any word, including unseen ones.
+- **What does the attention mask do?** Excludes padding tokens from attention.
+- **Greedy vs top-p?** Deterministic argmax vs sampling from the nucleus; top-p adds diversity.
+- **What is temperature?** Logit scaling before softmax; controls randomness.
+- **What changed during fine-tuning?** The classification head was replaced and all weights adapted slightly (lr=1e-4).
+- **Why `ignore_mismatched_sizes=True`?** The pretrained head's size/labels differ; a fresh 2-class head is initialized.
+- **Why so few epochs?** Small dataset; more epochs would overfit (and 3 sufficed to separate the classes).
+- **Is this training from scratch?** No - transfer learning from pretrained weights.
+
+## 8. Common mistakes
+- Assuming the pipeline's label IDs match your label mapping (always verify).
+- Fine-tuning with a large learning rate → catastrophic forgetting.
+- Reporting training accuracy on the 8 fine-tune samples instead of held-out queries.
+
+## 9. One-line summary
+"LLM pipeline demo: tokenization + attention mask, sentiment inference, greedy vs top-p generation, and a 3-epoch fine-tune on 8 examples that correctly classifies both held-out domain queries."
 
 ---
 
 # 11 – Generalized Regression Neural Network (GRNN)
 
-### Quick facts
+## 0. In one paragraph
+A GRNN (Specht, 1991 - equivalent to Nadaraya-Watson kernel regression) is implemented from scratch in NumPy. It has no gradient training: it stores the data and predicts a Gaussian-weighted average of targets. The only hyperparameter σ is selected by 5-fold CV (σ=0.069), giving a smooth fit of a noisy 1D function with test R² 0.9473 - essentially at the noise floor.
+
+## 1. Quick facts
 | | |
 |---|---|
-| **Algorithm** | Specht's GRNN = Nadaraya-Watson kernel regression, implemented from scratch (NumPy) |
-| **Dataset** | Noisy 1D function y = sin(2x) + cos(0.5x²) + N(0,0.18), 100 points |
-| **Key parameters** | Only σ (smoothing spread); selected by 5-fold CV over 0.05…1.0 |
-| **Result** | σ = 0.069 (CV RMSE 0.2137); final test R² **0.9473**, RMSE 0.1718; train R² 0.9829 |
+| **Algorithm** | Generalized Regression Neural Network (from scratch, scikit-learn-style API) |
+| **Dataset** | Synthetic 1D: y = sin(2x) + cos(0.5x²) + N(0, 0.18²), 100 points in [−3, 3] |
+| **Key parameters** | σ selected by 5-fold CV over 0.05…1.0 → σ=0.069 (CV RMSE 0.2137) |
+| **Results** | Final 75/25 split: train R² 0.9829, **test R² 0.9473**, test RMSE 0.1718 |
 
-### Step-by-step (what the code does)
-1. **Define `GRNN(sigma)`** with the scikit-learn API:
-   - `fit` stores the training data (one-pass "training" - no gradients),
-   - `predict` computes squared distances from each query to all training points (via the ‖a−b‖² expansion), applies the Gaussian kernel exp(−d²/2σ²), then returns ŷ = Σ y_i·k_i / Σ k_i.
-2. **Generate data:** noisy 1D function, 100 points; dense grid for plotting.
-3. **σ demo:** fit three GRNNs with σ = 0.05 (under-smoothed), 0.35, 1.50 (over-smoothed); plot each fit with the true curve and training R².
-4. **σ selection:** 5-fold CV (`KFold(shuffle=True, random_state=42)`) over 50 candidate σ values; for each σ: fit on 4 folds, RMSE on the held-out fold, average → pick argmin → σ = 0.069.
-5. **Final model:** refit with σ = 0.069 on a 75% train split and evaluate on the 25% test split: R² and RMSE.
+## 2. How the algorithm works
+Four layers:
+1. **Input:** query vector x.
+2. **Pattern layer:** one Gaussian unit per training point: p_i(x) = exp(−‖x−x_i‖²/(2σ²)).
+3. **Summation layer:** S(x) = Σᵢ yᵢ·p_i(x) (numerator), D(x) = Σᵢ p_i(x) (denominator).
+4. **Output:** ŷ(x) = S(x)/D(x) - the Nadaraya-Watson conditional-mean estimate.
 
-### Key concepts
-- **GRNN architecture:** input → pattern layer (one Gaussian neuron per training point) → summation layer (S = Σy_i·p_i, D = Σp_i) → output S/D.
-- **One-pass learning:** no iterative optimization; the training set *is* the model.
-- **σ (smoothing spread):** the only hyperparameter. Small σ → memorizes noise (high variance); large σ → over-smooth (high bias).
-- **Nadaraya-Watson estimator:** ŷ(x) = Σ K(x,x_i)·y_i / Σ K(x,x_i) - an estimate of E[y|x].
-- **Why 5-fold CV?** Reliable selection of the single hyperparameter without touching the test set.
+Training is one-pass: just store the data. Prediction cost is O(N·d) per query. σ controls the bias-variance trade-off: small σ memorizes noise (high variance), large σ over-smooths (high bias).
 
-### How to read the results
-- σ=0.05: curve wiggles through every point - overfitting the noise.
-- σ=1.50: almost flat - underfitting.
-- σ=0.069 (from CV): smooth curve that follows the true signal → CV chose a small-but-not-tiny σ for this dense 1D data.
-- Test R² 0.9473 = explains ~95% of held-out variance; RMSE 0.1718 vs noise std 0.18 → essentially at the noise floor (cannot do much better).
-- Train R² 0.9829 higher than test - normal, small generalization gap.
+## 3. Parameters & tuning
+| Parameter | Value | Effect | If increased | If decreased |
+|---|---|---|---|---|
+| `sigma` | 0.069 (CV) | smoothing spread | smoother, higher bias | wiggly, higher variance |
+| CV folds | 5 | reliability of σ estimate | more stable, slower | noisier estimate |
+| σ grid | 0.05…1.0 (50 pts) | search resolution | finer optimum | coarser |
 
-### Likely questions
-- **How is it "neural" if there is no backprop?** Four-layer network structure (input/pattern/summation/output); the pattern layer is radial-basis neurons; learning is memory-based.
-- **Why is training instant?** Only stores data; prediction cost is O(N·d) per query.
-- **What happens for very large data?** Prediction becomes slow (kernel with every training point) - a known GRNN limitation.
-- **Why did CV pick a small σ?** The 100 points are dense in [-3,3]; small σ still has enough neighbors to smooth, keeping the fit detailed.
-- **How would you make it better?** Weighted/adaptive σ per dimension, or sparse kernel approximations.
+## 4. Step-by-step implementation (with key code)
+1. **Define the class:**
+```python
+class GRNN(BaseEstimator, RegressorMixin):
+    def fit(self, X, y):
+        self.X_train_, self.y_train_ = np.asarray(X), np.asarray(y).ravel()   # memorize
+        return self
+    def predict(self, X):
+        dist_sq = ...                          # ||x - x_i||^2 via the expansion trick
+        kernels = np.exp(-dist_sq / (2.0 * self.sigma ** 2))    # pattern layer
+        D = np.sum(kernels, axis=1)            # denominator
+        S = np.dot(kernels, self.y_train_)     # numerator
+        return S / np.where(D < 1e-12, 1e-12, D)
+```
+2. **σ behavior demo:** fit σ = 0.05 / 0.35 / 1.50 and plot against the true curve - shows under/over-smoothing.
+3. **σ selection:**
+```python
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+for sig in sigma_candidates:               # 50 values
+    fold_rmses = [root_mean_squared_error(y_va, GRNN(sigma=sig).fit(X_tr, y_tr).predict(X_va))
+                  for train_idx, val_idx in kf.split(X_syn)]
+    cv_scores.append(np.mean(fold_rmses))
+best_sigma = sigma_candidates[np.argmin(cv_scores)]     # 0.069
+```
+4. **Final fit + holdout evaluation** (75/25): train R², test R², test RMSE.
 
-### One-line summary
-"GRNN implemented from scratch needs no gradient training: 5-fold CV picks σ=0.069, giving a smooth fit with test R² 0.9473 - essentially at the noise limit of the data."
+## 5. Results & interpretation
+- CV curve: clear minimum at σ = 0.069 (CV RMSE 0.2137) - small but not tiny, because the 100 points are dense.
+- σ=0.05 fit wiggles through noise (overfit); σ=1.50 nearly flat (underfit); σ=0.069 follows the true function.
+- Test R² 0.9473 = ~95% of held-out variance explained; RMSE 0.1718 ≈ noise std 0.18 → at the noise limit.
+- Train R² 0.9829 > test R² - small, expected generalization gap.
+
+## 6. Limitations & how to improve
+- Prediction is O(N) per query; large datasets need approximations (kernels, k-d trees).
+- A single global σ performs poorly when dimensions/features have different scales - normalize features or use adaptive σ per dimension.
+- Curse of dimensionality: kernel methods degrade in high dimensions.
+- Improvements: feature scaling, anisotropic (per-feature) σ, sparse/approximate kernels, or combine with a linear term.
+
+## 7. Viva questions
+- **How is GRNN trained?** One pass - it stores the data; no backpropagation.
+- **Why is it called a neural network?** Four-layer radial-basis structure (input/pattern/summation/output).
+- **What does σ control?** Smoothing: small = variance/overfit, large = bias/underfit.
+- **What is it mathematically?** Nadaraya-Watson kernel regression estimating E[y|x].
+- **Why 5-fold CV?** To select the single hyperparameter without touching the test set.
+- **Why does the final test R² stop at ~0.95?** The data has irreducible noise (σ_noise=0.18); RMSE matches it.
+- **Is it parametric?** No - it is non-parametric/memory-based.
+- **Why did CV choose 0.069 and not smaller?** With 100 dense points, smaller σ would start fitting noise in validation folds.
+
+## 8. Common mistakes
+- Confusing GRNN with a standard MLP (no weights/gradients; kernel memory).
+- Selecting σ on the test set instead of via CV.
+- Forgetting feature scaling before computing Euclidean distances.
+
+## 9. One-line summary
+"GRNN implemented from scratch: one-pass training, σ=0.069 chosen by 5-fold CV, and a smooth fit at the noise floor of the data (test R² 0.9473)."
 
 ---
 
@@ -542,84 +1068,79 @@ Everything below is based on the actual executed notebooks in this repository; e
 |---|---|---|---|---|
 | **Silhouette** | 01, 02 | (b−a)/max(a,b): cohesion vs separation | −1…1 | >0.5 good, 0.25-0.5 weak, <0 overlapping |
 | **Davies-Bouldin** | 01 | average similarity between each cluster and its most similar one | ≥0 | lower better; <1 good |
-| **Calinski-Harabasz** | 01 | ratio of between- to within-cluster dispersion | ≥0 | higher better; only compare models |
-| **ARI** | 02 | agreement with ground truth, corrected for chance | −0.5…1 | 0 = random, >0.5 strong, 1 perfect |
-| **Accuracy** | 03, 04, 05, 09 | fraction correctly classified | 0…1 | >0.9 strong on these datasets |
-| **Precision** | 05 | TP/(TP+FP) - how clean positive predictions are | 0…1 | high when false positives are costly |
-| **Recall** | 05 | TP/(TP+FN) - how many positives are found | 0…1 | high when misses are costly |
-| **F1** | 03, 04, 05 | harmonic mean of precision and recall | 0…1 | >0.9 excellent; robust to imbalance |
-| **ROC-AUC** | 04 | probability a random positive scores above a random negative | 0…1 | 0.5 random, 0.7-0.8 acceptable, >0.8 good, >0.9 excellent |
-| **R²** | 04, 11 | fraction of target variance explained | −∞…1 | 1 perfect; >0.7 good for noisy data; can be negative |
-| **RMSE** | 04, 06, 09, 11 | √mean squared error (same units as target) | ≥0 | lower better; compare same-target models |
+| **Calinski-Harabasz** | 01 | between-cluster vs within-cluster dispersion | ≥0 | higher better; compare models only |
+| **ARI** | 02 | change-corrected agreement with ground truth | −0.5…1 | 0 = random, >0.5 strong, 1 perfect |
+| **Accuracy** | 03, 04, 05, 09 | fraction correct | 0…1 | >0.9 strong on these datasets |
+| **Precision** | 05 | TP/(TP+FP) | 0…1 | high when false positives are costly |
+| **Recall** | 05 | TP/(TP+FN) | 0…1 | high when misses are costly |
+| **F1** | 03, 04, 05 | harmonic mean of precision & recall | 0…1 | >0.9 excellent; robust to imbalance |
+| **ROC-AUC** | 04 | P(random positive ranked above random negative) | 0…1 | 0.5 random, 0.7-0.8 acceptable, >0.8 good |
+| **R²** | 04, 11 | fraction of target variance explained | −∞…1 | >0.7 good for noisy data; can be negative |
+| **RMSE** | 04, 06, 09, 11 | √MSE in target units | ≥0 | lower better; same-target comparisons only |
 | **MAE** | 04, 06 | mean absolute error | ≥0 | lower better; robust to outliers |
-| **MSE loss** | 06 | squared error used as the training objective | ≥0 | decreasing, stable curve |
-| **Cross-entropy** | 05, 10 | −Σy·ln(ŷ), classification objective | ≥0 | decreasing, stable curve |
-| **Quantization error** | 07 | average distance sample → BMU | ≥0 | lower better; relative improvement matters |
-| **Topographic error** | 07 | fraction of samples whose top-2 BMUs are not neighbors | 0…1 | <0.05 good; 0 perfect |
-| **Log-likelihood** | 08 | how well the HMM explains the observed sequence | −∞…+∞ | higher (less negative) better; compare models |
+| **MSE loss** | 06 | squared error objective | ≥0 | decreasing/stable curve |
+| **Cross-entropy** | 05, 10 | −Σy·ln(ŷ) objective | ≥0 | decreasing/stable curve |
+| **Quantization error** | 07 | avg distance sample → BMU | ≥0 | lower better; relative improvement matters |
+| **Topographic error** | 07 | fraction of non-adjacent top-2 BMUs | 0…1 | <0.05 good, 0 perfect |
+| **Log-likelihood** | 08 | how well the HMM explains the sequence | −∞…+∞ | higher (less negative) better; same data only |
 
-**Choosing a metric (common exam question):** imbalanced classification → F1 or ROC-AUC (not accuracy); regression → R² for interpretation + RMSE for real error size; clustering without labels → silhouette / Davies-Bouldin; density clustering → ARI if ground truth exists.
+**Choosing a metric:** imbalanced classification → F1 or ROC-AUC (not accuracy); regression → R² for interpretation + RMSE for real error size; clustering without labels → silhouette / Davies-Bouldin; density clustering with labels → ARI.
 
 # Appendix B – Validation / cross-validation used
 
-| Notebook | Scheme | Why that scheme |
+| Notebook | Scheme | Why |
 |---|---|---|
-| 01 | Elbow + silhouette over K=2..10 | No labels: choose K by internal cluster quality |
-| 02 | k-distance graph (knee) | Heuristic to set ε without labeled data |
-| 03 | Stratified holdout 70/30 + 15% labels | Simulates scarce labeling; evaluate once on clean test |
-| 04 | Holdout + OOB for RFR | OOB is free internal validation for bagging; holdout for all |
-| 05 | Early-stopping validation split (15%) | Stop training when validation stops improving |
-| 06 | Chronological 80/20 split | Time series: shuffling would leak future data |
-| 07 | None (uses QE/TE) | Unsupervised self-assessment metrics |
-| 08 | None (EM log-likelihood + convergence) | Unsupervised; monitor assures convergence |
-| 09 | Holdout test set | Simple unbiased estimate for SVC/SVR |
-| 10 | Unseen domain queries | Checks transfer beyond the 8 fine-tune samples |
-| 11 | **5-fold CV** over σ grid | Tune the only hyperparameter reliably; test set kept clean |
+| 01 | Elbow + silhouette over K=2..10 | No labels: choose K by internal quality |
+| 02 | k-distance graph (knee) | Heuristic to set ε without labels |
+| 03 | Stratified holdout 70/30 + 15% labels | Simulate label scarcity; single clean test |
+| 04 | Holdout + OOB (RFR) | OOB is free validation for bagging |
+| 05 | Early-stopping validation split (15%) | Stop training when validation stalls |
+| 06 | Chronological 80/20 | Time series must not shuffle |
+| 07 | None (QE/TE internal metrics) | Unsupervised self-assessment |
+| 08 | None (EM convergence + log-likelihood) | Unsupervised; monitor assures convergence |
+| 09 | Holdout test set | Simple unbiased estimate |
+| 10 | Held-out domain queries | Checks transfer beyond the 8 fine-tune samples |
+| 11 | **5-fold CV** over the σ grid | Tune the only hyperparameter reliably |
 
-**Note:** only notebooks 11 (KFold, shuffle=True) uses explicit k-fold CV; 05 uses a single validation split; 04 uses OOB. Everything else is a holdout or heuristic.
+**Summary:** only notebook 11 uses explicit k-fold CV; 05 uses a single validation split; 04 uses OOB; the rest use holdouts or internal heuristics.
 
 # Appendix C – Datasets used
 
 | Data | Notebook | Size | Target / use |
 |---|---|---|---|
 | Mall Customers (`data/mall_customers.csv`) | 01 | 200 x 5 | Cluster income + spending |
-| Synthetic moons/circles/blob + noise | 02 | 600 x 2 | Non-convex clustering + noise detection |
-| Breast Cancer (sklearn) | 03, 09 | 569 x 30 | Malignant/benign classification |
-| California Housing (sklearn, 5k sample) | 04 | 5,000 x 8 | Median house value (regression) |
-| Heart Disease (`data/heart_disease.csv`) | 04 | 303 x 13 | Disease 0/1 (classification) |
-| Digits (sklearn) | 05 | 1,797 x 64 | Digit 0-9 (10 classes) |
-| Airline Passengers (`data/airline_passengers.csv`) | 06 | 144 months | Next-month passenger count |
-| Wine (sklearn) | 07 | 178 x 13 | 3 cultivars (visualization only) |
-| Market Regimes (`data/market_regimes.csv`) | 08 | 1,000 days | Latent market regime (unsupervised) |
-| Synthetic moons / sinusoid | 09 | 250 / 120 | 2-class demo / 1D regression |
-| DistilBERT, DistilGPT2 (HF Hub) | 10 | pretrained | Sentiment, generation, domain classification |
-| Synthetic 1D function | 11 | 100 | Noisy continuous regression |
+| Synthetic moons/circles/blob + noise | 02 | 600 x 2 | Non-convex clustering + noise |
+| Breast Cancer (sklearn) | 03, 09 | 569 x 30 | Malignant/benign |
+| California Housing (sklearn, 5k sample) | 04 | 5,000 x 8 | Median house value |
+| Heart Disease (`data/heart_disease.csv`) | 04 | 303 x 13 | Disease 0/1 |
+| Digits (sklearn) | 05 | 1,797 x 64 | Digit 0-9 |
+| Airline Passengers (`data/airline_passengers.csv`) | 06 | 144 months | Next-month passengers |
+| Wine (sklearn) | 07 | 178 x 13 | 3 cultivars (visualization) |
+| Market Regimes (`data/market_regimes.csv`) | 08 | 1,000 days | Latent regime |
+| Synthetic moons / sinusoid | 09 | 250 / 120 | Classification / regression |
+| DistilBERT, DistilGPT2 (HF Hub) | 10 | pretrained | Sentiment, generation, domain |
+| Synthetic 1D function | 11 | 100 | Continuous regression |
 
 # Appendix D – Cross-cutting questions
 
-- **Why scale features?** Distance-based models (K-Means, SVM, KNN), gradient-based models (MLP), and RNNs/SOMs all need comparable input ranges; without scaling one feature dominates.
-  - `StandardScaler` (mean 0, std 1) for clustering/SVM/MLP; `MinMaxScaler` [0,1] for SOM and RNN (matches activation/weight ranges).
-- **Why `random_state=42` everywhere?** Reproducibility: the same notebook produces the same results on any machine.
-- **How is data leakage avoided?**
-  - Scalers are fit on the training set only.
-  - The RNN uses a chronological split (no shuffling).
-  - Stratified splits preserve class ratios.
-  - CV is done only on training data (notebook 11).
-- **How do you know a model is not overfitting?** Compare train vs test metrics: e.g., RFR OOB 0.7513 vs test 0.7415; GRNN train R² 0.983 vs test 0.947; MLP val acc ≈ test acc. Large gaps would signal overfitting.
-- **Why different metrics per notebook?** The metric must match the task: regression → R²/RMSE; classification → accuracy/F1/AUC; clustering → silhouette/DB/ARI; density/SOM/HMM → task-specific errors/likelihood.
-- **What is a hyperparameter vs a parameter?** Parameters are learned from data (weights, centroids); hyperparameters are chosen by us (K, ε, σ, C, γ, threshold, layers).
-- **Which model performed best overall?** Task-dependent: XGBoost/CatBoost for tabular regression, PyTorch MLP for digits, LSTM for sequences, GRNN for smooth 1D regression, SVC for small high-dimensional classification.
+- **Why scale features?** Distance/gradient-based models need comparable ranges: StandardScaler for clustering/SVM/MLP; MinMaxScaler [0,1] for SOM/RNN (matches activation and weight ranges).
+- **Why `random_state=42`?** Reproducibility - identical results on every machine.
+- **How is leakage avoided?** Scalers fit on train only; chronological split for time series; stratified splits; CV only on training data.
+- **How is overfitting checked?** Train vs validation/test gaps: RFR OOB 0.7513 vs test 0.7415; GRNN train 0.983 vs test 0.947; MLP validation ≈ test.
+- **Parameter vs hyperparameter?** Parameters are learned (weights, centroids); hyperparameters are chosen (K, ε, σ, C, γ, τ, layers).
+- **Which model was best?** Task-dependent: XGBoost/CatBoost for tabular regression; PyTorch MLP for digits; LSTM for sequences; RBF SVC for small high-dimensional classification; GRNN for smooth low-dimensional regression.
+- **Why multiple metrics?** Each captures a different failure mode (e.g., accuracy hides class imbalance; RMSE weights outliers more than MAE).
 
 # Appendix E – Rapid-fire 30-second answers
 
-1. **01** – "Four clustering algorithms on scaled income/spending data; K=5 by elbow+silhouette; K-Means/FCM best (silhouette 0.55); Bisecting gives balanced sizes."
-2. **02** – "DBSCAN and HDBSCAN on moons/circles/noise; ε=0.22 from the k-distance knee; both find 3 clusters, ARI ≈ 0.46, and label outliers as noise."
-3. **03** – "With just 15% labels, self-training pseudo-labeling raised SVC accuracy 0.9298 → 0.9415, closing part of the gap to the 100%-labeled ceiling (0.9766)."
-4. **04** – "Four boosters/baggers on housing (XGBoost/CatBoost R² ≈ 0.80) and Random Forest classification on heart disease (AUC 0.87)."
-5. **05** – "MLP on 8x8 digits: sklearn 96.3% with early stopping; custom PyTorch net with BatchNorm+Dropout 98.9% test accuracy."
-6. **06** – "Vanilla RNN vs LSTM on 12-month windows of airline data: LSTM RMSE 42.2 vs 70.8 passengers - gating beats vanishing gradients."
-7. **07** – "12x12 Kohonen SOM on wine: quantization error halved to 0.196, topographic error 0.039; cultivars separate on the U-matrix without labels."
-8. **08** – "3-state Gaussian HMM on 1,000 days of returns: Baum-Welch converged (log-lik 3018), Viterbi-decoded bull/sideways/bear regimes."
-9. **09** – "SVC kernels on moons, RBF SVC 0.979 on breast cancer with 22% support vectors; SVR fits noisy sine with an ε=0.18 tube (R² 0.986)."
-10. **10** – "DistilBERT tokenization + sentiment, DistilGPT2 greedy vs top-p generation, and a 3-epoch fine-tune that correctly classifies held-out technical/billing queries."
-11. **11** – "GRNN from scratch: one-pass training, σ=0.069 by 5-fold CV, test R² 0.947 - at the noise floor of the 1D data."
+1. **01** - "Four clustering algorithms on scaled income/spending; K=5 by elbow+silhouette; K-Means/FCM best (silhouette 0.55), Bisecting gives balanced sizes."
+2. **02** - "DBSCAN/HDBSCAN on moons+circles+noise; ε=0.22 from the k-distance knee; 3 clusters each, ARI ≈ 0.46, outliers flagged as noise."
+3. **03** - "With 15% labels, self-training lifted SVC accuracy 0.9298 → 0.9415, below the fully supervised 0.9766 ceiling."
+4. **04** - "RFR/XGBoost/AdaBoost/CatBoost on housing (XGB/Cat R² ≈ 0.80) plus RFC on heart disease (accuracy 0.78, AUC 0.87)."
+5. **05** - "MLP on 8x8 digits: sklearn 96.3% with early stopping; custom PyTorch with BatchNorm+Dropout 98.9% test accuracy."
+6. **06** - "RNN vs LSTM on 12-month airline windows: LSTM RMSE 42.2 vs 70.8 passengers - gates beat vanishing gradients."
+7. **07** - "12x12 SOM on wine: quantization error 0.196, topographic error 0.039; cultivars separate on the U-matrix without labels."
+8. **08** - "3-state Gaussian HMM on 1,000 daily returns; Baum-Welch converged (log-lik 3018); Viterbi decodes bull/sideways/bear regimes."
+9. **09** - "SVC kernels on moons; RBF SVC 0.979 on breast cancer with 22% support vectors; SVR fits a noisy sine (R² 0.986) with an ε=0.18 tube."
+10. **10** - "DistilBERT tokenization and sentiment, DistilGPT2 greedy vs top-p generation, 3-epoch fine-tune correctly classifies held-out technical/billing queries."
+11. **11** - "GRNN from scratch: one-pass training, σ=0.069 by 5-fold CV, test R² 0.947 - at the noise floor of the data."
