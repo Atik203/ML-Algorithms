@@ -50,13 +50,13 @@ PRINT_CSS = """
 
   /* Wrap long code/output lines instead of clipping them on paper */
   pre, code, .highlight { white-space: pre-wrap !important; word-break: break-word !important; overflow: visible !important; }
-  .jp-InputArea-editor pre, .jp-InputArea-editor .highlight, .input_area pre { font-size: 12.5px !important; line-height: 1.2 !important; }
-  .jp-OutputArea-output pre, .output_subarea pre { font-size: 12px !important; line-height: 1.2 !important; }
+  .jp-InputArea-editor pre, .jp-InputArea-editor .highlight, .input_area pre { font-size: 11.5px !important; line-height: 1.1 !important; }
+  .jp-OutputArea-output pre, .output_subarea pre { font-size: 11px !important; line-height: 1.1 !important; }
   .jp-OutputArea-output, .output_subarea { overflow: visible !important; max-height: none !important; }
 
   /* Plots stay whole on a page but are capped in height (no half-page figures) */
   .jp-RenderedImage, .output_png, .jp-OutputArea-output img { page-break-inside: avoid; }
-  img, svg { max-width: 100% !important; max-height: 65mm !important; width: auto !important; height: auto !important; }
+  img, svg { max-width: 100% !important; max-height: 50mm !important; width: auto !important; height: auto !important; }
   /* Text outputs and tables may split across pages to avoid large empty gaps */
   .jp-OutputArea, .jp-OutputArea-child, .output_area, .output_subarea, table { page-break-inside: auto; }
   h1, h2, h3, h4, h5 { break-after: avoid-page; page-break-after: avoid; }
@@ -65,13 +65,13 @@ PRINT_CSS = """
   .jp-InputPrompt, .jp-OutputPrompt, .prompt { display: none !important; }
 
   /* Compact cell spacing and slightly smaller tables */
-  .jp-Cell, .cell { margin: 4px 0 !important; padding: 1px 0 !important; }
+  .jp-Cell, .cell { margin: 3px 0 !important; padding: 0 !important; }
   .jp-InputArea-editor { border: 1px solid #ddd !important; }
-  .jp-RenderedHTMLCommon table { font-size: 11px !important; }
+  .jp-RenderedHTMLCommon table { font-size: 10.5px !important; }
 
-  /* One notebook per page start in the combined document */
-  section.notebook { page-break-before: always; }
-  section.notebook:first-of-type { page-break-before: auto; }
+  /* Combined document: notebooks flow continuously with a separating rule */
+  section.notebook { page-break-before: auto; }
+  section.notebook + section.notebook { border-top: 1.5px solid #999; margin-top: 10px; padding-top: 8px; }
 </style>
 """
 
