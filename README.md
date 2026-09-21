@@ -55,7 +55,7 @@ d:/ML/Assignment/
 | **07** | [`07_self_organizing_map.ipynb`](notebooks/07_self_organizing_map.ipynb) | • Kohonen Self-Organizing Map | `minisom` | UCI Wine Recognition Dataset | U-Matrix with projected wine cultivars, quantization and topographic error. |
 | **08** | [`08_hidden_markov_model.ipynb`](notebooks/08_hidden_markov_model.ipynb) | • Gaussian HMM (Baum-Welch EM & Viterbi Decoding) | `hmmlearn` | DAX stock index 1991-1998 (`data/stock_index.csv`) | Transition matrix heatmap and DAX price trajectory colored by Viterbi-decoded regime. |
 | **09** | [`09_support_vector_machine.ipynb`](notebooks/09_support_vector_machine.ipynb) | • Support Vector Classifier (SVC)<br>• Support Vector Regressor (SVR) | `scikit-learn` | Breast Cancer (2 & 30 features) & Old Faithful geyser (`data/geyser.csv`) | SVC decision boundaries on real data across Linear/Poly/RBF kernels, $\epsilon$-insensitive tube plot, breast-cancer accuracy. |
-| **10** | [`10_large_language_model.ipynb`](notebooks/10_large_language_model.ipynb) | • Transformer Tokenizer<br>• Sentiment Pipeline<br>• Causal Text Generation<br>• Sequence Classifier Fine-Tuning | `transformers`<br>`torch` | DistilBERT SST-2, DistilGPT2 & SMS Spam Collection (`data/sms_spam.csv`) | Tokenizer subword mapping, sentiment inference table, greedy vs. nucleus generation, SMS spam fine-tune (96.5% accuracy). |
+| **10** | [`10_large_language_model.ipynb`](notebooks/10_large_language_model.ipynb) | • Transformer Tokenizer<br>• Sentiment Pipeline<br>• Causal Text Generation<br>• Sequence Classifier Fine-Tuning | `transformers`<br>`torch` | DistilBERT SST-2, DistilGPT2 & SMS Spam Collection (`data/sms_spam.csv`) | Tokenizer subword mapping, sentiment inference table, greedy vs. nucleus generation, SMS spam fine-tune (96.0% accuracy). |
 | **11** | [`11_generalized_regression_neural_network.ipynb`](notebooks/11_generalized_regression_neural_network.ipynb) | • Generalized Regression Neural Network (GRNN / Specht 1991) | Custom Vectorized Class + `scikit-learn` API | Real motorcycle accelerometer data (`data/motorcycle.csv`) | Under/optimal/over-smoothing plots, 5-fold CV $\sigma$ curve, final GRNN metrics. |
 
 ---
@@ -68,6 +68,12 @@ The project uses the dedicated Python 3.12 environment configured in `.venv`:
 # Activate the virtual environment in PowerShell
 .venv\Scripts\Activate.ps1
 ```
+
+> **GPU (optional):** the default `.venv` ships with CPU-only PyTorch. To run the PyTorch notebooks (05, 06, 10) on an NVIDIA GPU, install the CUDA wheel and let the notebooks auto-select it via `torch.cuda.is_available()`:
+> ```bash
+> uv pip install --python .venv\Scripts\python.exe --reinstall torch --index-url https://download.pytorch.org/whl/cu126
+> ```
+> The committed notebook outputs were produced on an NVIDIA RTX 3060 Laptop GPU.
 
 ### 2. Kernel Registration (One-Time Setup)
 Every notebook is pinned to the **`Python (ML Assignment)`** kernel, which launches the `.venv` interpreter. Register it once with:

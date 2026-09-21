@@ -18,12 +18,12 @@ All numbers are real outputs of the executed notebooks in this repository. Code 
 | [02](#02--density-based-learning) | Density-based | DBSCAN, HDBSCAN | USGS earthquakes 2023 | 55 clusters, 13.5% noise |
 | [03](#03--semi-supervised-learning) | Semi-supervised | Self-Training (SVC) | Breast Cancer (15% labels) | 0.9298 → 0.9415 accuracy |
 | [04](#04--ensemble-learning) | Ensembles | RFR, RFC, XGBoost, AdaBoost, CatBoost | California Housing + Heart Disease | XGB/CatBoost R² ≈ 0.80 |
-| [05](#05--multilayer-perceptron-mlp) | Neural net | MLP (sklearn + PyTorch) | Digits (8x8) | 0.9889 test accuracy |
-| [06](#06--recurrent-neural-network-rnn) | Sequence | Vanilla RNN vs LSTM | Airline Passengers | LSTM RMSE 42.2 vs RNN 70.8 |
+| [05](#05--multilayer-perceptron-mlp) | Neural net | MLP (sklearn + PyTorch) | Digits (8x8) | 0.9815 test accuracy |
+| [06](#06--recurrent-neural-network-rnn) | Sequence | Vanilla RNN vs LSTM | Airline Passengers | LSTM RMSE 44.1 vs RNN 69.9 |
 | [07](#07--self-organizing-map-som) | Topological | Kohonen SOM | Wine (178x13) | QE 0.1965, TE 0.0393 |
 | [08](#08--hidden-markov-model-hmm) | Probabilistic | Gaussian HMM + Viterbi | DAX index 1991-98 | log-lik 6019.79, EM converged |
 | [09](#09--support-vector-machines-svm) | Margin-based | SVC (3 kernels), SVR | Breast Cancer (2/30 feat), Old Faithful | SVC 0.9790, SVR R² 0.8968 |
-| [10](#10--large-language-models-llm) | Transformer | DistilBERT/DistilGPT2 | SST-2 + SMS Spam | fine-tune 96.5% accuracy |
+| [10](#10--large-language-models-llm) | Transformer | DistilBERT/DistilGPT2 | SST-2 + SMS Spam | fine-tune 96.0% accuracy |
 | [11](#11--generalized-regression-neural-network-grnn) | Kernel regression | GRNN (from scratch) | Motorcycle accelerometer | σ=0.08, test R² 0.725 |
 | [A](#appendix-a--metrics-cheat-sheet) | Appendix A | Metrics cheat sheet | - | definitions + good values |
 | [B](#appendix-b--validation--cross-validation-used) | Appendix B | Validation & CV | - | where and why |
@@ -444,7 +444,7 @@ then accuracy / F1 / ROC-AUC on the test set.
 # 05 – Multilayer Perceptron (MLP)
 
 ## 0. In one paragraph
-Two MLP implementations classify 8x8 handwritten digits: a scikit-learn `MLPClassifier` (128-64 ReLU, early stopping) reaching 0.9630 test accuracy, and a custom PyTorch network (64→128→64→10 with BatchNorm + Dropout, Adam + LR scheduling) reaching **0.9889**. The notebook covers the full training loop, validation tracking, and per-class evaluation.
+Two MLP implementations classify 8x8 handwritten digits: a scikit-learn `MLPClassifier` (128-64 ReLU, early stopping) reaching 0.9630 test accuracy, and a custom PyTorch network (64→128→64→10 with BatchNorm + Dropout, Adam + LR scheduling) reaching **0.9815** on the GPU. The notebook covers the full training loop, validation tracking, and per-class evaluation.
 
 ## 1. Quick facts
 | | |
@@ -453,7 +453,7 @@ Two MLP implementations classify 8x8 handwritten digits: a scikit-learn `MLPClas
 | **Dataset** | Digits: 1,797 samples, 64 features (8x8), 10 classes |
 | **Split** | 70% train / 15% validation / 15% test, stratified |
 | **Key parameters** | sklearn: (128,64), ReLU, Adam, alpha=0.001, early stopping. PyTorch: BatchNorm + Dropout(0.25/0.20), CrossEntropyLoss, Adam lr 0.003, weight decay 1e-4, batch 32, 50 epochs, ReduceLROnPlateau |
-| **Results** | sklearn 0.9630 (15 iterations); PyTorch **0.9889** test accuracy |
+| **Results** | sklearn 0.9630 (15 iterations); PyTorch **0.9815** test accuracy |
 
 ## 2. How the algorithm works
 An MLP stacks fully connected layers with non-linear activations:
@@ -505,9 +505,9 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0
 
 ## 5. Results & interpretation
 - sklearn: 0.9630 test accuracy, converged in 15 iterations (early stopping prevented overfitting).
-- PyTorch: **0.9889** (270 test images, 3 mistakes). Train loss fell 1.20 → 0.01; validation loss stayed in the same range → no severe overfitting.
+- PyTorch: **0.9815** (270 test images, 5 mistakes). Train loss fell 1.20 → 0.02; validation loss stayed in the same range → no severe overfitting.
 - Per-class report: nearly all digits have precision/recall ≈ 1.00; residual errors are visually similar digits.
-- Validation accuracy (0.9889 at epoch 50) matches test accuracy → the validation split was representative.
+- Validation accuracy (0.9889 at epoch 50) is close to the test accuracy (0.9815) → the validation split was representative.
 
 ## 6. Limitations & how to improve
 - MLPs ignore spatial structure of images (a CNN is the right tool for digits).
@@ -531,14 +531,14 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0
 - Comparing accuracies without checking the same split/seed.
 
 ## 9. One-line summary
-"Two MLP implementations on 8x8 digits: scikit-learn reaches 96.3% with early stopping, while the custom PyTorch network with BatchNorm + Dropout and LR scheduling reaches 98.9% test accuracy."
+"Two MLP implementations on 8x8 digits: scikit-learn reaches 96.3% with early stopping, while the custom PyTorch network with BatchNorm + Dropout and LR scheduling reaches 98.2% test accuracy."
 
 ---
 
 # 06 – Recurrent Neural Network (RNN)
 
 ## 0. In one paragraph
-A vanilla Elman RNN and an LSTM forecast monthly airline passenger counts from the previous 12 months. After a chronological 80/20 split, both train identically (2 layers, hidden 64, MSE, Adam, 120 epochs). The LSTM achieves RMSE 42.17 vs 70.83 passengers for the vanilla RNN - a direct demonstration that gated memory handles long-range seasonality better.
+A vanilla Elman RNN and an LSTM forecast monthly airline passenger counts from the previous 12 months. After a chronological 80/20 split, both train identically (2 layers, hidden 64, MSE, Adam, 120 epochs). The LSTM achieves RMSE 44.12 vs 69.93 passengers for the vanilla RNN - a direct demonstration that gated memory handles long-range seasonality better.
 
 ## 1. Quick facts
 | | |
@@ -548,7 +548,7 @@ A vanilla Elman RNN and an LSTM forecast monthly airline passenger counts from t
 | **Preprocessing** | MinMaxScaler → [0,1]; sliding windows: 12 months → next month |
 | **Split** | Chronological 80/20 → 105 train / 27 test sequences; no shuffling |
 | **Key parameters** | 2 layers, hidden 64, Linear(64,1), MSELoss, Adam lr 0.005, 120 epochs, batch 16 |
-| **Results** | Vanilla RNN RMSE 70.83 / MAE 63.16; **LSTM RMSE 42.17 / MAE 34.88** |
+| **Results** | Vanilla RNN RMSE 69.93 / MAE 62.36; **LSTM RMSE 44.12 / MAE 36.78** |
 
 ## 2. How the algorithm works
 **Vanilla RNN:** h_t = tanh(W_ih x_t + b_ih + W_hh h_{t−1} + b_hh); output from the last step ŷ = W_ho h_T + b_o. Trained with backpropagation through time (BPTT). Problem: repeated multiplication by W_hh makes gradients vanish (or explode) over long sequences.
@@ -602,13 +602,13 @@ loss.backward(); optimizer.step()    # BPTT through the 12 steps
 ## 5. Results & interpretation
 | Model | RMSE (passengers) ↓ | MAE ↓ |
 |---|---|---|
-| Vanilla RNN | 70.83 | 63.16 |
-| LSTM | **42.17** | **34.88** |
+| Vanilla RNN | 69.93 | 62.36 |
+| LSTM | **44.12** | **36.78** |
 
-- LSTM error is 40% lower than the vanilla RNN - gating preserves the seasonal signal across 12 steps.
-- MAE 35 passengers against a series averaging ~280/month ≈ 12% relative error.
+- LSTM error is ~37% lower than the vanilla RNN - gating preserves the seasonal signal across 12 steps.
+- MAE 36.8 passengers against a series averaging ~280/month ≈ 13% relative error.
 - Forecast plot: LSTM follows both the upward trend and the yearly oscillation; RNN lags.
-- Training ran ~19 s for both models on CPU (small dataset).
+- Training ran on the RTX 3060 GPU (CUDA) in ~19 s for both models (small dataset).
 
 ## 6. Limitations & how to improve
 - Multi-step forecasting currently feeds true past values; a real deployment must roll predictions forward (error accumulation).
@@ -632,7 +632,7 @@ loss.backward(); optimizer.step()    # BPTT through the 12 steps
 - Comparing RNN/LSTM with different epochs/hidden sizes (unfair benchmark).
 
 ## 9. One-line summary
-"On 12-month airline windows, both models train identically; the LSTM's gated memory cuts test RMSE from 70.8 to 42.2 passengers, showing why gating matters for long-range seasonality."
+"On 12-month airline windows, both models train identically; the LSTM's gated memory cuts test RMSE from 69.9 to 44.1 passengers, showing why gating matters for long-range seasonality."
 
 ---
 
@@ -888,7 +888,7 @@ svr_model = SVR(kernel='rbf', C=10.0, epsilon=0.3, gamma='scale').fit(X_svr, y_s
 10 – Large Language Models (LLM)
 
 ## 0. In one paragraph
-Three LLM capabilities are demonstrated with Hugging Face transformers: subword tokenization (DistilBERT), zero-shot sentiment inference (SST-2 pipeline), and controllable generation (DistilGPT2 greedy vs nucleus sampling). Finally, DistilBERT is fine-tuned on a balanced subset of the **real SMS Spam Collection** (400 train / 200 test messages) for 2 epochs, reaching **96.5% test accuracy and 0.965 F1** on held-out real SMS messages.
+Three LLM capabilities are demonstrated with Hugging Face transformers: subword tokenization (DistilBERT), zero-shot sentiment inference (SST-2 pipeline), and controllable generation (DistilGPT2 greedy vs nucleus sampling). Finally, DistilBERT is fine-tuned on a balanced subset of the **real SMS Spam Collection** (400 train / 200 test messages) for 2 epochs, reaching **96.0% test accuracy and 0.959 F1** on held-out real SMS messages.
 
 ## 1. Quick facts
 | | |
@@ -898,7 +898,7 @@ Three LLM capabilities are demonstrated with Hugging Face transformers: subword 
 | **Tasks** | Tokenization, sentiment inference, text generation, SMS spam fine-tuning |
 | **Fine-tune data** | `data/sms_spam.csv` - 5,572 real labeled SMS; balanced subset 300 ham + 300 spam → 400 train / 200 test (stratified) |
 | **Key parameters** | Generation: max_new_tokens=40, T=0.7, top_p=0.9. Fine-tune: 2 epochs, AdamW lr 5e-5, batch 16, max_length 64 |
-| **Results** | Loss 0.557 → 0.069; held-out accuracy 0.9650, F1 (spam) 0.9652 |
+| **Results** | Loss 0.705 → 0.079; held-out accuracy 0.9600, F1 (spam) 0.9592 |
 
 ## 2. How the algorithm works
 **Tokenization:** text → subword tokens (WordPiece/BPE) → integer IDs; [CLS]/[SEP] special tokens; padding with an attention mask (1 = real, 0 = pad).
@@ -951,10 +951,10 @@ outputs.loss.backward(); optimizer.step()          # 2 epochs
 6. **Evaluate** on the 200 held-out messages: accuracy, F1, and three example predictions with confidence.
 
 ## 5. Results & interpretation
-- Fine-tune loss: 0.557 → 0.069 over 2 epochs.
-- Held-out accuracy 0.9650, spam F1 0.9652 on real, unseen SMS.
-- Example predictions: a prize-notification spam at 99.7%, a short ham message at 99.5%, another spam at 98.0% confidence.
-- The balanced subset keeps the demo fast (~2 min on CPU) - a real, labeled dataset replaces the earlier hand-written examples.
+- Fine-tune loss: 0.705 → 0.079 over 2 epochs.
+- Held-out accuracy 0.9600, spam F1 0.9592 on real, unseen SMS.
+- Example predictions: a prize-notification spam at 99.4%, a short ham message at 99.5%, another spam at 89.7% confidence.
+- The balanced subset keeps the demo fast (~30 s on the GPU) - a real, labeled dataset replaces the earlier hand-written examples.
 
 ## 6. Limitations & how to improve
 - Balanced 600-message subset ignores the natural 13% spam prior of the full collection (accuracy would shift on the full distribution).
@@ -963,7 +963,7 @@ outputs.loss.backward(); optimizer.step()          # 2 epochs
 - Improvements: train on all 5,572 messages with class weights, add a validation split, or use LoRA adapters for larger models.
 
 ## 7. Viva questions
-- **Why SMS Spam?** Real, public, binary-labeled, small enough to fine-tune on CPU within minutes.
+- **Why SMS Spam?** Real, public, binary-labeled, small enough to fine-tune on a laptop GPU in under a minute.
 - **Why a balanced subset?** With 400 training messages, balancing prevents the model from ignoring the spam class; evaluation is then directly interpretable.
 - **Why subword tokenization?** Fixed vocabulary can represent any word, including unseen ones.
 - **What did fine-tuning change?** The classification head was replaced and all weights adapted slightly (lr=5e-5).
@@ -978,7 +978,7 @@ outputs.loss.backward(); optimizer.step()          # 2 epochs
 - Reporting training accuracy instead of held-out accuracy.
 
 ## 9. One-line summary
-"Full LLM pipeline demo: tokenization, sentiment, greedy vs top-p generation, and DistilBERT fine-tuned on the real SMS Spam Collection reaching 96.5% accuracy / 0.965 F1 on 200 held-out messages."
+"Full LLM pipeline demo: tokenization, sentiment, greedy vs top-p generation, and DistilBERT fine-tuned on the real SMS Spam Collection reaching 96.0% accuracy / 0.959 F1 on 200 held-out messages."
 
 11 – Generalized Regression Neural Network (GRNN)
 
@@ -1131,6 +1131,7 @@ best_sigma = sigma_candidates[np.argmin(cv_scores)]      # 0.08
 
 - **Why scale features?** Distance/gradient-based models need comparable ranges: StandardScaler for clustering/SVM/MLP; MinMaxScaler [0,1] for SOM/RNN (matches activation and weight ranges).
 - **Why `random_state=42`?** Reproducibility - identical results on every machine.
+- **Which device do the notebooks use?** PyTorch code auto-selects CUDA (`torch.device('cuda' if torch.cuda.is_available() else 'cpu')`) and the Hugging Face pipelines use device 0 when available; this repo ran on an NVIDIA RTX 3060 Laptop GPU. Small metric differences vs CPU are normal (GPU reduction order).
 - **How is leakage avoided?** Scalers fit on train only; chronological split for time series; stratified splits; CV only on training data.
 - **How is overfitting checked?** Train vs validation/test gaps: RFR OOB 0.7513 vs test 0.7415; GRNN train 0.983 vs test 0.947; MLP validation ≈ test.
 - **Parameter vs hyperparameter?** Parameters are learned (weights, centroids); hyperparameters are chosen (K, ε, σ, C, γ, τ, layers).
@@ -1143,10 +1144,10 @@ best_sigma = sigma_candidates[np.argmin(cv_scores)]      # 0.08
 2. **02** - "DBSCAN/HDBSCAN on 7,638 real USGS earthquakes (2023, M≥4.5): ε=0.03 rad (~191 km) from the k-distance knee; 55 clusters/13.5% noise (DBSCAN) and 40/21.5% (HDBSCAN); largest clusters match Philippines, Papua New Guinea, Tonga, Japan, Turkey."
 3. **03** - "With 15% labels, self-training lifted SVC accuracy 0.9298 → 0.9415, below the fully supervised 0.9766 ceiling."
 4. **04** - "RFR/XGBoost/AdaBoost/CatBoost on housing (XGB/Cat R² ≈ 0.80) plus RFC on heart disease (accuracy 0.78, AUC 0.87)."
-5. **05** - "MLP on 8x8 digits: sklearn 96.3% with early stopping; custom PyTorch with BatchNorm+Dropout 98.9% test accuracy."
-6. **06** - "RNN vs LSTM on 12-month airline windows: LSTM RMSE 42.2 vs 70.8 passengers - gates beat vanishing gradients."
+5. **05** - "MLP on 8x8 digits: sklearn 96.3% with early stopping; custom PyTorch with BatchNorm+Dropout 98.2% test accuracy (GPU)."
+6. **06** - "RNN vs LSTM on 12-month airline windows: LSTM RMSE 44.1 vs 69.9 passengers - gates beat vanishing gradients."
 7. **07** - "12x12 SOM on wine: quantization error 0.196, topographic error 0.039; cultivars separate on the U-matrix without labels."
 8. **08** - "3-state Gaussian HMM on 1,859 real DAX closes (1991-98): Baum-Welch converged (log-lik 6019.79), Viterbi-decoded bull/sideways/bear regimes."
 9. **09** - "SVC kernels on real breast-cancer features; full-feature RBF SVC 0.979 with 22.5% support vectors; SVR on real Old Faithful eruptions R² 0.897 with an ε=0.3 tube and 38% support vectors."
-10. **10** - "DistilBERT tokenization and sentiment, DistilGPT2 greedy vs top-p generation, and DistilBERT fine-tuned on real SMS spam to 96.5% accuracy / 0.965 F1 on 200 held-out messages."
+10. **10** - "DistilBERT tokenization and sentiment, DistilGPT2 greedy vs top-p generation, and DistilBERT fine-tuned on real SMS spam to 96.0% accuracy / 0.959 F1 on 200 held-out messages."
 11. **11** - "GRNN from scratch on real motorcycle impact data: one-pass training, σ=0.08 by 5-fold CV, test R² 0.725 / RMSE 22.8 g - global bandwidth limits on a near-discontinuous dataset."
