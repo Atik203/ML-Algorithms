@@ -21,10 +21,10 @@ All numbers are real outputs of the executed notebooks in this repository. Code 
 | [05](#05--multilayer-perceptron-mlp) | Neural net | MLP (sklearn + PyTorch) | Digits (8x8) | 0.9889 test accuracy |
 | [06](#06--recurrent-neural-network-rnn) | Sequence | Vanilla RNN vs LSTM | Airline Passengers | LSTM RMSE 42.2 vs RNN 70.8 |
 | [07](#07--self-organizing-map-som) | Topological | Kohonen SOM | Wine (178x13) | QE 0.1965, TE 0.0393 |
-| [08](#08--hidden-markov-model-hmm) | Probabilistic | Gaussian HMM + Viterbi | Market Regimes | log-lik 3018.45, EM converged |
-| [09](#09--support-vector-machines-svm) | Margin-based | SVC (3 kernels), SVR | Moons, Breast Cancer, 1D sine | SVC 0.9790, SVR R² 0.9864 |
-| [10](#10--large-language-models-llm) | Transformer | DistilBERT/DistilGPT2 | SST-2 + custom domain | correct domain classification |
-| [11](#11--generalized-regression-neural-network-grnn) | Kernel regression | GRNN (from scratch) | Noisy 1D function | σ=0.069, test R² 0.9473 |
+| [08](#08--hidden-markov-model-hmm) | Probabilistic | Gaussian HMM + Viterbi | DAX index 1991-98 | log-lik 6019.79, EM converged |
+| [09](#09--support-vector-machines-svm) | Margin-based | SVC (3 kernels), SVR | Breast Cancer (2/30 feat), Old Faithful | SVC 0.9790, SVR R² 0.8968 |
+| [10](#10--large-language-models-llm) | Transformer | DistilBERT/DistilGPT2 | SST-2 + SMS Spam | fine-tune 96.5% accuracy |
+| [11](#11--generalized-regression-neural-network-grnn) | Kernel regression | GRNN (from scratch) | Motorcycle accelerometer | σ=0.08, test R² 0.725 |
 | [A](#appendix-a--metrics-cheat-sheet) | Appendix A | Metrics cheat sheet | - | definitions + good values |
 | [B](#appendix-b--validation--cross-validation-used) | Appendix B | Validation & CV | - | where and why |
 | [C](#appendix-c--datasets-used) | Appendix C | Datasets | - | sizes, targets |
@@ -129,7 +129,7 @@ U = inv_dist_p / inv_dist_p.sum(axis=1, keepdims=True)   # membership update
 - Bisecting is slightly weaker here but produces more uniform cluster sizes - its advantage is robustness, not raw separation.
 
 ## 6. Limitations & how to improve
-- K-Means assumes spherical, similar-sized clusters → fails on moons/circles (demonstrated in notebook 02).
+- K-Means assumes spherical, similar-sized clusters → fails on elongated, non-convex structures such as the seismic chains in notebook 02.
 - Means are not robust: outliers pull centroids → K-Medoids or trimming would help.
 - K must be supplied externally → elbow/silhouette (used here), gap statistic, or BIC for GMMs.
 - FCM is O(N·K·d) per iteration and sensitive to initialization; multiple restarts recommended.
@@ -718,281 +718,280 @@ te = som.topographic_error(X)     # fraction whose top-2 BMUs are not neighbors
 
 ---
 
-# 08 – Hidden Markov Model (HMM)
+08 – Hidden Markov Model (HMM)
 
 ## 0. In one paragraph
-A 3-state Gaussian Hidden Markov Model is trained with the Baum-Welch (EM) algorithm on 1,000 days of financial returns to uncover latent market regimes. The model converges (log-likelihood 3018.45) and Viterbi decoding assigns each day to Bull, Sideways or Bear after states are sorted by volatility - revealing persistence and volatility clustering on the price chart.
+A 3-state Gaussian Hidden Markov Model is trained with Baum-Welch (EM) on **1,859 real daily closes of the DAX index (1991-1998, R `EuStockMarkets`)** to uncover latent market regimes. The model converges (log-likelihood 6019.79) and Viterbi decoding assigns each trading day to Bull, Sideways or Bear after states are sorted by volatility - the colored chart shows the regime path across real market history.
 
 ## 1. Quick facts
 | | |
 |---|---|
 | **Algorithm** | Gaussian HMM (hmmlearn): Baum-Welch EM training + Viterbi decoding |
-| **Dataset** | `data/market_regimes.csv`, 1,000 trading days; observations = daily returns |
+| **Dataset** | `data/stock_index.csv` - real DAX daily closes 1991-1998 (EuStockMarkets), 1,859 days |
+| **Observations** | Daily returns (Close is only used for plotting) |
 | **Key parameters** | n_components=3, covariance_type="full", n_iter=200, random_state=42 |
-| **Results** | EM converged (True); model log-likelihood 3018.45 |
+| **Results** | EM converged (True); model log-likelihood 6019.79 |
 
 ## 2. How the algorithm works
 An HMM is a doubly stochastic process:
-- hidden state sequence z_t (1st-order Markov): P(z_t | z_{t−1}, …, z_1) = P(z_t | z_{t−1}), summarized by the transition matrix A with A_ij = P(z_{t+1}=s_j | z_t=s_i);
+- hidden state sequence z_t (1st-order Markov): P(z_t | z_{t−1}, …, z_1) = P(z_t | z_{t−1}), summarized by A_ij = P(z_{t+1}=s_j | z_t=s_i);
 - observations x_t emitted from the active state: x_t | z_t = s_k ~ N(μ_k, σ_k²).
 
 Three classic problems:
-1. **Evaluation:** forward algorithm gives P(X | λ) (log-likelihood).
-2. **Decoding:** Viterbi dynamic programming finds the most likely state path: δ_t(j) = max_i[δ_{t−1}(i)·A_ij]·b_j(x_t).
-3. **Learning:** Baum-Welch (EM) - E-step computes posteriors with forward-backward; M-step re-estimates π, A, and Gaussian parameters; iterate until log-likelihood converges.
+1. **Evaluation:** forward algorithm → P(X | λ) (log-likelihood).
+2. **Decoding:** Viterbi dynamic programming → most likely state path (δ_t(j) = max_i[δ_{t−1}(i)·A_ij]·b_j(x_t)).
+3. **Learning:** Baum-Welch (EM) - E-step computes posteriors with forward-backward; M-step re-estimates π, A and Gaussian parameters; iterate until convergence.
 
 ## 3. Parameters & tuning
-| Parameter | Value | Effect | If increased | If decreased |
+| Parameter | Value | What it does | If increased | If decreased |
 |---|---|---|---|---|
 | `n_components` | 3 | number of regimes | finer regimes, overfit risk | coarse regimes |
-| `covariance_type` | full | emission covariance | more flexible (full matrix) | diag/spherical = simpler |
+| `covariance_type` | full | emission covariance | more flexible | diag/spherical simpler |
 | `n_iter` | 200 | EM iterations | better convergence, slower | may stop early |
-| `random_state` | 42 | reproducibility | — | runs may find different local optima |
+| `random_state` | 42 | reproducibility | — | different local optima |
 
 ## 4. Step-by-step implementation (with key code)
-1. **Load** the CSV; `returns = df_market['Daily_Return'].values.reshape(-1, 1)`.
+1. **Load** the real DAX series and build the observation vector:
+```python
+df_market = pd.read_csv('../data/stock_index.csv')
+dates = pd.to_datetime(df_market['Date'])            # 1991-01-03 .. 1998-02-17
+returns = df_market['Daily_Return'].values.reshape(-1, 1)
+prices = df_market['Close'].values
+```
 2. **Fit the HMM:**
 ```python
 hmm_model = GaussianHMM(n_components=3, covariance_type="full", n_iter=200, random_state=42)
 hmm_model.fit(returns)
-print(hmm_model.monitor_.converged, hmm_model.score(returns))
+print(hmm_model.monitor_.converged, hmm_model.score(returns))   # True, 6019.79
 ```
-3. **Decode the regime path:**
-```python
-hidden_states = hmm_model.predict(returns)     # Viterbi
-```
+3. **Decode** the regime path with Viterbi: `hidden_states = hmm_model.predict(returns)`.
 4. **Stabilize labels** by sorting states by volatility:
 ```python
 volatilities = [np.sqrt(hmm_model.covars_[i][0][0]) for i in range(3)]
-state_order = np.argsort(volatilities)         # Bull(0) < Sideways(1) < Bear(2)
+state_order = np.argsort(volatilities)       # Bull(0) < Sideways(1) < Bear(2)
 ```
 and reorder the transition matrix accordingly.
-5. **Visualize:** transition-matrix heatmap + price series colored by daily regime (Viterbi path).
+5. **Visualize:** transition-matrix heatmap + DAX price colored by regime, with real year ticks on the axis.
 
 ## 5. Results & interpretation
-- EM converged; log-likelihood 3018.45 (higher is better) - the 3-state model explains the return sequence well.
-- Sorting states by σ makes labels stable and interpretable: low-vol (bull), medium (sideways), high-vol (bear).
-- The price chart shows the model switching into the high-volatility state during drawdowns - the classic volatility-clustering behavior.
-- The transition matrix diagonal (regime persistence) is visibly larger than off-diagonal values → regimes are sticky, as expected in markets.
+- EM converged; log-likelihood 6019.79 on 1,859 days - a stable fit (higher/less negative is better on the same data).
+- Sorting by volatility gives consistent labels: low-vol Bull, medium Sideways, high-vol Bear.
+- The colored DAX chart shows the model tracking real episodes: the strong 1990s bull phases, corrections such as 1994, and the high-volatility cluster around the 1998 crisis - the classic volatility-clustering behavior.
+- The transition matrix diagonal is visibly dominant → regimes are persistent, not switching daily.
 
 ## 6. Limitations & how to improve
-- Only returns are modeled; adding volatility/volume features (multivariate emissions) would enrich states.
-- Number of states is a modeling choice - compare 2-5 states via log-likelihood/BIC.
-- Gaussian emissions underestimate fat tails of returns (t-distributions are more realistic).
-- Improvements: hidden semi-Markov models for duration modeling, HMM + GARCH hybrids.
+- Gaussian emissions underestimate fat tails of return distributions (t-emissions would be more realistic).
+- Only one index is modeled; multivariate emissions (DAX+SMI+CAC+FTSE, all in the source file) would enrich the states.
+- The number of states is a modeling choice - compare 2-5 states by log-likelihood/BIC.
+- Improvements: semi-Markov duration modeling, HMM + GARCH hybrid, or regime detection with macroeconomic covariates.
 
 ## 7. Viva questions
-- **What is hidden vs observed?** Regimes are latent; returns are observed.
+- **What is hidden vs observed?** Regimes are latent; daily returns are observed.
 - **What does the transition matrix tell you?** Probability of staying/switching regimes (persistence).
 - **Baum-Welch vs Viterbi?** Learning parameters vs decoding the most likely state path.
-- **Why sort states by volatility?** Deterministic labels across runs (Bull/Sideways/Bear).
-- **How do you know it converged?** `monitor_.converged` is True and log-likelihood stabilized.
-- **Is this supervised?** No - the states are learned unsupervised from returns.
-- **What are the three classic HMM problems?** Evaluation (forward), decoding (Viterbi), learning (Baum-Welch).
-- **Why is diagonal dominance expected?** Markets rarely switch regimes daily; regimes persist.
+- **Why model returns and not prices?** Returns are approximately stationary; prices trend and violate the Gaussian emission assumption.
+- **Why sort states by volatility?** Deterministic semantic labels (Bull/Sideways/Bear) across runs.
+- **How do you know it converged?** `monitor_.converged` is True and the log-likelihood stabilized.
+- **Is this supervised?** No - regimes are learned unsupervised from returns.
+- **Is the log-likelihood comparable to other datasets?** No - only across models fitted on the same data.
 
 ## 8. Common mistakes
-- Re-training with different random seeds and comparing regimes with inconsistent labels (sorting fixes this).
-- Using raw prices instead of returns (non-stationary emissions).
-- Reading log-likelihood across different datasets - it is only comparable on the same data.
+- Re-training with different seeds and comparing unsorted regime labels.
+- Reading log-likelihood across different datasets as a quality score.
+- Assuming the three states must correspond exactly to named market phases - they are statistical clusters by volatility.
 
 ## 9. One-line summary
-"A 3-state Gaussian HMM converges (log-likelihood 3018) on 1,000 daily returns; Viterbi decoding plus volatility-sorted states cleanly separates bull, sideways, and bear regimes used for the price overlay."
+"A 3-state Gaussian HMM converges (log-likelihood 6019.79) on 1,859 real DAX closes (1991-1998); Viterbi decoding over volatility-sorted states reveals persistent bull, sideways and bear regimes across real market history."
 
----
-
-# 09 – Support Vector Machines (SVM)
+09 – Support Vector Machines (SVM)
 
 ## 0. In one paragraph
-SVC is demonstrated with linear, polynomial and RBF kernels on two interleaving moons, then applied to Breast Cancer (RBF, 0.9790 test accuracy with only 96/426 support vectors). SVR with an ε-insensitive tube fits a noisy 1D sinusoid (R² 0.9864), and the plotted tube shows how only 18/120 points actually constrain the regression curve.
+SVC is demonstrated on **real breast-cancer data**: two diagnostic measurements (mean radius, mean texture) show the linear/poly/RBF decision boundaries and margins, while the full 30-feature model reaches 0.9790 test accuracy using 96/426 support vectors. SVR with an ε=0.3 insensitivity tube then regresses **real Old Faithful geyser data** (waiting time → eruption duration), reaching R² 0.8968 with only 103/272 support vectors.
 
 ## 1. Quick facts
 | | |
 |---|---|
 | **Algorithms** | SVC (linear/poly/RBF kernels), SVR (RBF, ε-insensitive tube) |
-| **Datasets** | Two-moons (250 x 2); Breast Cancer (569 x 30); 1D sinusoid + trend + noise (120) |
-| **Key parameters** | SVC C=1.0, gamma='scale', degree=3; SVR C=20, epsilon=0.18, gamma=0.5 |
-| **Results** | SVC (RBF) cancer accuracy 0.9790, 96/426 SVs; SVR R² 0.9864, RMSE 0.1157, 18/120 SVs |
+| **Datasets** | Breast Cancer (569 x 30; 2 features for the kernel view, all 30 for accuracy); Old Faithful geyser (`data/geyser.csv`, 272 eruptions) |
+| **Key parameters** | SVC C=1.0, gamma='scale'; SVR C=10, epsilon=0.3, gamma='scale' |
+| **Results** | SVC (RBF, 30 features) 0.9790, 96/426 SVs (22.5%); SVR R² 0.8968, RMSE 0.366 min, 103/272 SVs (37.9%) |
 
 ## 2. How the algorithm works
-**SVC (soft margin):** minimize ½‖w‖² + C·Σξᵢ subject to yᵢ(wᵀφ(xᵢ)+b) ≥ 1−ξᵢ, ξᵢ ≥ 0. The dual problem depends only on inner products K(xᵢ,xⱼ) - this enables the **kernel trick** (compute similarity in a high-dimensional space without mapping data there). The solution is sparse: only points with αᵢ > 0 (**support vectors**) define the boundary.
+**SVC (soft margin):** minimize ½‖w‖² + C·Σξᵢ subject to yᵢ(wᵀφ(xᵢ)+b) ≥ 1−ξᵢ, ξᵢ ≥ 0. The dual depends only on inner products K(xᵢ,xⱼ) - enabling the **kernel trick** (implicit high-dimensional mapping). Only points with αᵢ > 0 (**support vectors**) define the boundary.
 
 **Kernels:** linear K = xᵀz; polynomial K = (γxᵀz + r)^d; RBF K = exp(−γ‖x−z‖²).
 
-**SVR:** same machinery for regression with an **ε-insensitive tube** - residuals within ±ε cost nothing; only points outside the tube get αᵢ > 0. Objective: ½‖w‖² + C·Σ(ξᵢ + ξᵢ*).
+**SVR:** ε-insensitive tube - residuals within ±ε cost nothing; only points outside become support vectors. Objective: ½‖w‖² + C·Σ(ξᵢ + ξᵢ*).
 
 ## 3. Parameters & tuning
-| Parameter | Value | Effect | If increased | If decreased |
+| Parameter | Value | What it does | If increased | If decreased |
 |---|---|---|---|---|
-| `C` | 1.0 (SVC), 20 (SVR) | violation penalty | narrow margin, overfit | wide margin, underfit |
-| `gamma` (RBF) | 'scale' / 0.5 | kernel width | local, wiggly boundary | smooth, linear-like |
+| `C` | 1.0 (SVC), 10 (SVR) | violation penalty | narrow margin, overfit | wide margin, underfit |
+| `gamma` (RBF) | 'scale' | kernel width | local, wiggly | smooth, linear-like |
 | `kernel` | linear/poly/rbf | feature mapping | — | linear = no mapping |
-| `degree` (poly) | 3 | polynomial order | more complex | simpler |
-| `epsilon` (SVR) | 0.18 | tube half-width | fewer SVs, coarser fit | more SVs, tighter fit |
+| `epsilon` (SVR) | 0.3 min | tube half-width | fewer SVs, coarser fit | more SVs, tighter fit |
+| Feature scaling | StandardScaler | equal feature influence | — | distance distortion without it |
 
 ## 4. Step-by-step implementation (with key code)
-1. **Moons experiment** - one SVC per kernel:
+1. **2D kernel view on real data** (two breast-cancer features):
 ```python
-clf = SVC(kernel=k_name, C=1.0, gamma='scale', degree=3, random_state=42)
-clf.fit(X_2d_scaled, y_2d)
-Z = clf.decision_function(...)                 # draw boundary Z=0 and margins Z=±1
-ax.scatter(clf.support_vectors_[:, 0], clf.support_vectors_[:, 1], ...)  # highlight SVs
+cancer_2d = load_breast_cancer()
+X_2d = cancer_2d.data[:, [0, 1]]            # mean radius, mean texture
+X_2d_scaled = StandardScaler().fit_transform(X_2d)
+clf = SVC(kernel=k_name, C=1.0, gamma='scale', degree=3, random_state=42).fit(X_2d_scaled, y_2d)
+Z = clf.decision_function(...)              # draw boundary Z=0 and margins Z=±1
 ```
-2. **Breast Cancer (real data):**
+2. **Accuracy on all 30 features:**
 ```python
-svc_rbf = SVC(kernel='rbf', C=1.0, random_state=42)
-svc_rbf.fit(X_train_c_s, y_train_c)
-print(svc_rbf.score(X_test_c_s, y_test_c), len(svc_rbf.support_))
+svc_rbf = SVC(kernel='rbf', C=1.0, random_state=42).fit(X_train_c_s, y_train_c)
+print(svc_rbf.score(X_test_c_s, y_test_c), len(svc_rbf.support_))   # 0.9790, 96
 ```
-3. **SVR on the 1D signal:**
+3. **SVR on real geyser data:**
 ```python
-svr_model = SVR(kernel='rbf', C=20.0, epsilon=0.18, gamma=0.5)
-svr_model.fit(X_svr, y_svr)
-# plot prediction, ±ε tube, and support vectors (svr_model.support_)
+geyser = pd.read_csv('../data/geyser.csv')
+X_svr = StandardScaler().fit_transform(geyser['waiting'].values.reshape(-1, 1))
+y_svr = geyser['eruptions'].values
+svr_model = SVR(kernel='rbf', C=10.0, epsilon=0.3, gamma='scale').fit(X_svr, y_svr)
 ```
-4. Report R², RMSE, support-vector percentage.
+4. Plot the fitted curve, the ±ε tube, and the highlighted support vectors; report R²/RMSE and SV share.
 
 ## 5. Results & interpretation
-- Moons: the linear kernel cannot separate the classes; poly and RBF curve the boundary; SV counts (gold circles) show the sparse solution.
-- Breast Cancer: 0.9790 test accuracy; 96/426 training points are support vectors (22.5%) → 77% of the data could be discarded without changing the model.
-- SVR: R² 0.9864 (98.6% variance explained), RMSE 0.1157; 18/120 SVs (15%) anchor the curve; the ε=0.18 tube contains most residuals.
+- The 2D kernel figure shows linear underfitting vs curved poly/RBF boundaries on real diagnostic measurements.
+- Full-feature RBF SVC: 0.9790 accuracy with 96/426 SVs → 77% of training points are irrelevant to the boundary (sparse solution).
+- SVR: R² 0.8968, RMSE 0.366 minutes on eruption durations 1.6-5.1 min; 103/272 points (37.9%) are support vectors.
+- The geyser scatter is bimodal (short vs long eruptions); the RBF SVR smoothly bridges the two modes, and the ε-tube leaves most residuals unpenalized.
 
 ## 6. Limitations & how to improve
-- Does not scale well to very large n (kernel matrix is O(n²)); use LinearSVC/SGD or Nyström approximation.
-- Requires feature scaling and careful C/γ tuning (grid search).
-- No native probability output (Platt scaling needed; used in notebook 03).
-- Improvements: kernel selection by CV, class weights for imbalance, ν-SVC for automatic margin control.
+- Kernel methods scale poorly with n (O(n²) kernel matrix); use LinearSVC/SGD or Nyström for large data.
+- Requires scaling and careful C/γ selection (grid search).
+- No native probabilities (Platt calibration needed - used in notebook 03).
+- SVM assumes a fixed feature space; tree ensembles often win on heterogeneous tabular data.
 
 ## 7. Viva questions
-- **What is a support vector?** Training point on/inside the margin with α > 0; defines the boundary.
-- **Role of C?** Penalty for margin violations - high C = strict, low C = tolerant.
-- **Role of γ?** RBF width: large γ = very local; small γ = smooth.
+- **What is a support vector?** Training point on/inside the margin with α > 0; it defines the boundary.
+- **Role of C?** Penalty for violations - high C strict, low C tolerant.
+- **Role of γ?** RBF width: large γ local/wiggly, small γ smooth.
 - **What is the kernel trick?** Inner products in feature space without explicit mapping.
 - **Why is the solution sparse?** Only support vectors have non-zero dual coefficients.
-- **What is the ε-tube?** Zero-loss zone in SVR; only outside points become support vectors.
-- **Why haversine distance for earthquakes?** Latitude/longitude are spherical coordinates; haversine gives true great-circle distances (radians input; 0.03 rad ≈ 191 km).
-- **Why scale features?** The kernel uses Euclidean distance; unscaled features distort it.
-- **SVC vs SVR?** Classification (separating hyperplane) vs regression (tube around a function).
+- **What is the ε-tube?** Zero-loss zone in SVR; only points outside become support vectors.
+- **Why ε=0.3 here?** Wider tube → fewer support vectors (103 vs 214 at ε=0.1) with the same R² (~0.897).
+- **Why 2 features in the figure but 30 for accuracy?** Visualization needs 2D; accuracy uses all information.
 
 ## 8. Common mistakes
-- Not scaling → RBF behaves poorly.
-- Setting γ too large and reporting overfit boundaries.
-- Judging SVR with accuracy (it is regression: use R²/RMSE).
+- Not scaling features (RBF then behaves poorly).
+- Reporting classification accuracy for SVR (it is regression: use R²/RMSE).
+- Setting γ too large and interpreting overfit boundaries as a good fit.
 
 ## 9. One-line summary
-"SVC's three kernels demonstrate the kernel trick on moons; the RBF model reaches 0.979 on Breast Cancer using only 22% support vectors, and SVR fits a noisy sinusoid (R² 0.986) with an explicit ε-tube containing most residuals."
+"SVC's three kernels visualized on real breast-cancer measurements, full-feature RBF SVC 0.9790 with only 22.5% support vectors, and SVR regressing real Old Faithful eruptions with an ε=0.3 tube and 38% support vectors (R² 0.897)."
 
----
-
-# 10 – Large Language Models (LLM)
+10 – Large Language Models (LLM)
 
 ## 0. In one paragraph
-Three LLM capabilities are demonstrated with Hugging Face transformers: subword tokenization (DistilBERT), zero-shot sentiment inference (SST-2 pipeline), and controllable generation (DistilGPT2 greedy vs nucleus sampling). Finally, the pretrained classifier is fine-tuned for 3 epochs on 8 domain queries (Technical vs Billing), after which both held-out queries are classified correctly (88.3% / 84.0% confidence).
+Three LLM capabilities are demonstrated with Hugging Face transformers: subword tokenization (DistilBERT), zero-shot sentiment inference (SST-2 pipeline), and controllable generation (DistilGPT2 greedy vs nucleus sampling). Finally, DistilBERT is fine-tuned on a balanced subset of the **real SMS Spam Collection** (400 train / 200 test messages) for 2 epochs, reaching **96.5% test accuracy and 0.965 F1** on held-out real SMS messages.
 
 ## 1. Quick facts
 | | |
 |---|---|
 | **Models** | `distilbert-base-uncased-finetuned-sst-2-english`, `distilgpt2` |
 | **Libraries** | `transformers`, `torch` |
-| **Tasks** | Tokenization, sentiment inference, text generation, 2-class fine-tuning |
-| **Key parameters** | Generation: max_new_tokens=40, T=0.7, top_p=0.9. Fine-tune: 3 epochs, lr 1e-4, AdamW, batch 4 |
-| **Results** | Held-out queries: Billing 88.3%, Technical 84.0%; fine-tune loss 2.663 → 0.041 → 0.069 |
+| **Tasks** | Tokenization, sentiment inference, text generation, SMS spam fine-tuning |
+| **Fine-tune data** | `data/sms_spam.csv` - 5,572 real labeled SMS; balanced subset 300 ham + 300 spam → 400 train / 200 test (stratified) |
+| **Key parameters** | Generation: max_new_tokens=40, T=0.7, top_p=0.9. Fine-tune: 2 epochs, AdamW lr 5e-5, batch 16, max_length 64 |
+| **Results** | Loss 0.557 → 0.069; held-out accuracy 0.9650, F1 (spam) 0.9652 |
 
 ## 2. How the algorithm works
-**Tokenization:** text → subword tokens (WordPiece/BPE) → integer IDs; special tokens [CLS]/[SEP]; padding with an attention mask (1 = real, 0 = pad) so padding does not affect attention.
+**Tokenization:** text → subword tokens (WordPiece/BPE) → integer IDs; [CLS]/[SEP] special tokens; padding with an attention mask (1 = real, 0 = pad).
 
 **Transformer self-attention:** Attention(Q,K,V) = softmax(QKᵀ/√d_k + mask)·V - every token attends to every other token; stacked blocks build contextual representations.
 
-**Causal generation:** predict the next token from all previous ones: P(t_n | t_1…t_{n−1}) = softmax(z_n / T).
-- Greedy: always argmax → deterministic, can loop.
-- Temperature T: <1 sharpens, >1 flattens the distribution.
-- Top-p (nucleus): keep the smallest set of tokens with cumulative probability ≥ p, sample inside it.
+**Causal generation:** P(t_n | t_1…t_{n−1}) = softmax(z_n / T).
+- Greedy: argmax each step (deterministic, can loop).
+- Temperature T: <1 sharpens, >1 flattens.
+- Top-p: sample from the smallest token set with cumulative probability ≥ p.
 
-**Fine-tuning:** load pretrained weights, replace the classification head (2 labels), train briefly on task data with a small learning rate (1e-4) so pretrained knowledge is preserved.
+**Fine-tuning:** load pretrained weights, replace the classification head (2 labels), train briefly with a small learning rate so pretrained language knowledge is preserved.
 
 ## 3. Parameters & tuning
-| Parameter | Value | Effect | If increased | If decreased |
+| Parameter | Value | What it does | If increased | If decreased |
 |---|---|---|---|---|
-| `max_new_tokens` | 40 | generation length | longer text, more compute | shorter output |
-| `temperature` | 0.7 | sampling randomness | more creative/chaotic (>1) | more deterministic (<1) |
-| `top_p` | 0.9 | nucleus size | more diverse | more conservative |
-| `lr` (fine-tune) | 1e-4 | adaptation step | faster but forgetting/overfit | too slow to learn |
-| `epochs` | 3 | fine-tune passes | overfit on small data | underfit |
-| `batch_size` | 4 | samples per step | smoother gradients | noisy, regularizing |
+| `max_new_tokens` | 40 | generation length | longer text | shorter |
+| `temperature` | 0.7 | sampling randomness | more chaotic (>1) | more deterministic |
+| `top_p` | 0.9 | nucleus size | more diverse | conservative |
+| `lr` (fine-tune) | 5e-5 | adaptation step | forgetting/overfit | too slow |
+| `epochs` | 2 | passes over data | overfit on 400 samples | underfit |
+| `batch_size` | 16 | samples/step | smoother gradients | noisier |
+| `max_length` | 64 | token truncation | longer memory | SMS are short |
 
 ## 4. Step-by-step implementation (with key code)
-1. **Tokenize** with padding/truncation and inspect tokens/IDs/mask:
+1. **Tokenize** with padding/truncation; inspect tokens, IDs and attention mask (same as before).
+2. **Sentiment inference** with a pre-trained pipeline; display label + confidence.
+3. **Generation** greedy vs nucleus:
 ```python
-encoded = tokenizer(text, padding="max_length", max_length=20, truncation=True, return_tensors="pt")
-tokens = tokenizer.convert_ids_to_tokens(encoded['input_ids'][0])
-```
-2. **Sentiment inference** with a pipeline:
-```python
-classifier = pipeline("sentiment-analysis", model=model_id, device=-1)
-predictions = classifier(test_sentences)      # label + confidence
-```
-3. **Generation** with explicit configs:
-```python
-generator = pipeline("text-generation", model="distilbert/distilgpt2",
-                     device=-1, clean_up_tokenization_spaces=False)
 greedy  = generator(prompt, generation_config=GenerationConfig(max_new_tokens=40, do_sample=False))
 sampled = generator(prompt, generation_config=GenerationConfig(
             max_new_tokens=40, do_sample=True, temperature=0.7, top_p=0.9))
 ```
-4. **Fine-tune** the classifier on 8 labeled queries:
+4. **Load and balance the real SMS data:**
+```python
+sms = pd.read_csv('../data/sms_spam.csv')
+sms['y'] = (sms['label'] == 'spam').astype(int)
+ham = sms[sms.y == 0].sample(n=300, random_state=42)
+spam = sms[sms.y == 1].sample(n=300, random_state=42)
+subset = pd.concat([ham, spam]).sample(frac=1, random_state=42).reset_index(drop=True)
+train_df, test_df = train_test_split(subset, test_size=200, random_state=42, stratify=subset.y)
+```
+5. **Fine-tune** DistilBERT with a fresh 2-class head:
 ```python
 ft_model = AutoModelForSequenceClassification.from_pretrained(model_id, num_labels=2, ignore_mismatched_sizes=True)
-optimizer = torch.optim.AdamW(ft_model.parameters(), lr=1e-4)
-outputs = ft_model(input_ids=ids, attention_mask=mask, labels=labels)   # loss inside
-outputs.loss.backward(); optimizer.step()                               # 3 epochs
+optimizer = torch.optim.AdamW(ft_model.parameters(), lr=5e-5)
+outputs = ft_model(input_ids=..., attention_mask=..., labels=...)
+outputs.loss.backward(); optimizer.step()          # 2 epochs
 ```
-5. **Evaluate** on unseen queries with softmax probabilities.
+6. **Evaluate** on the 200 held-out messages: accuracy, F1, and three example predictions with confidence.
 
 ## 5. Results & interpretation
-- Tokenizer: 20 slots → 13 real tokens + [CLS]/[SEP] + padding; the attention mask marks the real part.
-- Sentiment: confident scores on clearly positive/negative sentences; the model's pretrained knowledge transfers without any training.
-- Generation: greedy produced the deterministic "the way we think about the world"; nucleus sampling produced a different but coherent continuation - the effect of T/top-p.
-- Fine-tuning: loss 2.663 → 0.041 → 0.069 over 3 epochs; both held-out queries correctly classified (Billing 88.3%, Technical 84.0%).
-- The tiny dataset (8 examples) makes this a **mechanics** demo, not a production classifier.
+- Fine-tune loss: 0.557 → 0.069 over 2 epochs.
+- Held-out accuracy 0.9650, spam F1 0.9652 on real, unseen SMS.
+- Example predictions: a prize-notification spam at 99.7%, a short ham message at 99.5%, another spam at 98.0% confidence.
+- The balanced subset keeps the demo fast (~2 min on CPU) - a real, labeled dataset replaces the earlier hand-written examples.
 
 ## 6. Limitations & how to improve
-- 8 training examples → overfitting risk; use hundreds of examples for real tasks.
-- Small models (DistilBERT/DistilGPT2) hallucinate and have limited reasoning.
-- Generation quality depends on decoding settings; production systems use better checkpoints + repetition penalties.
-- Improvements: LoRA/adapters for cheaper fine-tuning, larger datasets, evaluation on a proper test split.
+- Balanced 600-message subset ignores the natural 13% spam prior of the full collection (accuracy would shift on the full distribution).
+- Only 2 epochs of small-model fine-tuning; production systems use more data and validation-based stopping.
+- No calibration analysis of the confidence scores (though examples look sensible).
+- Improvements: train on all 5,572 messages with class weights, add a validation split, or use LoRA adapters for larger models.
 
 ## 7. Viva questions
+- **Why SMS Spam?** Real, public, binary-labeled, small enough to fine-tune on CPU within minutes.
+- **Why a balanced subset?** With 400 training messages, balancing prevents the model from ignoring the spam class; evaluation is then directly interpretable.
 - **Why subword tokenization?** Fixed vocabulary can represent any word, including unseen ones.
-- **What does the attention mask do?** Excludes padding tokens from attention.
+- **What did fine-tuning change?** The classification head was replaced and all weights adapted slightly (lr=5e-5).
 - **Greedy vs top-p?** Deterministic argmax vs sampling from the nucleus; top-p adds diversity.
-- **What is temperature?** Logit scaling before softmax; controls randomness.
-- **What changed during fine-tuning?** The classification head was replaced and all weights adapted slightly (lr=1e-4).
-- **Why `ignore_mismatched_sizes=True`?** The pretrained head's size/labels differ; a fresh 2-class head is initialized.
-- **Why so few epochs?** Small dataset; more epochs would overfit (and 3 sufficed to separate the classes).
+- **What is the attention mask?** Marks real tokens (1) vs padding (0) so padding does not affect attention.
+- **Accuracy vs F1?** F1 balances precision and recall for the spam class; both are 0.965 here.
 - **Is this training from scratch?** No - transfer learning from pretrained weights.
 
 ## 8. Common mistakes
-- Assuming the pipeline's label IDs match your label mapping (always verify).
+- Assuming the pipeline's label IDs match your mapping (verify on examples).
 - Fine-tuning with a large learning rate → catastrophic forgetting.
-- Reporting training accuracy on the 8 fine-tune samples instead of held-out queries.
+- Reporting training accuracy instead of held-out accuracy.
 
 ## 9. One-line summary
-"LLM pipeline demo: tokenization + attention mask, sentiment inference, greedy vs top-p generation, and a 3-epoch fine-tune on 8 examples that correctly classifies both held-out domain queries."
+"Full LLM pipeline demo: tokenization, sentiment, greedy vs top-p generation, and DistilBERT fine-tuned on the real SMS Spam Collection reaching 96.5% accuracy / 0.965 F1 on 200 held-out messages."
 
----
-
-# 11 – Generalized Regression Neural Network (GRNN)
+11 – Generalized Regression Neural Network (GRNN)
 
 ## 0. In one paragraph
-A GRNN (Specht, 1991 - equivalent to Nadaraya-Watson kernel regression) is implemented from scratch in NumPy. It has no gradient training: it stores the data and predicts a Gaussian-weighted average of targets. The only hyperparameter σ is selected by 5-fold CV (σ=0.069), giving a smooth fit of a noisy 1D function with test R² 0.9473 - essentially at the noise floor.
+A GRNN (Specht 1991 = Nadaraya-Watson kernel regression) is implemented from scratch in NumPy and applied to the **real motorcycle impact data** (`MASS::mcycle`, 133 observations: time after impact vs head acceleration). Training is one-pass (it stores the data); the smoothing spread σ is selected by 5-fold CV (σ=0.08). The final model reaches train R² 0.807 and held-out test R² 0.725 / RMSE 22.8 g - the sharp impact transition makes this real dataset a demanding smoothing benchmark.
 
 ## 1. Quick facts
 | | |
 |---|---|
 | **Algorithm** | Generalized Regression Neural Network (from scratch, scikit-learn-style API) |
-| **Dataset** | Synthetic 1D: y = sin(2x) + cos(0.5x²) + N(0, 0.18²), 100 points in [−3, 3] |
-| **Key parameters** | σ selected by 5-fold CV over 0.05…1.0 → σ=0.069 (CV RMSE 0.2137) |
-| **Results** | Final 75/25 split: train R² 0.9829, **test R² 0.9473**, test RMSE 0.1718 |
+| **Dataset** | `data/motorcycle.csv` - real impact data (MASS `mcycle`), 133 rows: `times` (ms), `accel` (g) |
+| **Key parameters** | σ selected by 5-fold CV over 0.02…1.0 → σ=0.08 (CV RMSE 25.0 g) |
+| **Results** | Final 75/25 split: train R² 0.8073, test R² 0.7255, test RMSE 22.78 g |
 
 ## 2. How the algorithm works
 Four layers:
@@ -1001,72 +1000,73 @@ Four layers:
 3. **Summation layer:** S(x) = Σᵢ yᵢ·p_i(x) (numerator), D(x) = Σᵢ p_i(x) (denominator).
 4. **Output:** ŷ(x) = S(x)/D(x) - the Nadaraya-Watson conditional-mean estimate.
 
-Training is one-pass: just store the data. Prediction cost is O(N·d) per query. σ controls the bias-variance trade-off: small σ memorizes noise (high variance), large σ over-smooths (high bias).
+Training is one-pass (store the data). Prediction is O(N·d) per query. σ controls the bias-variance trade-off: small σ memorizes noise, large σ over-smooths - exactly what the three-panel demo shows on the real data.
 
 ## 3. Parameters & tuning
-| Parameter | Value | Effect | If increased | If decreased |
+| Parameter | Value | What it does | If increased | If decreased |
 |---|---|---|---|---|
-| `sigma` | 0.069 (CV) | smoothing spread | smoother, higher bias | wiggly, higher variance |
-| CV folds | 5 | reliability of σ estimate | more stable, slower | noisier estimate |
-| σ grid | 0.05…1.0 (50 pts) | search resolution | finer optimum | coarser |
+| `sigma` | 0.08 (CV) | smoothing spread | smoother, higher bias | wiggly, higher variance |
+| Feature scaling | StandardScaler on time | puts time in σ-comparable units | — | raw ms would need σ≈1-50 |
+| CV folds | 5 | reliability of the σ estimate | more stable, slower | noisier |
+| σ grid | 0.02…1.0 (50 pts) | search resolution | finer optimum | coarser |
 
 ## 4. Step-by-step implementation (with key code)
-1. **Define the class:**
+1. **Define the class** (fit = memorize; predict = Gaussian-weighted average):
 ```python
-class GRNN(BaseEstimator, RegressorMixin):
-    def fit(self, X, y):
-        self.X_train_, self.y_train_ = np.asarray(X), np.asarray(y).ravel()   # memorize
-        return self
-    def predict(self, X):
-        dist_sq = ...                          # ||x - x_i||^2 via the expansion trick
-        kernels = np.exp(-dist_sq / (2.0 * self.sigma ** 2))    # pattern layer
-        D = np.sum(kernels, axis=1)            # denominator
-        S = np.dot(kernels, self.y_train_)     # numerator
-        return S / np.where(D < 1e-12, 1e-12, D)
+def predict(self, X):
+    dist_sq = ...                                        # ||x - x_i||^2
+    kernels = np.exp(-dist_sq / (2.0 * self.sigma ** 2)) # pattern layer
+    D = np.sum(kernels, axis=1)
+    S = np.dot(kernels, self.y_train_)
+    return S / np.where(D < 1e-12, 1e-12, D)             # output layer
 ```
-2. **σ behavior demo:** fit σ = 0.05 / 0.35 / 1.50 and plot against the true curve - shows under/over-smoothing.
-3. **σ selection:**
+2. **Load and prepare the real data:**
+```python
+moto = pd.read_csv('../data/motorcycle.csv')
+X = StandardScaler().fit_transform(moto['times'].values.reshape(-1, 1))   # time (scaled)
+y = moto['accel'].values                                                  # acceleration (g)
+```
+3. **σ behavior demo:** fit σ = 0.05 / 0.25 / 1.0 and plot - under-smoothing follows noise, over-smoothing flattens the impact peak.
+4. **σ selection by 5-fold CV:**
 ```python
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
-for sig in sigma_candidates:               # 50 values
-    fold_rmses = [root_mean_squared_error(y_va, GRNN(sigma=sig).fit(X_tr, y_tr).predict(X_va))
-                  for train_idx, val_idx in kf.split(X_syn)]
-    cv_scores.append(np.mean(fold_rmses))
-best_sigma = sigma_candidates[np.argmin(cv_scores)]     # 0.069
+for sig in sigma_candidates:
+    rms = [root_mean_squared_error(y_va, GRNN(sigma=sig).fit(X_tr, y_tr).predict(X_va))
+           for train_idx, val_idx in kf.split(X)]
+    cv_scores.append(np.mean(rms))
+best_sigma = sigma_candidates[np.argmin(cv_scores)]      # 0.08
 ```
-4. **Final fit + holdout evaluation** (75/25): train R², test R², test RMSE.
+5. **Final fit + holdout evaluation** (75/25): train R², test R², test RMSE.
 
 ## 5. Results & interpretation
-- CV curve: clear minimum at σ = 0.069 (CV RMSE 0.2137) - small but not tiny, because the 100 points are dense.
-- σ=0.05 fit wiggles through noise (overfit); σ=1.50 nearly flat (underfit); σ=0.069 follows the true function.
-- Test R² 0.9473 = ~95% of held-out variance explained; RMSE 0.1718 ≈ noise std 0.18 → at the noise limit.
-- Train R² 0.9829 > test R² - small, expected generalization gap.
+- CV curve has a clear minimum at σ=0.08 (CV RMSE 25.0 g).
+- σ=0.05 shows local wiggles (variance); σ=0.25-1.0 underfits the sharp deceleration peak.
+- Held-out performance: R² 0.7255, RMSE 22.78 g on accelerations spanning −134 to +75 g.
+- **Why lower than a smooth synthetic function?** The motorcycle data contains a near-discontinuity (the impact) and an uneven measurement design; a single global σ cannot be simultaneously small at the impact and large elsewhere. This is the classic bias-variance limitation of global-bandwidth kernel regression.
 
 ## 6. Limitations & how to improve
-- Prediction is O(N) per query; large datasets need approximations (kernels, k-d trees).
-- A single global σ performs poorly when dimensions/features have different scales - normalize features or use adaptive σ per dimension.
-- Curse of dimensionality: kernel methods degrade in high dimensions.
-- Improvements: feature scaling, anisotropic (per-feature) σ, sparse/approximate kernels, or combine with a linear term.
+- One global σ is the main limitation → locally adaptive bandwidths or local linear regression would fit the impact region better.
+- Prediction is O(N) per query; large datasets need approximate kernels (k-d trees, Nyström).
+- Kernel methods degrade in high dimensions (curse of dimensionality).
+- Improvements: feature scaling (done), anisotropic/per-location σ, or combining GRNN with a parametric trend.
 
 ## 7. Viva questions
-- **How is GRNN trained?** One pass - it stores the data; no backpropagation.
-- **Why is it called a neural network?** Four-layer radial-basis structure (input/pattern/summation/output).
+- **How is GRNN trained?** One pass - it stores the data; no backpropagation or weights to optimize.
+- **Why is it a neural network?** Four-layer radial-basis structure (input/pattern/summation/output).
 - **What does σ control?** Smoothing: small = variance/overfit, large = bias/underfit.
 - **What is it mathematically?** Nadaraya-Watson kernel regression estimating E[y|x].
-- **Why 5-fold CV?** To select the single hyperparameter without touching the test set.
-- **Why does the final test R² stop at ~0.95?** The data has irreducible noise (σ_noise=0.18); RMSE matches it.
-- **Is it parametric?** No - it is non-parametric/memory-based.
-- **Why did CV choose 0.069 and not smaller?** With 100 dense points, smaller σ would start fitting noise in validation folds.
+- **Why 5-fold CV?** To pick the only hyperparameter without touching the test set.
+- **Why is test R² only ~0.73?** Real data with a sharp impact transition and non-uniform design; a global σ smooths across the discontinuity (irreducible model bias here).
+- **Why standardize time?** So σ has a scale-free meaning; raw milliseconds would require σ in the tens.
+- **What would improve the fit?** Adaptive bandwidth or local polynomial (LOESS) methods.
 
 ## 8. Common mistakes
-- Confusing GRNN with a standard MLP (no weights/gradients; kernel memory).
+- Confusing GRNN with a standard MLP (memory-based kernel, no gradient training).
 - Selecting σ on the test set instead of via CV.
-- Forgetting feature scaling before computing Euclidean distances.
+- Forgetting to scale the input feature before computing Euclidean distances.
 
 ## 9. One-line summary
-"GRNN implemented from scratch: one-pass training, σ=0.069 chosen by 5-fold CV, and a smooth fit at the noise floor of the data (test R² 0.9473)."
-
----
+"GRNN from scratch on real motorcycle impact data: one-pass training, σ=0.08 by 5-fold CV, test R² 0.725 / RMSE 22.8 g - an honest result showing the limits of a single global bandwidth on a near-discontinuous real dataset."
 
 # Appendix A – Metrics cheat sheet
 
@@ -1105,7 +1105,7 @@ best_sigma = sigma_candidates[np.argmin(cv_scores)]     # 0.069
 | 07 | None (QE/TE internal metrics) | Unsupervised self-assessment |
 | 08 | None (EM convergence + log-likelihood) | Unsupervised; monitor assures convergence |
 | 09 | Holdout test set | Simple unbiased estimate |
-| 10 | Held-out domain queries | Checks transfer beyond the 8 fine-tune samples |
+| 10 | Held-out SMS test set (200 messages) | Checks transfer beyond the 400 fine-tune messages |
 | 11 | **5-fold CV** over the σ grid | Tune the only hyperparameter reliably |
 
 **Summary:** only notebook 11 uses explicit k-fold CV; 05 uses a single validation split; 04 uses OOB; the rest use holdouts or internal heuristics.
@@ -1122,10 +1122,10 @@ best_sigma = sigma_candidates[np.argmin(cv_scores)]     # 0.069
 | Digits (sklearn) | 05 | 1,797 x 64 | Digit 0-9 |
 | Airline Passengers (`data/airline_passengers.csv`) | 06 | 144 months | Next-month passengers |
 | Wine (sklearn) | 07 | 178 x 13 | 3 cultivars (visualization) |
-| Market Regimes (`data/market_regimes.csv`) | 08 | 1,000 days | Latent regime |
-| Synthetic moons / sinusoid | 09 | 250 / 120 | Classification / regression |
-| DistilBERT, DistilGPT2 (HF Hub) | 10 | pretrained | Sentiment, generation, domain |
-| Synthetic 1D function | 11 | 100 | Continuous regression |
+| DAX stock index 1991-98 (`data/stock_index.csv`) | 08 | 1,859 days | Latent market regime |
+| Breast Cancer 2/30 features + Old Faithful geyser (`data/geyser.csv`) | 09 | 569 / 272 | Classification / 1D regression |
+| DistilBERT, DistilGPT2 (HF Hub) + SMS Spam (`data/sms_spam.csv`) | 10 | pretrained + 5,572 messages | Sentiment, generation, spam fine-tune |
+| Motorcycle accelerometer (`data/motorcycle.csv`) | 11 | 133 | 1D continuous regression |
 
 # Appendix D – Cross-cutting questions
 
@@ -1146,7 +1146,7 @@ best_sigma = sigma_candidates[np.argmin(cv_scores)]     # 0.069
 5. **05** - "MLP on 8x8 digits: sklearn 96.3% with early stopping; custom PyTorch with BatchNorm+Dropout 98.9% test accuracy."
 6. **06** - "RNN vs LSTM on 12-month airline windows: LSTM RMSE 42.2 vs 70.8 passengers - gates beat vanishing gradients."
 7. **07** - "12x12 SOM on wine: quantization error 0.196, topographic error 0.039; cultivars separate on the U-matrix without labels."
-8. **08** - "3-state Gaussian HMM on 1,000 daily returns; Baum-Welch converged (log-lik 3018); Viterbi decodes bull/sideways/bear regimes."
-9. **09** - "SVC kernels on moons; RBF SVC 0.979 on breast cancer with 22% support vectors; SVR fits a noisy sine (R² 0.986) with an ε=0.18 tube."
-10. **10** - "DistilBERT tokenization and sentiment, DistilGPT2 greedy vs top-p generation, 3-epoch fine-tune correctly classifies held-out technical/billing queries."
-11. **11** - "GRNN from scratch: one-pass training, σ=0.069 by 5-fold CV, test R² 0.947 - at the noise floor of the data."
+8. **08** - "3-state Gaussian HMM on 1,859 real DAX closes (1991-98): Baum-Welch converged (log-lik 6019.79), Viterbi-decoded bull/sideways/bear regimes."
+9. **09** - "SVC kernels on real breast-cancer features; full-feature RBF SVC 0.979 with 22.5% support vectors; SVR on real Old Faithful eruptions R² 0.897 with an ε=0.3 tube and 38% support vectors."
+10. **10** - "DistilBERT tokenization and sentiment, DistilGPT2 greedy vs top-p generation, and DistilBERT fine-tuned on real SMS spam to 96.5% accuracy / 0.965 F1 on 200 held-out messages."
+11. **11** - "GRNN from scratch on real motorcycle impact data: one-pass training, σ=0.08 by 5-fold CV, test R² 0.725 / RMSE 22.8 g - global bandwidth limits on a near-discontinuous dataset."

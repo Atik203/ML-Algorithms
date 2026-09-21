@@ -14,8 +14,11 @@ d:/ML/Assignment/
 │   ├── mall_customers.csv                        # Mall Customers Segmentation dataset
 │   ├── airline_passengers.csv                    # Monthly Airline Passengers Time Series
 │   ├── heart_disease.csv                         # Heart Disease dataset (numerical & categorical)
-│   ├── market_regimes.csv                        # Financial asset returns and volatility regimes
-│   └── earthquakes.csv                           # USGS global earthquake catalogue (2023)
+│   ├── earthquakes.csv                           # USGS global earthquake catalogue (2023)
+│   ├── stock_index.csv                           # DAX stock index daily prices 1991-1998 (EuStockMarkets)
+│   ├── geyser.csv                                # Old Faithful geyser eruption data
+│   ├── motorcycle.csv                            # Motorcycle impact accelerometer data (MASS mcycle)
+│   └── sms_spam.csv                              # SMS Spam Collection (5,572 labeled messages)
 ├── notebooks/                                    # Executed Jupyter Notebooks
 │   ├── 01_clustering_algorithms.ipynb            # K-Means, Bisecting K-Means, Hierarchical, FCM
 │   ├── 02_density_based_learning.ipynb           # DBSCAN and HDBSCAN on non-convex manifolds
@@ -50,10 +53,10 @@ d:/ML/Assignment/
 | **05** | [`05_multilayer_perceptron.ipynb`](notebooks/05_multilayer_perceptron.ipynb) | • Scikit-Learn MLPClassifier<br>• PyTorch Deep MLP | `scikit-learn`<br>`torch` | MNIST Handwritten Digits (8x8 grayscale images) | Scikit-Learn loss curve and classification report for both MLP implementations. |
 | **06** | [`06_recurrent_neural_network.ipynb`](notebooks/06_recurrent_neural_network.ipynb) | • Vanilla RNN (`nn.RNN`)<br>• LSTM (`nn.LSTM`) | `torch` | Monthly Airline Passengers (`data/airline_passengers.csv`) | RMSE/MAE table and forecast trajectory vs. ground truth. |
 | **07** | [`07_self_organizing_map.ipynb`](notebooks/07_self_organizing_map.ipynb) | • Kohonen Self-Organizing Map | `minisom` | UCI Wine Recognition Dataset | U-Matrix with projected wine cultivars, quantization and topographic error. |
-| **08** | [`08_hidden_markov_model.ipynb`](notebooks/08_hidden_markov_model.ipynb) | • Gaussian HMM (Baum-Welch EM & Viterbi Decoding) | `hmmlearn` | Asset Market Regimes (`data/market_regimes.csv`) | Transition matrix heatmap and asset price trajectory colored by Viterbi-decoded regime. |
-| **09** | [`09_support_vector_machine.ipynb`](notebooks/09_support_vector_machine.ipynb) | • Support Vector Classifier (SVC)<br>• Support Vector Regressor (SVR) | `scikit-learn` | Non-linear Moons, Breast Cancer & Sinusoidal Benchmark | Decision boundaries with support vectors (linear/poly/RBF), $\epsilon$-insensitive tube plot, breast-cancer accuracy. |
-| **10** | [`10_large_language_model.ipynb`](notebooks/10_large_language_model.ipynb) | • Transformer Tokenizer<br>• Sentiment Pipeline<br>• Causal Text Generation<br>• Sequence Classifier Fine-Tuning | `transformers`<br>`torch` | DistilBERT SST-2, DistilGPT2 & Domain Support Inquiries | Subword token mapping, sentiment inference table, greedy vs. nucleus generation, 1-epoch fine-tune. |
-| **11** | [`11_generalized_regression_neural_network.ipynb`](notebooks/11_generalized_regression_neural_network.ipynb) | • Generalized Regression Neural Network (GRNN / Specht 1991) | Custom Vectorized Class + `scikit-learn` API | Multi-Modal Continuous Function & California Housing | Under/optimal/over-smoothing plots, 5-fold CV $\sigma$ curve, final GRNN metrics. |
+| **08** | [`08_hidden_markov_model.ipynb`](notebooks/08_hidden_markov_model.ipynb) | • Gaussian HMM (Baum-Welch EM & Viterbi Decoding) | `hmmlearn` | DAX stock index 1991-1998 (`data/stock_index.csv`) | Transition matrix heatmap and DAX price trajectory colored by Viterbi-decoded regime. |
+| **09** | [`09_support_vector_machine.ipynb`](notebooks/09_support_vector_machine.ipynb) | • Support Vector Classifier (SVC)<br>• Support Vector Regressor (SVR) | `scikit-learn` | Breast Cancer (2 & 30 features) & Old Faithful geyser (`data/geyser.csv`) | SVC decision boundaries on real data across Linear/Poly/RBF kernels, $\epsilon$-insensitive tube plot, breast-cancer accuracy. |
+| **10** | [`10_large_language_model.ipynb`](notebooks/10_large_language_model.ipynb) | • Transformer Tokenizer<br>• Sentiment Pipeline<br>• Causal Text Generation<br>• Sequence Classifier Fine-Tuning | `transformers`<br>`torch` | DistilBERT SST-2, DistilGPT2 & SMS Spam Collection (`data/sms_spam.csv`) | Tokenizer subword mapping, sentiment inference table, greedy vs. nucleus generation, SMS spam fine-tune (96.5% accuracy). |
+| **11** | [`11_generalized_regression_neural_network.ipynb`](notebooks/11_generalized_regression_neural_network.ipynb) | • Generalized Regression Neural Network (GRNN / Specht 1991) | Custom Vectorized Class + `scikit-learn` API | Real motorcycle accelerometer data (`data/motorcycle.csv`) | Under/optimal/over-smoothing plots, 5-fold CV $\sigma$ curve, final GRNN metrics. |
 
 ---
 
