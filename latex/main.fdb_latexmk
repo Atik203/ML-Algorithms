@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1790357232.19669 "main.tex" "main.pdf" "main" 1790357261.78922 0
+["pdflatex"] 1790357744.54264 "main.tex" "main.pdf" "main" 1790357772.12563 0
   "c:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1761152797 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "c:/texlive/2025/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-5.enc" 1761155929 7709 74634db4a06477f35279f32281f87689 ""
   "c:/texlive/2025/texmf-dist/fonts/enc/dvips/inconsolata/i4-ts1.enc" 1761155929 9446 fe5580ca6042a44427f18d450942e7d0 ""
@@ -257,7 +257,7 @@
   "c:/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1761163168 5574153 af86687748baf417d9e7d549313527be ""
   "c:/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1761163389 3629008 a48baa9d78f9198f4318d3cc7e36e9fa ""
   "c:/texlive/2025/texmf.cnf" 1761163137 713 e69b156964470283e0530f5060668171 ""
-  "chapters/00_frontmatter.tex" 1790357087 5756 47c009a04c8a3d19e7310c3d5eea9f14 ""
+  "chapters/00_frontmatter.tex" 1790357705 5756 293ce336507e430869020f43db32ba66 ""
   "chapters/01_clustering.tex" 1790357087 17864 16a7fdf820aef5d9a90da0449b392dc6 ""
   "chapters/02_density_based.tex" 1790357087 11142 35edd76ca0ef76d68cfd7d49fd5e3a9b ""
   "chapters/03_semi_supervised.tex" 1790357088 5286 7edf706a76b3a206e721aa08ad8cc1e1 ""
@@ -304,14 +304,14 @@
   "figures/exp17_svr_tube.png" 1790352601 156952 7b019b468b930b4774c7435df1d436c8 ""
   "figures/exp19_cv_curve.png" 1790352601 42483 c8afa01a14b88679c52d6875be413d62 ""
   "figures/exp19_sigma_sweep.png" 1790352601 114302 9d77b843b8be89796c63b4a225b030ed ""
-  "main.aux" 1790357260 40955 306f66a836aec0439ff12e176184cd46 "pdflatex"
-  "main.listing" 1790357260 516 588a36f15f51199636da58d73544fdff "pdflatex"
-  "main.lof" 1790357260 3500 ef076d88353c14e8b07aebc584fdaeb8 "pdflatex"
-  "main.lot" 1790357260 4146 aec019eb567573035f4198de197c7e1a "pdflatex"
-  "main.out" 1790357260 9806 a03d19ec81bf5eb3dbde3404b030da92 "pdflatex"
-  "main.ptc" 1790357260 16093 1614da6918ce6ab99cb079301249bf1c "pdflatex"
+  "main.aux" 1790357770 40944 3e4c3ad4ae16f3cd138987f80d96ea7b "pdflatex"
+  "main.listing" 1790357770 516 588a36f15f51199636da58d73544fdff "pdflatex"
+  "main.lof" 1790357770 3500 4961366aadcd3304fb558a30fb2ee910 "pdflatex"
+  "main.lot" 1790357770 4145 65695f4cb98df141152ee68809c777e6 "pdflatex"
+  "main.out" 1790357770 9804 6444fdd4d05408f2abfff04384a57258 "pdflatex"
+  "main.ptc" 1790357770 16083 1b88ffb323f9a1dc2df9731a89d4ec36 "pdflatex"
   "main.tex" 1790356649 5098 9e7b05e5a9ce149a8d4b1ac612bb4769 ""
-  "main.toc" 1790357260 15547 45939ad96425a7650489e7956d8f37f0 "pdflatex"
+  "main.toc" 1790357770 15537 3080fef44a58a98346d2f589961169db "pdflatex"
   "preamble.tex" 1790357075 8354 148bce63b10c7a704075c645298e5fd5 ""
   (generated)
   "main.aux"

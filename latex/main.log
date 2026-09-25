@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.10.23)  25 SEP 2026 23:27
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.10.23)  25 SEP 2026 23:35
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1367,15 +1367,6 @@ LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
 LaTeX Font Info:    Font shape `T1/LibertinusSerif-TLF/b/n' will be
 (Font)              scaled to size 10.95pt on input line 14.
 
-
-[6
-
-
-]
-
-[7
-
-]
 Underfull \hbox (badness 10000) in alignment at lines 29--33
 [] []
  []
@@ -1385,11 +1376,6 @@ Underfull \hbox (badness 10000) in alignment at lines 33--54
 [] []
  []
 
-
-
-[8
-
-]
 LaTeX Font Info:    Trying to load font information for TS1+LibertinusSerif-TLF
  on input line 60.
 
@@ -1404,11 +1390,6 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `LibertinusSerif-TLF' (encoding: TS1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-
-
-[9
-
-{c:/texlive/2025/texmf-dist/fonts/enc/dvips/libertinus-type1/lbn1_rlktsf.enc}]
 \g__tcobox_out_iow=\write8
 \openout8 = `main.listing'.
 
@@ -1481,9 +1462,9 @@ LaTeX Font Info:    Font shape `T1/zi4/m/it' will be
 (Font)              scaled to size 8.4pt on input line 1.
 )
 
-[10
+[6
 
-]
+{c:/texlive/2025/texmf-dist/fonts/enc/dvips/libertinus-type1/lbn1_rlktsf.enc}]
 Overfull \hbox (4.28642pt too wide) in alignment at lines 86--90
 [] [] []
  []
@@ -1499,14 +1480,6 @@ Overfull \hbox (4.28642pt too wide) in alignment at lines 90--99
  []
 
 
-
-[11
-
-]
-
-[12
-
-]
 Underfull \hbox (badness 10000) in alignment at lines 120--124
 [] []
  []
@@ -1520,9 +1493,7 @@ Underfull \hbox (badness 10000) in alignment at lines 124--135
 
 )
 
-[13
-
-] (./chapters/01_clustering.tex
+[7] (./chapters/01_clustering.tex
 LaTeX Font Info:    Font shape `T1/LibertinusSans-TLF/m/n' will be
 (Font)              scaled to size 10.95pt on input line 5.
 LaTeX Font Info:    Font shape `T1/LibertinusSans-TLF/b/n' will be
@@ -1613,7 +1584,7 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `zi4' (encoding: TS1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-<figures/exp01_elbow_silhouette.png, id=612, 860.013pt x 281.853pt>
+<figures/exp01_elbow_silhouette.png, id=579, 860.013pt x 281.853pt>
 File: figures/exp01_elbow_silhouette.png Graphic file (type png)
 <use figures/exp01_elbow_silhouette.png>
 Package pdftex.def Info: figures/exp01_elbow_silhouette.png  used on input line
@@ -1852,7 +1823,7 @@ ncoding ?) on input line 57.
 [11
 
 ]
-<figures/exp03_dendrogram.png, id=858, 860.013pt x 354.123pt>
+<figures/exp03_dendrogram.png, id=825, 860.013pt x 354.123pt>
 File: figures/exp03_dendrogram.png Graphic file (type png)
 <use figures/exp03_dendrogram.png>
 Package pdftex.def Info: figures/exp03_dendrogram.png  used on input line 271.
@@ -1978,7 +1949,7 @@ coding ?) on input line 55.
 LaTeX Encoding Info:    Ignoring declaration for text command \textbrokenbar (e
 ncoding ?) on input line 57.
 )
-<figures/exp01_2x2_grid.png, id=963, 858.042pt x 640.575pt>
+<figures/exp01_2x2_grid.png, id=930, 858.042pt x 640.575pt>
 File: figures/exp01_2x2_grid.png Graphic file (type png)
 <use figures/exp01_2x2_grid.png>
 Package pdftex.def Info: figures/exp01_2x2_grid.png  used on input line 394.
@@ -2091,12 +2062,12 @@ coding ?) on input line 55.
 LaTeX Encoding Info:    Ignoring declaration for text command \textbrokenbar (e
 ncoding ?) on input line 57.
 )
-<figures/exp05_kdistance.png, id=1133, 642.546pt x 354.123pt>
+<figures/exp05_kdistance.png, id=1100, 642.546pt x 354.123pt>
 File: figures/exp05_kdistance.png Graphic file (type png)
 <use figures/exp05_kdistance.png>
 Package pdftex.def Info: figures/exp05_kdistance.png  used on input line 104.
 (pdftex.def)             Requested size: 327.7763pt x 180.64896pt.
-<figures/exp05_dbscan_map.png, id=1134, 860.013pt x 390.258pt>
+<figures/exp05_dbscan_map.png, id=1101, 860.013pt x 390.258pt>
 File: figures/exp05_dbscan_map.png Graphic file (type png)
 <use figures/exp05_dbscan_map.png>
 Package pdftex.def Info: figures/exp05_dbscan_map.png  used on input line 112.
@@ -2249,7 +2220,7 @@ ncoding ?) on input line 57.
 [28
 
 ]
-<figures/exp06_hdbscan_map.png, id=1288, 860.013pt x 390.258pt>
+<figures/exp06_hdbscan_map.png, id=1255, 860.013pt x 390.258pt>
 File: figures/exp06_hdbscan_map.png Graphic file (type png)
 <use figures/exp06_hdbscan_map.png>
 Package pdftex.def Info: figures/exp06_hdbscan_map.png  used on input line 213.
@@ -2971,7 +2942,7 @@ coding ?) on input line 55.
 LaTeX Encoding Info:    Ignoring declaration for text command \textbrokenbar (e
 ncoding ?) on input line 57.
 )
-<figures/exp13_sklearn_loss.png, id=2108, 570.933pt x 317.988pt>
+<figures/exp13_sklearn_loss.png, id=2075, 570.933pt x 317.988pt>
 File: figures/exp13_sklearn_loss.png Graphic file (type png)
 <use figures/exp13_sklearn_loss.png>
 Package pdftex.def Info: figures/exp13_sklearn_loss.png  used on input line 83.
@@ -3129,7 +3100,7 @@ coding ?) on input line 55.
 LaTeX Encoding Info:    Ignoring declaration for text command \textbrokenbar (e
 ncoding ?) on input line 57.
 )
-<figures/exp14_forecast.png, id=2388, 860.013pt x 426.393pt>
+<figures/exp14_forecast.png, id=2354, 860.013pt x 426.393pt>
 File: figures/exp14_forecast.png Graphic file (type png)
 <use figures/exp14_forecast.png>
 Package pdftex.def Info: figures/exp14_forecast.png  used on input line 94.
@@ -3286,7 +3257,7 @@ coding ?) on input line 55.
 LaTeX Encoding Info:    Ignoring declaration for text command \textbrokenbar (e
 ncoding ?) on input line 57.
 )
-<figures/exp15_umatrix.png, id=2686, 715.473pt x 570.933pt>
+<figures/exp15_umatrix.png, id=2652, 715.473pt x 570.933pt>
 File: figures/exp15_umatrix.png Graphic file (type png)
 <use figures/exp15_umatrix.png>
 Package pdftex.def Info: figures/exp15_umatrix.png  used on input line 86.
@@ -3395,13 +3366,13 @@ ncoding ?) on input line 57.
 [85
 
 ]
-<figures/exp16_transition_matrix.png, id=2836, 426.393pt x 317.988pt>
+<figures/exp16_transition_matrix.png, id=2803, 426.393pt x 317.988pt>
 File: figures/exp16_transition_matrix.png Graphic file (type png)
 <use figures/exp16_transition_matrix.png>
 Package pdftex.def Info: figures/exp16_transition_matrix.png  used on input lin
 e 81.
 (pdftex.def)             Requested size: 273.14923pt x 203.71056pt.
-<figures/exp16_dax_regimes.png, id=2837, 932.283pt x 498.663pt>
+<figures/exp16_dax_regimes.png, id=2804, 932.283pt x 498.663pt>
 File: figures/exp16_dax_regimes.png Graphic file (type png)
 <use figures/exp16_dax_regimes.png>
 Package pdftex.def Info: figures/exp16_dax_regimes.png  used on input line 89.
@@ -3512,12 +3483,12 @@ coding ?) on input line 55.
 LaTeX Encoding Info:    Ignoring declaration for text command \textbrokenbar (e
 ncoding ?) on input line 57.
 )
-<figures/exp17_svc_kernels.png, id=2983, 1293.633pt x 357.408pt>
+<figures/exp17_svc_kernels.png, id=2950, 1293.633pt x 357.408pt>
 File: figures/exp17_svc_kernels.png Graphic file (type png)
 <use figures/exp17_svc_kernels.png>
 Package pdftex.def Info: figures/exp17_svc_kernels.png  used on input line 85.
 (pdftex.def)             Requested size: 446.13727pt x 123.2568pt.
-<figures/exp17_svr_tube.png, id=2984, 787.743pt x 426.393pt>
+<figures/exp17_svr_tube.png, id=2951, 787.743pt x 426.393pt>
 File: figures/exp17_svr_tube.png Graphic file (type png)
 <use figures/exp17_svr_tube.png>
 Package pdftex.def Info: figures/exp17_svr_tube.png  used on input line 93.
@@ -3848,12 +3819,12 @@ coding ?) on input line 55.
 LaTeX Encoding Info:    Ignoring declaration for text command \textbrokenbar (e
 ncoding ?) on input line 57.
 )
-<figures/exp19_sigma_sweep.png, id=3432, 1293.633pt x 357.408pt>
+<figures/exp19_sigma_sweep.png, id=3398, 1293.633pt x 357.408pt>
 File: figures/exp19_sigma_sweep.png Graphic file (type png)
 <use figures/exp19_sigma_sweep.png>
 Package pdftex.def Info: figures/exp19_sigma_sweep.png  used on input line 85.
 (pdftex.def)             Requested size: 446.13727pt x 123.2568pt.
-<figures/exp19_cv_curve.png, id=3433, 643.203pt x 317.988pt>
+<figures/exp19_cv_curve.png, id=3399, 643.203pt x 317.988pt>
 File: figures/exp19_cv_curve.png Graphic file (type png)
 <use figures/exp19_cv_curve.png>
 Package pdftex.def Info: figures/exp19_cv_curve.png  used on input line 93.
@@ -4053,12 +4024,12 @@ L3 programming layer <2025-09-02>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: A03D19EC81BF5EB3DBDE3404B030DA92;9806.
+(rerunfilecheck)             Checksum: 6444FDD4D05408F2ABFFF04384A57258;9804.
  ) 
 Here is how much of TeX's memory you used:
- 43093 strings out of 467748
- 813346 string characters out of 5431137
- 1686863 words of memory out of 5000000
+ 43079 strings out of 467748
+ 813202 string characters out of 5431137
+ 1687862 words of memory out of 5000000
  67651 multiletter control sequences out of 15000+600000
  806325 words of font info for 454 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -4074,10 +4045,10 @@ s/type1/public/libertinus-type1/LibertinusSerif-Regular.pfb><c:/texlive/2025/te
 xmf-dist/fonts/type1/public/libertinust1math/LibertinusT1Math.pfb><c:/texlive/2
 025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb><c:/texlive/2025/texmf-
 dist/fonts/type1/public/stix/stix-mathcal.pfb>
-Output written on main.pdf (133 pages, 2432213 bytes).
+Output written on main.pdf (127 pages, 2429242 bytes).
 PDF statistics:
- 4322 PDF objects out of 5155 (max. 8388607)
- 3955 compressed objects within 40 object streams
- 2745 named destinations out of 2984 (max. 500000)
+ 4286 PDF objects out of 4296 (max. 8388607)
+ 3925 compressed objects within 40 object streams
+ 2731 named destinations out of 2984 (max. 500000)
  81504 words of extra memory for PDF output out of 89155 (max. 10000000)
 

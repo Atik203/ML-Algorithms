@@ -2,7 +2,7 @@
 % 00_frontmatter.tex - preface, scope, guidelines, report format, metrics
 % ===========================================================================
 
-\chapter*{Preface}
+\section*{Preface}
 \phantomsection
 \addcontentsline{toc}{chapter}{Preface}
 This manual is designed around the algorithm list supplied for the Machine Learning
@@ -15,7 +15,7 @@ This \textbf{completed edition} goes one step further: every experiment is imple
 and executed on real, public datasets, with the observed results, discussion and the
 complete runnable code included, so each laboratory can be reproduced standalone.
 
-\chapter*{Important Terminology Correction}
+\section*{Important Terminology Correction}
 \phantomsection
 \addcontentsline{toc}{chapter}{Important Terminology Correction}
 The supplied list contains ``Random Forest Regression (RFR)'' and ``Random Forest
@@ -23,7 +23,7 @@ Regression (RFC)''. In standard machine-learning terminology, RFC normally means
 Random Forest Classifier. This manual therefore treats \textbf{RFR} as Random Forest
 Regressor and \textbf{RFC} as Random Forest Classifier.
 
-\chapter*{Scope of the Laboratory}
+\section*{Scope of the Laboratory}
 \phantomsection
 \addcontentsline{toc}{chapter}{Scope of the Laboratory}
 \begin{longtable}{|p{0.28\textwidth}|p{0.66\textwidth}|}
@@ -53,7 +53,7 @@ Non-parametric regression & GRNN \\
 \hline
 \end{longtable}
 
-\chapter*{General Learning Outcomes}
+\section*{General Learning Outcomes}
 \phantomsection
 \addcontentsline{toc}{chapter}{General Learning Outcomes}
 \begin{itemize}
@@ -66,7 +66,7 @@ Non-parametric regression & GRNN \\
   \item Document reproducible experiments, hyperparameters, random seeds, observations and limitations.
 \end{itemize}
 
-\chapter*{Recommended Software Environment}
+\section*{Recommended Software Environment}
 \phantomsection
 \addcontentsline{toc}{chapter}{Recommended Software Environment}
 \begin{codebox}[title={Core and specialized libraries used by the manual},listing options={language=bash}]
@@ -80,7 +80,7 @@ pip install xgboost catboost
 pip install transformers torch
 \end{codebox}
 
-\chapter*{Laboratory Guidelines}
+\section*{Laboratory Guidelines}
 \phantomsection
 \addcontentsline{toc}{chapter}{Laboratory Guidelines}
 \begin{longtable}{|p{0.30\textwidth}|p{0.34\textwidth}|p{0.30\textwidth}|}
@@ -98,7 +98,7 @@ Prepare key formulas. & Check train/test leakage. & State limitations and improv
 \hline
 \end{longtable}
 
-\chapter*{Minimum Report Format}
+\section*{Minimum Report Format}
 \phantomsection
 \addcontentsline{toc}{chapter}{Minimum Report Format}
 \begin{enumerate}
@@ -114,7 +114,7 @@ Prepare key formulas. & Check train/test leakage. & State limitations and improv
   \item Answers to viva questions.
 \end{enumerate}
 
-\chapter*{Recommended Evaluation Metrics}
+\section*{Recommended Evaluation Metrics}
 \phantomsection
 \addcontentsline{toc}{chapter}{Recommended Evaluation Metrics}
 \begin{longtable}{|p{0.26\textwidth}|p{0.68\textwidth}|}
