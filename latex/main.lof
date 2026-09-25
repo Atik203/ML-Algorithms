@@ -1,35 +1,16 @@
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {1.1}{\ignorespaces Elbow (inertia) and silhouette curves for $K = 2 \ldots 10$; the elbow and the silhouette peak both occur at $K = 5$.}}{3}{figure.caption.22}%
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {3.1}{\ignorespaces Hierarchical clustering dendrogram (Ward linkage, truncated to the last 25 merges); the dashed line marks the cut that yields $K = 5$.}}{12}{figure.caption.43}%
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces Clustering partitions on the Mall Customers data: K-means, modified K-means (outlier flagging), hierarchical Ward and Fuzzy C-means.}}{17}{figure.caption.55}%
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {5.1}{\ignorespaces The $k$-distance graph ($k = 10$); the knee at $\varepsilon = 0.03$ rad marks the transition from dense seismic zones to sparse isolated events.}}{23}{figure.caption.67}%
-\contentsline {figure}{\numberline {5.2}{\ignorespaces DBSCAN clusters (colors) and noise (black crosses) on the global 2023 earthquake catalogue. The clusters trace the tectonically active plate boundaries.}}{24}{figure.caption.68}%
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {6.1}{\ignorespaces HDBSCAN clusters and noise on the same catalogue; adaptive density splits the long DBSCAN arc clusters into compact, well-separated groups.}}{29}{figure.caption.79}%
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {13.1}{\ignorespaces Training loss curve of the scikit-learn MLP; early stopping halted training after 15 iterations.}}{62}{figure.caption.150}%
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {14.1}{\ignorespaces Airline passenger forecasting: ground truth versus the RNN and LSTM forecasts on the test horizon.}}{71}{figure.caption.162}%
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {15.1}{\ignorespaces SOM U-matrix with the wine samples projected onto their BMUs; marker shape and color encode the true cultivar.}}{80}{figure.caption.173}%
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {16.1}{\ignorespaces Estimated transition-probability matrix after sorting the states by volatility; the dominant diagonal indicates regime persistence.}}{86}{figure.caption.184}%
-\contentsline {figure}{\numberline {16.2}{\ignorespaces DAX index 1991--1998 colored by the Viterbi-decoded regime (top) and the decoded state sequence over time (bottom).}}{87}{figure.caption.185}%
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {17.1}{\ignorespaces SVC decision boundaries, margins and support vectors on two real breast-cancer features for the linear, polynomial and RBF kernels.}}{92}{figure.caption.196}%
-\contentsline {figure}{\numberline {17.2}{\ignorespaces Support Vector Regression on the Old Faithful geyser with the $\varepsilon = 0.3$ tube; highlighted points are support vectors.}}{93}{figure.caption.197}%
-\addvspace {10\p@ }
-\addvspace {10\p@ }
-\contentsline {figure}{\numberline {19.1}{\ignorespaces GRNN under different smoothing spreads on the motorcycle data: small $\sigma $ follows noise, large $\sigma $ flattens the impact peak.}}{107}{figure.caption.218}%
-\contentsline {figure}{\numberline {19.2}{\ignorespaces Five-fold cross-validation error versus $\sigma $; the clear minimum selects $\sigma = 0.08$.}}{107}{figure.caption.219}%
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Elbow (inertia) and silhouette curves for $K = 2 \ldots 10$; the elbow and the silhouette peak both occur at $K = 5$.}}{5}{figure.caption.18}%
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Hierarchical clustering dendrogram (Ward linkage, truncated to the last 25 merges); the dashed line marks the cut that yields $K = 5$.}}{12}{figure.caption.37}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Clustering partitions on the Mall Customers data: K-means, modified K-means (outlier flagging), hierarchical Ward and Fuzzy C-means.}}{17}{figure.caption.48}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces The $k$-distance graph ($k = 10$); the knee at $\varepsilon = 0.03$ rad marks the transition from dense seismic zones to sparse isolated events.}}{23}{figure.caption.59}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces DBSCAN clusters (colors) and noise (black crosses) on the global 2023 earthquake catalogue. The clusters trace the tectonically active plate boundaries.}}{23}{figure.caption.60}%
+\contentsline {figure}{\numberline {6.1}{\ignorespaces HDBSCAN clusters and noise on the same catalogue; adaptive density splits the long DBSCAN arc clusters into compact, well-separated groups.}}{27}{figure.caption.70}%
+\contentsline {figure}{\numberline {13.1}{\ignorespaces Training loss curve of the scikit-learn MLP; early stopping halted training after 15 iterations.}}{60}{figure.caption.134}%
+\contentsline {figure}{\numberline {14.1}{\ignorespaces Airline passenger forecasting: ground truth versus the RNN and LSTM forecasts on the test horizon.}}{68}{figure.caption.145}%
+\contentsline {figure}{\numberline {15.1}{\ignorespaces SOM U-matrix with the wine samples projected onto their BMUs; marker shape and color encode the true cultivar.}}{75}{figure.caption.155}%
+\contentsline {figure}{\numberline {16.1}{\ignorespaces Estimated transition-probability matrix after sorting the states by volatility; the dominant diagonal indicates regime persistence.}}{80}{figure.caption.165}%
+\contentsline {figure}{\numberline {16.2}{\ignorespaces DAX index 1991--1998 colored by the Viterbi-decoded regime (top) and the decoded state sequence over time (bottom).}}{81}{figure.caption.166}%
+\contentsline {figure}{\numberline {17.1}{\ignorespaces SVC decision boundaries, margins and support vectors on two real breast-cancer features for the linear, polynomial and RBF kernels.}}{87}{figure.caption.176}%
+\contentsline {figure}{\numberline {17.2}{\ignorespaces Support Vector Regression on the Old Faithful geyser with the $\varepsilon = 0.3$ tube; highlighted points are support vectors.}}{88}{figure.caption.177}%
+\contentsline {figure}{\numberline {19.1}{\ignorespaces GRNN under different smoothing spreads on the motorcycle data: small $\sigma $ follows noise, large $\sigma $ flattens the impact peak.}}{102}{figure.caption.196}%
+\contentsline {figure}{\numberline {19.2}{\ignorespaces Five-fold cross-validation error versus $\sigma $; the clear minimum selects $\sigma = 0.08$.}}{103}{figure.caption.197}%
 \contentsfinish 

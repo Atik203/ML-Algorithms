@@ -161,6 +161,8 @@
 
 % --- Headings ---------------------------------------------------------------
 \usepackage{titlesec}
+% experiments run continuously (no page break before each chapter)
+\titleclass{\chapter}{straight}
 % Mini table of contents printed on every part-opening page
 \newcommand{\parttoc}{%
   \begingroup
@@ -178,15 +180,13 @@
   {\Huge}
   [\vspace{7mm}\parttoc]
 \titlespacing*{\part}{0pt}{30pt}{18pt}
-% experiments run continuously (no page break before each chapter)
-\titleclass{\chapter}{straight}[\part]
 \titleformat{\chapter}[display]
   {\normalfont\Large\bfseries\color{mlblue}}
   {\normalsize\sffamily\bfseries\color{mlblue2}\chaptername~\thechapter}
   {8pt}
   {\Large}
   [\vspace{3pt}{\color{mlrule}\hrule height 0.9pt}]
-\titlespacing*{\chapter}{0pt}{-10pt}{14pt}
+\titlespacing*{\chapter}{0pt}{22pt}{14pt}
 \titleformat{\section}{\large\bfseries\color{mlblue}}{}{0em}{}
 \titlespacing*{\section}{0pt}{10pt}{4pt}
 \titleformat{\subsection}{\normalsize\bfseries\color{mlblue2}}{}{0em}{}
