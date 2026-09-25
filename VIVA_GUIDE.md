@@ -41,7 +41,7 @@ Four clustering algorithms - K-Means (Lloyd's), Modified K-Means (K-Means++ init
 ## 1. Quick facts
 | | |
 |---|---|
-| **Algorithms** | K-Means, Modified K-Means (K-Means++ / Bisecting), Hierarchical (Agglomerative/Ward), Fuzzy C-Means (custom NumPy class) |
+| **Algorithms** | K-Means, Modified K-Means (K-Means++ with 97th-percentile outlier flag), Hierarchical (Agglomerative/Ward), Fuzzy C-Means (custom NumPy class) |
 | **Dataset** | `data/mall_customers.csv`, 200 rows; features: Annual Income (k$), Spending Score (1-100) |
 | **Preprocessing** | StandardScaler (mean 0, std 1) |
 | **Key parameters** | K=5; `init='k-means++'`, `n_init=20`; Ward linkage; FCM m=2.0, tol=1e-5, 150 iterations |
@@ -52,9 +52,9 @@ Four clustering algorithms - K-Means (Lloyd's), Modified K-Means (K-Means++ init
 J = Σₖ Σ_{x∈Cₖ} ‖x − μₖ‖².
 1) Initialize K centroids; 2) assign each point to the nearest centroid; 3) set each centroid to the mean of its assigned points; 4) repeat until assignments stop changing. Each step never increases J, so it converges - but only to a **local** minimum, which is why initialization matters.
 
-**Modified variants:**
+**Modified K-Means (manual variant):**
 - *K-Means++* picks the first centroid at random, then each next centroid with probability proportional to D(x)² = squared distance to the nearest chosen centroid. This spreads centroids out and avoids bad local minima.
-- *Bisecting K-Means* is divisive: start with one cluster, repeatedly split the cluster with the largest inertia using 2-means until K clusters exist. Gives more balanced sizes.
+- After fitting, each sample's distance to its assigned centroid is computed and points above the 97th percentile are flagged as **candidate outliers** (6 of 200 on this data; threshold 1.072).
 
 **Hierarchical (Ward):** start with N single-point clusters; repeatedly merge the pair (A,B) that increases within-cluster variance the least: ΔW(A,B) = (n_A n_B)/(n_A+n_B)·‖μ_A−μ_B‖². The dendrogram shows all merges; cutting it at a height gives the partition.
 
@@ -120,16 +120,17 @@ U = inv_dist_p / inv_dist_p.sum(axis=1, keepdims=True)   # membership update
 | Algorithm | Silhouette ↑ | Davies-Bouldin ↓ | Calinski-Harabasz ↑ |
 |---|---|---|---|
 | Standard K-Means | 0.5547 | 0.5722 | 248.65 |
-| Bisecting K-Means | 0.4807 | 0.6788 | 150.94 |
+| Modified K-Means (outlier flag) | 0.5547 | 0.5722 | 248.65 |
 | Hierarchical (Ward) | 0.5538 | 0.5779 | 244.41 |
 | Fuzzy C-Means | 0.5547 | 0.5722 | 248.65 |
 
 - Silhouette ≈ 0.55 means compact, well separated clusters (0.5+ is good on real data).
-- FCM converging to the same partition as K-Means shows the clusters are mostly unambiguous; soft memberships would matter more with overlapping groups.
+- FCM converging to the same partition as K-Means shows the clusters are mostly unambiguous; FPC = 0.6711 quantifies the remaining softness.
 - Bisecting is slightly weaker here but produces more uniform cluster sizes - its advantage is robustness, not raw separation.
 
 ## 6. Limitations & how to improve
 - K-Means assumes spherical, similar-sized clusters → fails on elongated, non-convex structures such as the seismic chains in notebook 02.
+- The Bisecting variant is a different modification (not the manual's outlier variant) and is not implemented in the notebooks.
 - Means are not robust: outliers pull centroids → K-Medoids or trimming would help.
 - K must be supplied externally → elbow/silhouette (used here), gap statistic, or BIC for GMMs.
 - FCM is O(N·K·d) per iteration and sensitive to initialization; multiple restarts recommended.
@@ -138,7 +139,7 @@ U = inv_dist_p / inv_dist_p.sum(axis=1, keepdims=True)   # membership update
 - **Why standardize?** Income (0-137) would dominate spending (1-99) in Euclidean distance.
 - **How was K chosen?** Elbow (inertia) + silhouette over K=2..10 → K=5.
 - **K-Means vs Fuzzy C-Means?** Hard vs soft membership; FCM quantifies ambiguity at boundaries.
-- **What exactly is "Modified K-Means"?** K-Means++ initialization and the Bisecting divisive variant.
+- **What exactly is "Modified K-Means"?** As defined in the manual: K-Means++ initialization plus a distance-to-centroid percentile rule that flags candidate outliers (6/200 flagged at the 97th percentile).
 - **Why K-Means++ better than random init?** Probabilistic spread of seeds → lower and more consistent inertia.
 - **What does the dendrogram tell us?** The merge order and distances; the cut height determines K.
 - **Which metric is best for clustering?** No single one - silhouette + DB + CH together; ARI only if labels exist.
@@ -232,6 +233,7 @@ hdb_labels = hdb.fit_predict(X_rad)
 - **Noise = isolated seismicity:** ~1,000-1,600 events far from any plate boundary (intraplate events) are labeled −1.
 - **HDBSCAN silhouette is roughly double DBSCAN's:** DBSCAN's fixed ε chains elongated arc clusters along an entire boundary into one large, elongated group; HDBSCAN's adaptive density splits them into compact regions.
 - **No ARI here:** the catalogue has no ground-truth cluster labels, so quality is judged by noise share, silhouette and the region sanity-check.
+- **Parameter sensitivity:** eps 0.02 rad → 70 clusters / 21.2% noise; 0.03 (selected) → 55 / 13.5%; 0.05 → 50 / 5.7%.
 
 ## 6. Limitations & how to improve
 - Distance-based density estimation on a sphere is fine for 2D but the method degrades in high dimensions (curse of dimensionality).
@@ -349,7 +351,7 @@ The wrapper logs: iter1 +292 labels, iter2 +22, iter3 +5, iter4 +2, then `no_cha
 # 04 – Ensemble Learning
 
 ## 0. In one paragraph
-Five ensemble methods are implemented: Random Forest Regression and Classification (bagging) plus XGBoost, AdaBoost and CatBoost (boosting). Regression runs on a 5,000-row California Housing sample and classification on Heart Disease. Gradient boosting wins the regression benchmark (XGBoost R² 0.8025, CatBoost 0.8029), Random Forest gives a robust baseline with free OOB validation (0.7415), and RFC classifies heart disease at ROC-AUC 0.87.
+Five ensemble methods are implemented: Random Forest Regression and Classification (bagging) plus XGBoost, AdaBoost and CatBoost (boosting). Regression runs on a 5,000-row California Housing sample and classification on Heart Disease. Gradient boosting wins the regression benchmark (XGBoost R² 0.8025, CatBoost 0.8029), Random Forest gives a robust baseline with free OOB validation (0.7415), and the four classifiers reach ROC-AUC 0.85-0.87 on heart disease.
 
 ## 1. Quick facts
 | | |
@@ -357,7 +359,7 @@ Five ensemble methods are implemented: Random Forest Regression and Classificati
 | **Algorithms** | RFR, RFC, XGBoost, AdaBoost, CatBoost |
 | **Datasets** | California Housing (5,000 x 8, regression); Heart Disease (303 x 13, classification) |
 | **Key parameters** | RFR 150 trees/depth 12; XGB 150 trees, lr 0.08, depth 6, subsample 0.8; AdaBoost 100, lr 0.1; CatBoost 200 iters, depth 6; RFC 120 trees/depth 8 |
-| **Results** | R²: XGB 0.8025, Cat 0.8029, RFR 0.7415 (OOB 0.7513), Ada 0.5888. RFC: acc 0.7763, F1 0.8046, AUC 0.8704 |
+| **Results** | Regression R²: XGB 0.8025, Cat 0.8029, RFR 0.7415 (OOB 0.7513), Ada 0.5888. Classification (acc/F1/AUC): RFC 0.7763/0.8046/0.8704; XGBoost 0.7763/0.8132/0.8509; AdaBoost 0.7895/0.8182/0.8714; CatBoost 0.7632/0.7955/0.8551 |
 
 ## 2. How the algorithm works
 **Bagging (Random Forest):** train B trees on bootstrap samples, each split considers a random feature subset; regression averages outputs, classification takes a majority vote. Averaging decorrelated trees reduces **variance**. OOB score: each tree is validated on the ~37% of samples it did not receive.
@@ -394,12 +396,14 @@ xgb_reg = xgb.XGBRegressor(n_estimators=150, learning_rate=0.08, max_depth=6,
 4. **AdaBoost:** `AdaBoostRegressor(n_estimators=100, learning_rate=0.1, random_state=42)`.
 5. **CatBoost:** `CatBoostRegressor(iterations=200, learning_rate=0.08, depth=6, l2_leaf_reg=3.0, verbose=False)`.
 6. **Comparison table** with R², RMSE, MAE.
-7. **RFC:** one-hot encode heart data, stratified split, fit:
+7. **Classification on heart data** (same stratified split): RFC, XGBoost and AdaBoost on one-hot features, CatBoost on the raw table with `cat_features`:
 ```python
 rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
-rfc.fit(X_train_clf, y_train_clf)
+xgb_clf = xgb.XGBClassifier(n_estimators=120, learning_rate=0.08, max_depth=4, eval_metric='logloss', random_state=42)
+ada_clf = AdaBoostClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
+cb_clf = cb.CatBoostClassifier(iterations=150, depth=5, cat_features=categorical_cols, verbose=False)
 ```
-then accuracy / F1 / ROC-AUC on the test set.
+then accuracy / F1 / ROC-AUC for all four on the test set.
 
 ## 5. Results & interpretation
 | Model | R² ↑ | RMSE ↓ | MAE ↓ |
@@ -413,7 +417,7 @@ then accuracy / F1 / ROC-AUC on the test set.
 - RFR's OOB (0.7513) ≈ test R² (0.7415) → no overfitting, and the OOB estimate is free.
 - AdaBoost is weakest: exponential loss is sensitive to noisy/outlier house prices.
 - RMSE is in $100k units (target MedHouseVal): 0.516 ≈ $51.6k average error.
-- RFC on heart: accuracy 0.7763, F1 0.8046, ROC-AUC 0.8704 → good ranking quality on a small dataset.
+- Classification on heart: AdaBoost is best (0.7895 acc / 0.8182 F1 / 0.8714 AUC); RFC 0.7763/0.8046/0.8704; XGBoost 0.7763/0.8132/0.8509; CatBoost 0.7632/0.7955/0.8551 — differences are within noise for 76 test samples.
 
 ## 6. Limitations & how to improve
 - Hyperparameters were fixed, not tuned → grid search/random search would gain a few points.
@@ -548,7 +552,7 @@ A vanilla Elman RNN and an LSTM forecast monthly airline passenger counts from t
 | **Preprocessing** | MinMaxScaler → [0,1]; sliding windows: 12 months → next month |
 | **Split** | Chronological 80/20 → 105 train / 27 test sequences; no shuffling |
 | **Key parameters** | 2 layers, hidden 64, Linear(64,1), MSELoss, Adam lr 0.005, 120 epochs, batch 16 |
-| **Results** | Vanilla RNN RMSE 69.93 / MAE 62.36; **LSTM RMSE 44.12 / MAE 36.78** |
+| **Results** | Forecasting: Vanilla RNN RMSE 69.93 / MAE 62.36; **LSTM RMSE 44.12 / MAE 36.78**. Sequence classification (synthetic): RNN 0.9300, **LSTM 0.9450** |
 
 ## 2. How the algorithm works
 **Vanilla RNN:** h_t = tanh(W_ih x_t + b_ih + W_hh h_{t−1} + b_hh); output from the last step ŷ = W_ho h_T + b_o. Trained with backpropagation through time (BPTT). Problem: repeated multiplication by W_hh makes gradients vanish (or explode) over long sequences.

@@ -112,6 +112,8 @@ def export_html(ipynb: pathlib.Path) -> str:
 def html_to_pdf(browser: str, html_path: pathlib.Path, pdf_path: pathlib.Path) -> None:
     """Print a local HTML file to PDF with headless Chromium."""
     pdf_path.parent.mkdir(parents=True, exist_ok=True)
+    if pdf_path.exists():
+        pdf_path.unlink()  # remove stale file so a failed print cannot go unnoticed
     url = html_path.resolve().as_uri()
     cmd = [
         browser,

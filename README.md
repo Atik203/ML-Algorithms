@@ -36,6 +36,9 @@ d:/ML/Assignment/
 │   └── 01_..._11_*.pdf                           # One PDF per notebook
 ├── scripts/
 │   └── export_pdf.py                             # Rebuilds pdf/ (nbconvert -> HTML -> Chromium print)
+├── Machine_Learning_Lab_Manual.docx              # Faculty's laboratory manual (reference format)
+├── Machine_Learning_Lab_Manual_Completed.docx    # Completed 19-experiment report (faculty format)
+├── ML_Lab_Manual_Completed.md                    # Markdown source of the completed manual
 ├── image.jpg                                     # Original Assignment Prompt Image
 └── README.md                                     # Project Documentation & Guide
 ```
@@ -46,12 +49,12 @@ d:/ML/Assignment/
 
 | # | Notebook | Algorithms Covered | Primary Libraries | Datasets Used | Key Visualizations & Outputs |
 | :---: | :--- | :--- | :--- | :--- | :--- |
-| **01** | [`01_clustering_algorithms.ipynb`](notebooks/01_clustering_algorithms.ipynb) | • K-Means<br>• Bisecting K-Means<br>• Hierarchical (Ward)<br>• Fuzzy C-Means (FCM) | `scikit-learn`<br>`scipy`<br>`numpy` | Mall Customers (`data/mall_customers.csv`) | Elbow/silhouette plot, dendrogram, combined 2x2 partition grid, metrics table. |
-| **02** | [`02_density_based_learning.ipynb`](notebooks/02_density_based_learning.ipynb) | • DBSCAN<br>• HDBSCAN | `scikit-learn` | USGS earthquakes 2023 (`data/earthquakes.csv`, 7,638 events, lat/lon + haversine) | $k$-distance graph for $\epsilon$, DBSCAN/HDBSCAN world maps with noise, largest-cluster region check, summary table. |
+| **01** | [`01_clustering_algorithms.ipynb`](notebooks/01_clustering_algorithms.ipynb) | • K-Means<br>• Modified K-Means (outlier flag)<br>• Hierarchical (Ward)<br>• Fuzzy C-Means (FCM) | `scikit-learn`<br>`scipy`<br>`numpy` | Mall Customers (`data/mall_customers.csv`) | Elbow/silhouette plot, dendrogram, combined 2x2 partition grid, outlier flags, metrics table with FPC. |
+| **02** | [`02_density_based_learning.ipynb`](notebooks/02_density_based_learning.ipynb) | • DBSCAN<br>• HDBSCAN | `scikit-learn` | USGS earthquakes 2023 (`data/earthquakes.csv`, 7,638 events, lat/lon + haversine) | k-distance graph, parameter-sensitivity table, DBSCAN/HDBSCAN world maps with noise, region check, summary table. |
 | **03** | [`03_semi_supervised_learning.ipynb`](notebooks/03_semi_supervised_learning.ipynb) | • Self-Training Classifier | `scikit-learn` | Breast Cancer Wisconsin (85% masked as unlabeled) | Convergence log and comparison table: baseline (15%) vs semi-supervised vs fully supervised ceiling. |
-| **04** | [`04_ensemble_learning.ipynb`](notebooks/04_ensemble_learning.ipynb) | • Random Forest Regression (RFR)<br>• Random Forest Classification (RFC)<br>• XGBoost<br>• AdaBoost<br>• CatBoost | `scikit-learn`<br>`xgboost`<br>`catboost` | California Housing (Regression) & Heart Disease (Classification) | Regression comparison table (RFR/XGBoost/AdaBoost/CatBoost) and RFC classification metrics. |
+| **04** | [`04_ensemble_learning.ipynb`](notebooks/04_ensemble_learning.ipynb) | • RFR<br>• RFC<br>• XGBoost<br>• AdaBoost<br>• CatBoost | `scikit-learn`<br>`xgboost`<br>`catboost` | California Housing (regression) & Heart Disease (classification) | Regression and classification comparison tables for all five ensembles. |
 | **05** | [`05_multilayer_perceptron.ipynb`](notebooks/05_multilayer_perceptron.ipynb) | • Scikit-Learn MLPClassifier<br>• PyTorch Deep MLP | `scikit-learn`<br>`torch` | MNIST Handwritten Digits (8x8 grayscale images) | Scikit-Learn loss curve and classification report for both MLP implementations. |
-| **06** | [`06_recurrent_neural_network.ipynb`](notebooks/06_recurrent_neural_network.ipynb) | • Vanilla RNN (`nn.RNN`)<br>• LSTM (`nn.LSTM`) | `torch` | Monthly Airline Passengers (`data/airline_passengers.csv`) | RMSE/MAE table and forecast trajectory vs. ground truth. |
+| **06** | [`06_recurrent_neural_network.ipynb`](notebooks/06_recurrent_neural_network.ipynb) | • Vanilla RNN<br>• LSTM | `torch` | Airline Passengers + synthetic sequences | RMSE/MAE forecast table, forecast trajectory, sequence-classification accuracy (RNN vs LSTM). |
 | **07** | [`07_self_organizing_map.ipynb`](notebooks/07_self_organizing_map.ipynb) | • Kohonen Self-Organizing Map | `minisom` | UCI Wine Recognition Dataset | U-Matrix with projected wine cultivars, quantization and topographic error. |
 | **08** | [`08_hidden_markov_model.ipynb`](notebooks/08_hidden_markov_model.ipynb) | • Gaussian HMM (Baum-Welch EM & Viterbi Decoding) | `hmmlearn` | DAX stock index 1991-1998 (`data/stock_index.csv`) | Transition matrix heatmap and DAX price trajectory colored by Viterbi-decoded regime. |
 | **09** | [`09_support_vector_machine.ipynb`](notebooks/09_support_vector_machine.ipynb) | • Support Vector Classifier (SVC)<br>• Support Vector Regressor (SVR) | `scikit-learn` | Breast Cancer (2 & 30 features) & Old Faithful geyser (`data/geyser.csv`) | SVC decision boundaries on real data across Linear/Poly/RBF kernels, $\epsilon$-insensitive tube plot, breast-cancer accuracy. |
