@@ -53,11 +53,7 @@ cost nothing and only points outside the tube become support vectors.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={SVC per kernel and SVR with an epsilon-insensitive tube}]
-clf = SVC(kernel=k_name, C=1.0, gamma='scale', degree=3, random_state=42).fit(X_2d_scaled, y_2d)
-svc_rbf = SVC(kernel='rbf', C=1.0, random_state=42).fit(X_train_c_s, y_train_c)
-svr_model = SVR(kernel='rbf', C=10.0, epsilon=0.3, gamma='scale').fit(X_svr_scaled, y_svr)
-\end{codebox}
+\input{code/exp17_svm}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -103,22 +99,20 @@ without changing the classifier. The geyser scatter is bimodal (short and long e
 RBF SVR smoothly bridges the two modes and the tube leaves most residuals unpenalized.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[What is a support vector?] A training point on or inside the margin ($\alpha > 0$) that
+\begin{enumerate}
+  \item \textbf{What is a support vector?}\par\nobreak A training point on or inside the margin ($\alpha > 0$) that
   alone defines the decision boundary.
-  \item[Effect of $C$?] Large $C$ penalizes violations strongly (narrow margin, possible
+  \item \textbf{Effect of $C$?}\par\nobreak Large $C$ penalizes violations strongly (narrow margin, possible
   overfitting); small $C$ allows a wider margin and more violations.
-  \item[Effect of $\gamma$?] Large $\gamma$ makes each point's influence local (wiggly
+  \item \textbf{Effect of $\gamma$?}\par\nobreak Large $\gamma$ makes each point's influence local (wiggly
   boundary); small $\gamma$ makes the RBF smoother, approaching a linear model.
-  \item[What is the kernel trick?] Computing inner products in a high-dimensional feature
+  \item \textbf{What is the kernel trick?}\par\nobreak Computing inner products in a high-dimensional feature
   space without explicitly mapping the points there.
-  \item[What is the $\varepsilon$-tube in SVR?] The zero-loss zone around the fitted function;
+  \item \textbf{What is the $\varepsilon$-tube in SVR?}\par\nobreak The zero-loss zone around the fitted function;
   only points outside it become support vectors. A wider tube (0.3 vs.\ 0.1) reduced the
   support-vector count with the same $R^2$.
-  \item[Why does SVM require careful scaling?] Margins and kernels use Euclidean distances;
+  \item \textbf{Why does SVM require careful scaling?}\par\nobreak Margins and kernels use Euclidean distances;
   unscaled features with larger ranges dominate them and degrade the fit.
-\end{description}
+\item \textbf{What is the difference between SVC and SVR?}\par\nobreak SVC solves classification by maximizing the margin between classes; SVR solves regression by fitting a tube of width $\varepsilon$ around the target and penalizing only points outside it.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp17_svm}

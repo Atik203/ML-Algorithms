@@ -47,12 +47,7 @@ trees can only help. Out-of-bag (OOB) samples --- the $\approx 37\%$ not drawn i
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={Random Forest Regression with out-of-bag validation}]
-rf_reg = RandomForestRegressor(n_estimators=150, max_depth=12,
-                               oob_score=True, random_state=42, n_jobs=-1)
-rf_reg.fit(X_train_reg, y_train_reg)
-print(rf_reg.oob_score_, r2_score(y_test_reg, rf_reg.predict(X_test_reg)))
-\end{codebox}
+\input{code/exp08_rfr}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -79,21 +74,19 @@ dominated by median income and location (latitude/longitude), consistent with ho
 economics.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[Why does a forest reduce variance?] Averaging $B$ approximately uncorrelated trees
+\begin{enumerate}
+  \item \textbf{Why does a forest reduce variance?}\par\nobreak Averaging $B$ approximately uncorrelated trees
   gives $\rho\sigma^2 + (1-\rho)\sigma^2/B$; as $B$ grows the second term vanishes, so
   predictions are more stable than a single tree's.
-  \item[What is bagging?] Bootstrap aggregating: each model is trained on a bootstrap sample
+  \item \textbf{What is bagging?}\par\nobreak Bootstrap aggregating: each model is trained on a bootstrap sample
   of the data and the predictions are combined (average for regression, vote for
   classification).
-  \item[Why can feature importance be misleading?] Impurity-based importance is biased toward
+  \item \textbf{Why can feature importance be misleading?}\par\nobreak Impurity-based importance is biased toward
   high-cardinality/continuous features, is computed on training data (it implies no causality),
   and correlated features share or dilute importance arbitrarily.
-\end{description}
+\item \textbf{Why does adding more trees not make a random forest overfit?}\par\nobreak Averaging many decorrelated trees reduces variance without increasing bias; beyond a certain number the error stabilizes, so more trees cost computation but not generalization.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp08_rfr}
 
 % ---------------------------------------------------------------------------
 \chapter{Random Forest Classification (RFC)}\label{exp:09}
@@ -135,11 +128,7 @@ class probability, which is used for ROC-AUC.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={Random Forest Classification with stratified evaluation}]
-rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
-rfc.fit(X_train_clf, y_train_clf)
-y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
-\end{codebox}
+\input{code/exp09_rfc}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -164,19 +153,17 @@ modelling failure. F1 and AUC are safer summaries than accuracy alone because th
 not perfectly balanced.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[RFR vs RFC?] Regression averages the trees' numeric outputs; classification takes a
+\begin{enumerate}
+  \item \textbf{RFR vs RFC?}\par\nobreak Regression averages the trees' numeric outputs; classification takes a
   majority vote (and averages class probabilities for scoring).
-  \item[What is majority voting?] Each tree votes for one class and the most frequent class
+  \item \textbf{What is majority voting?}\par\nobreak Each tree votes for one class and the most frequent class
   becomes the ensemble prediction; soft voting averages the probabilities instead.
-  \item[How can class imbalance affect accuracy?] With a rare positive class, a model can
+  \item \textbf{How can class imbalance affect accuracy?}\par\nobreak With a rare positive class, a model can
   predict the majority class everywhere and still show high accuracy; precision, recall, F1 and
   AUC expose the failure.
-\end{description}
+\item \textbf{Why is ROC-AUC threshold-independent?}\par\nobreak It summarizes performance over all classification thresholds by comparing true- and false-positive rates, so it does not depend on a single cut-off.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp09_rfc}
 
 % ---------------------------------------------------------------------------
 \chapter{XGBoost}\label{exp:10}
@@ -221,13 +208,7 @@ weights, while row/column subsampling adds stochasticity; both control overfitti
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={XGBoost classification on the heart data}]
-xgb_clf = xgb.XGBClassifier(n_estimators=120, learning_rate=0.08, max_depth=4,
-                            subsample=0.8, colsample_bytree=0.8,
-                            random_state=42, eval_metric='logloss')
-xgb_clf.fit(X_train_clf, y_train_clf)
-y_prob_xgb_c = xgb_clf.predict_proba(X_test_clf)[:, 1]
-\end{codebox}
+\input{code/exp10_xgboost}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -252,20 +233,18 @@ regression benchmark, gradient boosting clearly leads (Experiment 8 comparison),
 usual pattern for tabular data.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[Bagging vs boosting?] Bagging trains models in parallel on bootstrap samples and
+\begin{enumerate}
+  \item \textbf{Bagging vs boosting?}\par\nobreak Bagging trains models in parallel on bootstrap samples and
   combines them to reduce variance; boosting trains models sequentially so each corrects the
   previous ensemble's errors, mainly reducing bias.
-  \item[What does the learning rate do?] It shrinks each tree's contribution; smaller values
+  \item \textbf{What does the learning rate do?}\par\nobreak It shrinks each tree's contribution; smaller values
   need more trees but usually generalize better, larger values fit faster and can overfit.
-  \item[Why can boosting overfit?] Later trees keep fitting remaining errors, including label
+  \item \textbf{Why can boosting overfit?}\par\nobreak Later trees keep fitting remaining errors, including label
   noise, so the ensemble can become too complex; depth limits, regularization, subsampling and
   early stopping control this.
-\end{description}
+\item \textbf{How do the learning rate and the number of trees interact?}\par\nobreak A smaller learning rate shrinks each tree's contribution and usually needs more trees; the pair must be tuned together to balance underfitting and overfitting.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp10_xgboost}
 
 % ---------------------------------------------------------------------------
 \chapter{AdaBoost}\label{exp:11}
@@ -308,11 +287,7 @@ quickly for hard points, AdaBoost is sensitive to label noise and outliers.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={AdaBoost classification}]
-ada_clf = AdaBoostClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
-ada_clf.fit(X_train_clf, y_train_clf)
-y_prob_ada_c = ada_clf.predict_proba(X_test_clf)[:, 1]
-\end{codebox}
+\input{code/exp11_adaboost}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -337,21 +312,19 @@ a cheap, strong baseline; its weakness is sensitivity to label noise, where regu
 gradient boosting is more robust.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[Why use weak learners?] Individually they are simple and low-variance; boosting
+\begin{enumerate}
+  \item \textbf{Why use weak learners?}\par\nobreak Individually they are simple and low-variance; boosting
   combines many of them so the ensemble can fit complex boundaries while each step stays
   simple.
-  \item[How does AdaBoost focus on difficult examples?] After each round, weights of
+  \item \textbf{How does AdaBoost focus on difficult examples?}\par\nobreak After each round, weights of
   misclassified samples increase, so the next learner optimizes a distribution that emphasizes
   current errors.
-  \item[What is the effect of noisy labels?] Mislabeled points look ``hard'', receive
+  \item \textbf{What is the effect of noisy labels?}\par\nobreak Mislabeled points look ``hard'', receive
   ever-larger weights and can dominate training, degrading accuracy --- AdaBoost is known to be
   noise-sensitive.
-\end{description}
+\item \textbf{What is the difference between AdaBoost and gradient boosting?}\par\nobreak AdaBoost reweights misclassified samples and combines weak learners by weighted votes; gradient boosting fits each new learner to the residual (gradient) of the loss, which generalizes to many loss functions.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp11_adaboost}
 
 % ---------------------------------------------------------------------------
 \chapter{CatBoost}\label{exp:12}
@@ -394,12 +367,7 @@ encoding.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={CatBoost with native categorical features}]
-categorical_cols = X_clf_raw.select_dtypes(include=['object', 'category']).columns.tolist()
-cb_clf = cb.CatBoostClassifier(iterations=150, learning_rate=0.08, depth=5,
-                               cat_features=categorical_cols, random_seed=42, verbose=False)
-cb_clf.fit(X_tr_cb, y_tr_cb)
-\end{codebox}
+\input{code/exp12_catboost}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -427,18 +395,16 @@ high-cardinality categories, e.g.\ thousands of city or user IDs); all differenc
 noise for 76 test samples.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[How does CatBoost treat categorical features?] It computes ordered target statistics
+\begin{enumerate}
+  \item \textbf{How does CatBoost treat categorical features?}\par\nobreak It computes ordered target statistics
   (the mean target per category on random permutations, with prior smoothing) rather than
   one-hot vectors.
-  \item[Why should categories not be encoded using target leakage?] Plain target encoding uses
+  \item \textbf{Why should categories not be encoded using target leakage?}\par\nobreak Plain target encoding uses
   each row's own target when encoding that row, which leaks label information and inflates
   training performance; ordered statistics avoid this.
-  \item[CatBoost vs ordinary one-hot encoding?] One-hot explodes dimensionality for
+  \item \textbf{CatBoost vs ordinary one-hot encoding?}\par\nobreak One-hot explodes dimensionality for
   high-cardinality features and loses category statistics; CatBoost encodes compactly and
   exploits target--category relationships with leakage control.
-\end{description}
+\item \textbf{Why does CatBoost often need less hyperparameter tuning?}\par\nobreak Its ordered boosting and ordered target statistics reduce target leakage, and symmetric (oblivious) trees are strong defaults, so good results are obtained with modest tuning.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp12_catboost}

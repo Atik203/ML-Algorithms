@@ -1,0 +1,9 @@
+# Fdb version 4
+["pdflatex"] 0 "d:/ML/Assignment/latex/main.tex" "out/main.pdf" "main" 0 -1
+  "d:/ML/Assignment/latex/main.tex" 0 -1 0 ""
+  "out/main.aux" 0 -1 0 "pdflatex"
+  (generated)
+  "out/main.aux"
+  "out/main.log"
+  "out/main.pdf"
+  (rewritten before read)

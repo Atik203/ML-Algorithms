@@ -159,19 +159,20 @@ scikit-learn, xgboost, catboost, numpy, pandas, matplotlib.
 \end{enumerate}
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[Which model performed best overall?] It is task-dependent: AdaBoost/RFC on small
+\begin{enumerate}
+  \item \textbf{Which model performed best overall?}\par\nobreak It is task-dependent: AdaBoost/RFC on small
   classification, XGBoost/CatBoost on tabular regression, LSTM for sequences, RBF SVC for
   small high-dimensional classification and GRNN for smooth low-dimensional regression.
-  \item[Why not select the model by its test score?] That leaks the test set into model
+  \item \textbf{Why not select the model by its test score?}\par\nobreak That leaks the test set into model
   selection; candidates should be compared on validation data and evaluated once on the test
   set.
-  \item[Why report more than one metric?] Each metric captures a different failure mode:
+  \item \textbf{Why report more than one metric?}\par\nobreak Each metric captures a different failure mode:
   accuracy hides class imbalance, RMSE weights outliers more than MAE, and silhouette favours
   compact convex clusters.
-  \item[How is reproducibility ensured?] Fixed seeds everywhere, committed datasets, documented
+  \item \textbf{How is reproducibility ensured?}\par\nobreak Fixed seeds everywhere, committed datasets, documented
   preprocessing and splits, and complete code listings for every experiment.
-\end{description}
+\item \textbf{How would you detect data leakage in a comparison like this?}\par\nobreak Check that every preprocessing step that learns from data (scaling, encoding, feature selection) is fitted on the training split only, and that model selection never touches the test set.
+\end{enumerate}
 
 % ===========================================================================
 % Appendices

@@ -52,16 +52,7 @@ stop training when validation performance stalls.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={The two MLP architectures}]
-mlp_sklearn = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam',
-                            alpha=0.001, batch_size=64, learning_rate_init=0.005,
-                            max_iter=150, early_stopping=True, validation_fraction=0.15)
-
-self.net = nn.Sequential(
-    nn.Linear(64, 128), nn.BatchNorm1d(128), nn.ReLU(), nn.Dropout(0.25),
-    nn.Linear(128, 64), nn.BatchNorm1d(64),  nn.ReLU(), nn.Dropout(0.20),
-    nn.Linear(64, 10))
-\end{codebox}
+\input{code/exp13_mlp}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -93,19 +84,17 @@ scikit-learn baseline by about two points thanks to BatchNorm, Dropout and sched
 over more epochs.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[Why is scaling important for MLP?] Gradient descent converges poorly when input
+\begin{enumerate}
+  \item \textbf{Why is scaling important for MLP?}\par\nobreak Gradient descent converges poorly when input
   features have very different scales; standardization equalizes their influence and stabilizes
   the loss surface.
-  \item[What is backpropagation?] Reverse-mode application of the chain rule that computes the
+  \item \textbf{What is backpropagation?}\par\nobreak Reverse-mode application of the chain rule that computes the
   gradient of the loss with respect to every weight, layer by layer.
-  \item[What causes vanishing/exploding gradients?] Repeated multiplication of small (or
+  \item \textbf{What causes vanishing/exploding gradients?}\par\nobreak Repeated multiplication of small (or
   large) Jacobians through many layers; ReLU, BatchNorm, careful initialization and residual
   connections mitigate it.
-  \item[Why is the PyTorch model better here?] BatchNorm and Dropout plus a longer, scheduled
+  \item \textbf{Why is the PyTorch model better here?}\par\nobreak BatchNorm and Dropout plus a longer, scheduled
   training; the scikit-learn model stops early at iteration 15.
-\end{description}
+\item \textbf{Why does early stopping act as a regularizer?}\par\nobreak It stops training before the network starts fitting noise; the validation error is at its minimum at that point, which limits effective model complexity.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp13_mlp}

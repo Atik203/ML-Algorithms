@@ -52,12 +52,7 @@ forward--backward E-step with parameter re-estimation until the log-likelihood c
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={Fitting, decoding and volatility-sorting the HMM}]
-hmm_model = GaussianHMM(n_components=3, covariance_type="full", n_iter=200, random_state=42)
-hmm_model.fit(returns)
-hidden_states = hmm_model.predict(returns)                 # Viterbi
-state_order = np.argsort([np.sqrt(hmm_model.covars_[i][0][0]) for i in range(3)])
-\end{codebox}
+\input{code/exp16_hmm}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -99,20 +94,18 @@ property and Gaussian emissions; return fat tails and duration dependence motiva
 such as $t$-emissions or semi-Markov models.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[What is hidden in an HMM?] The state sequence: we observe emissions (returns) but not
+\begin{enumerate}
+  \item \textbf{What is hidden in an HMM?}\par\nobreak The state sequence: we observe emissions (returns) but not
   the underlying regime that generated them.
-  \item[Viterbi vs forward algorithm?] Viterbi returns the single most likely state path (a
+  \item \textbf{Viterbi vs forward algorithm?}\par\nobreak Viterbi returns the single most likely state path (a
   maximum over paths); the forward algorithm computes the total probability $P(X \mid \lambda)$
   by summing over all paths.
-  \item[What is the Markov assumption?] The future state depends on the past only through the
+  \item \textbf{What is the Markov assumption?}\par\nobreak The future state depends on the past only through the
   present state: $P(z_t \mid z_{1:t-1}) = P(z_t \mid z_{t-1})$.
-  \item[Why sort the states by volatility?] So that regime labels (Bull/Sideways/Bear) are
+  \item \textbf{Why sort the states by volatility?}\par\nobreak So that regime labels (Bull/Sideways/Bear) are
   stable and interpretable across runs.
-  \item[Why model returns and not prices?] Returns are approximately stationary; prices trend
+  \item \textbf{Why model returns and not prices?}\par\nobreak Returns are approximately stationary; prices trend
   and violate the Gaussian emission assumption.
-\end{description}
+\item \textbf{How do you choose the number of hidden states?}\par\nobreak Compare candidate models by held-out likelihood (or BIC/AIC), check whether the decoded states are interpretable, and avoid states that merely fit noise.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp16_hmm}

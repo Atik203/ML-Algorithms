@@ -52,16 +52,7 @@ be standardized. $K$ itself must be chosen externally: the \emph{elbow} (inertia
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={Selecting K, then fitting the final K-means model}]
-for k in range(2, 11):
-    kmeans = KMeans(n_clusters=k, init='k-means++', n_init=10, random_state=42)
-    kmeans.fit(X_mall_scaled)
-    wcss.append(kmeans.inertia_)
-    silhouette_scores.append(silhouette_score(X_mall_scaled, kmeans.labels_))
-
-kmeans_model = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
-kmeans_labels = kmeans_model.fit_predict(X_mall_scaled)
-\end{codebox}
+\input{code/exp01_kmeans}
 
 \section{Evaluation / Expected Output}
 Both the elbow curve and the silhouette curve indicate $K = 5$ (Figure~\ref{fig:exp01-elbow}).
@@ -96,24 +87,22 @@ Silhouette $\approx 0.55$ indicates compact, reasonably separated clusters on re
 Davies--Bouldin $< 1$ confirms good separation.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[Why does K-means depend on feature scaling?] It minimizes Euclidean distance;
+\begin{enumerate}
+  \item \textbf{Why does K-means depend on feature scaling?}\par\nobreak It minimizes Euclidean distance;
   unscaled features with larger ranges dominate the distance and therefore the assignments.
-  \item[What is inertia?] The within-cluster sum of squared distances to the centroids
+  \item \textbf{What is inertia?}\par\nobreak The within-cluster sum of squared distances to the centroids
   (WCSS); lower is tighter, but it always decreases with $K$, so it is not a standalone
   quality score.
-  \item[Why can a high silhouette score still be misleading?] It favors compact convex
+  \item \textbf{Why can a high silhouette score still be misleading?}\par\nobreak It favors compact convex
   clusters and can be high for a trivial partition; it misjudges elongated or
   density-varying structures.
-  \item[What happens when clusters are non-spherical?] K-means splits them with straight
+  \item \textbf{What happens when clusters are non-spherical?}\par\nobreak K-means splits them with straight
   Voronoi boundaries and merges elongated clusters incorrectly (see Experiment 5).
-  \item[Why is K-Means++ preferred over random initialization?] It spreads the initial
+  \item \textbf{Why is K-Means++ preferred over random initialization?}\par\nobreak It spreads the initial
   centroids out, reducing convergence to poor local optima and giving more stable inertia.
-\end{description}
+\item \textbf{What is the difference between K-means and K-medoids?}\par\nobreak K-medoids uses an actual data point (medoid) as the cluster centre and minimizes absolute distances, so it is more robust to outliers; K-means uses the mean, which outliers can drag away.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp01_kmeans}
 
 % ---------------------------------------------------------------------------
 \chapter{Modified K-means}\label{exp:02}
@@ -163,14 +152,7 @@ is not a standard replacement for robust clustering methods.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={K-Means++ followed by the outlier-distance check}]
-km_mod = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
-mod_labels = km_mod.fit_predict(X_mall_scaled)
-
-dist_to_centroid = np.linalg.norm(X_mall_scaled - km_mod.cluster_centers_[mod_labels], axis=1)
-threshold = np.percentile(dist_to_centroid, 97)
-outlier_flag = dist_to_centroid > threshold
-\end{codebox}
+\input{code/exp02_modified_kmeans}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -196,21 +178,19 @@ boundary customers with unusual income/spending combinations. The cluster struct
 is unchanged, which is expected: the modification adds an outlier interpretation layer.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[Why is it important to define a modification precisely?] Without a formal definition
+\begin{enumerate}
+  \item \textbf{Why is it important to define a modification precisely?}\par\nobreak Without a formal definition
   ``modified K-means'' is ambiguous; fixing the initialization, the distance measure and the
   percentile rule makes the experiment reproducible and testable.
-  \item[How does K-Means++ differ from random initialization?] K-Means++ selects initial
+  \item \textbf{How does K-Means++ differ from random initialization?}\par\nobreak K-Means++ selects initial
   centroids with probability proportional to the squared distance to the nearest chosen
   centroid, spreading the seeds out and avoiding poor local optima.
-  \item[Why might distance-to-centroid fail for elongated clusters?] Centroid distance is
+  \item \textbf{Why might distance-to-centroid fail for elongated clusters?}\par\nobreak Centroid distance is
   isotropic; a point can be close to the centroid along the long axis yet far along the short
   axis, so elongated clusters can flag legitimate points and hide real outliers.
-\end{description}
+\item \textbf{Should the flagged outliers be removed automatically?}\par\nobreak No. The flag marks candidates for inspection; removing points without justification can hide data-quality problems or real rare groups, so removal must be a documented, deliberate decision.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp02_modified_kmeans}
 
 % ---------------------------------------------------------------------------
 \chapter{Hierarchical Clustering}\label{exp:03}
@@ -254,13 +234,7 @@ yields a flat partition with the desired number of clusters.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={Ward linkage, dendrogram and the final agglomerative model}]
-linkage_matrix = linkage(X_mall_scaled, method='ward')
-dendrogram(linkage_matrix, truncate_mode='lastp', p=25, show_contracted=True)
-
-agg_model = AgglomerativeClustering(n_clusters=5, metric='euclidean', linkage='ward')
-agg_labels = agg_model.fit_predict(X_mall_scaled)
-\end{codebox}
+\input{code/exp03_hierarchical}
 
 \section{Evaluation / Expected Output}
 The dendrogram (Figure~\ref{fig:exp03-dendro}) shows a clear large merge gap that supports
@@ -294,20 +268,18 @@ The partition is nearly identical in quality to K-means (silhouette difference b
 but requires no initialization and exposes the full merge hierarchy.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[What does a dendrogram show?] The complete merge hierarchy: leaf order, merge heights
+\begin{enumerate}
+  \item \textbf{What does a dendrogram show?}\par\nobreak The complete merge hierarchy: leaf order, merge heights
   (distances) and the nested cluster structure; cutting at a height produces a flat partition.
-  \item[What is linkage?] The rule that defines the distance between two clusters:
+  \item \textbf{What is linkage?}\par\nobreak The rule that defines the distance between two clusters:
   single (closest pair), complete (farthest pair), average (mean pair) or Ward (variance
   increase).
-  \item[When is Ward linkage inappropriate?] With strongly non-spherical/elongated clusters,
+  \item \textbf{When is Ward linkage inappropriate?}\par\nobreak With strongly non-spherical/elongated clusters,
   very unequal cluster sizes or heavy outliers --- it assumes compact clusters of similar
   variance.
-\end{description}
+\item \textbf{What does the vertical axis of a dendrogram represent?}\par\nobreak The linkage distance (dissimilarity) at which two clusters merge; longer branches mean more distinct groups, and cutting the tree at a chosen height gives the cluster count.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp03_hierarchical}
 
 % ---------------------------------------------------------------------------
 \chapter{Fuzzy C-means}\label{exp:04}
@@ -357,14 +329,7 @@ measures the fuzziness of the result ($1$ = completely hard, $1/K$ = maximally f
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={Core alternating updates of Fuzzy C-means}]
-Um = U ** self.m
-centers = np.dot(Um.T, X) / Um.sum(axis=0)[:, np.newaxis]
-dist = np.linalg.norm(X[:, np.newaxis, :] - centers[np.newaxis, :, :], axis=2) + 1e-10
-U = (1.0 / dist) ** (2.0 / (self.m - 1.0))
-U = U / U.sum(axis=1, keepdims=True)
-labels = np.argmax(U, axis=1)
-\end{codebox}
+\input{code/exp04_fuzzy_cmeans}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -398,16 +363,14 @@ partitions obtained in this part of the manual.
 \end{figure}
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[How is Fuzzy C-means different from K-means?] It assigns membership degrees instead
+\begin{enumerate}
+  \item \textbf{How is Fuzzy C-means different from K-means?}\par\nobreak It assigns membership degrees instead
   of hard labels, so each point belongs to all clusters with weights that sum to 1; K-means
   is the limiting hard case.
-  \item[What does $m$ control?] The fuzziness exponent: larger $m$ spreads membership across
+  \item \textbf{What does $m$ control?}\par\nobreak The fuzziness exponent: larger $m$ spreads membership across
   clusters (softer, lower FPC), while $m \to 1$ gives crisp K-means-like assignments.
-  \item[What does a membership vector represent?] The degree to which one observation
+  \item \textbf{What does a membership vector represent?}\par\nobreak The degree to which one observation
   belongs to each cluster; near-uniform values indicate an ambiguous point on a boundary.
-\end{description}
+\item \textbf{When would you prefer hard K-means over Fuzzy C-means?}\par\nobreak When clusters are compact and well separated and a crisp assignment is required; FCM is preferred when boundaries are ambiguous and membership degrees carry useful information.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp04_fuzzy_cmeans}

@@ -53,16 +53,7 @@ and trains briefly with a small learning rate.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={Inference pipeline and the fine-tuning loop}]
-classifier = pipeline("sentiment-analysis", model=model_id,
-                      device=0 if torch.cuda.is_available() else -1)
-
-ft_model = AutoModelForSequenceClassification.from_pretrained(model_id, num_labels=2,
-                                                              ignore_mismatched_sizes=True)
-optimizer = torch.optim.AdamW(ft_model.parameters(), lr=5e-5)
-outputs = ft_model(input_ids=ids, attention_mask=mask, labels=labels)
-outputs.loss.backward(); optimizer.step()
-\end{codebox}
+\input{code/exp18_llm}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -93,21 +84,19 @@ balanced subset ignores the natural 13\% spam prior of the full collection, the 
 small and can hallucinate, and prompts/data must be fixed for reproducibility.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[What is tokenization?] Splitting text into subword units that map to integer
+\begin{enumerate}
+  \item \textbf{What is tokenization?}\par\nobreak Splitting text into subword units that map to integer
   vocabulary IDs, letting a fixed vocabulary represent any word; special tokens and attention
   masks handle sequence framing and padding.
-  \item[Pretraining vs fine-tuning vs prompting?] Pretraining learns general language
+  \item \textbf{Pretraining vs fine-tuning vs prompting?}\par\nobreak Pretraining learns general language
   representation from massive corpora; fine-tuning adapts those weights to a task with labeled
   data; prompting steers a frozen model through instructions or examples.
-  \item[Why is LLM output not automatically ground truth?] The model generates the most
+  \item \textbf{Why is LLM output not automatically ground truth?}\par\nobreak The model generates the most
   plausible continuation, not verified facts; it can hallucinate, and confidence scores are not
   calibrated correctness probabilities.
-  \item[How can prompt wording affect results?] Meaning, tone, format and label wording all
+  \item \textbf{How can prompt wording affect results?}\par\nobreak Meaning, tone, format and label wording all
   change the conditional distribution the model samples from, so prompts must be fixed and
   reported.
-\end{description}
+\item \textbf{Why must the test messages be separated before fine-tuning?}\par\nobreak Fine-tuning on data that later serves as the test set leaks the evaluation targets into training; the held-out split must be created first so the reported accuracy stays honest.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp18_llm}

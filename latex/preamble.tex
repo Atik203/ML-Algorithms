@@ -32,6 +32,10 @@
 \definecolor{mlgreen}{HTML}{2E7D32}
 \definecolor{mlorange}{HTML}{C55A11}
 \definecolor{mlred}{HTML}{A33A3A}
+\definecolor{mlviolet}{HTML}{7C3AED}
+\definecolor{mlcodeblue}{HTML}{1D4ED8}
+\definecolor{mlamber}{HTML}{B45309}
+\definecolor{mlcomment}{HTML}{3D7A57}
 
 % --- Boxes ------------------------------------------------------------------
 \usepackage[most]{tcolorbox}
@@ -77,9 +81,15 @@
 \lstdefinestyle{mlcode}{
   language=Python,
   basicstyle=\ttfamily\fontsize{8.4}{10.2}\linespread{1}\selectfont,
-  keywordstyle=\color{mlblue2}\bfseries,
-  commentstyle=\color{mlgreen}\itshape,
-  stringstyle=\color{mlorange},
+  keywordstyle=\color{mlviolet}\bfseries,
+  keywordstyle=[2]\color{mlteal},
+  keywordstyle=[3]\color{mlcodeblue}\bfseries,
+  commentstyle=\color{mlcomment}\itshape,
+  stringstyle=\color{mlamber},
+  morekeywords=[2]{print,len,range,enumerate,zip,map,filter,sum,min,max,abs,round,
+    sorted,reversed,isinstance,type,int,float,str,bool,list,dict,set,tuple,
+    open,super,self,format,setattr,getattr,hasattr},
+  morekeywords=[3]{np,pd,plt,sns,torch,nn,optim,keras,sklearn},
   breaklines=true,
   breakatwhitespace=false,
   breakindent=8pt,
@@ -105,8 +115,9 @@
   listing engine=listings,
   listing only,
   colback=mlgray, colframe=mlblue!70,
+  borderline west={1.1mm}{0pt}{mlblue!55},
   boxrule=0.5pt, arc=1.2mm,
-  left=1.5mm, right=1.5mm, top=1.5mm, bottom=1.5mm,
+  left=2.4mm, right=1.5mm, top=1.5mm, bottom=1.5mm,
   title=, coltitle=white, colbacktitle=mlblue,
   fonttitle=\small\sffamily\bfseries,
   toptitle=0.8mm, bottomtitle=0.8mm,
@@ -167,6 +178,8 @@
   {\Huge}
   [\vspace{7mm}\parttoc]
 \titlespacing*{\part}{0pt}{30pt}{18pt}
+% experiments run continuously (no page break before each chapter)
+\titleclass{\chapter}{straight}[\part]
 \titleformat{\chapter}[display]
   {\normalfont\Large\bfseries\color{mlblue}}
   {\normalsize\sffamily\bfseries\color{mlblue2}\chaptername~\thechapter}

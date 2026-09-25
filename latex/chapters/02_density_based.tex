@@ -51,14 +51,7 @@ vary. Because latitude/longitude are spherical coordinates, the \textbf{haversin
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={$\varepsilon$ from the $k$-distance knee, then DBSCAN with the haversine metric}]
-X_rad = np.radians(quakes[['latitude', 'longitude']].values)
-nbrs = NearestNeighbors(n_neighbors=10, metric='haversine').fit(X_rad)
-k_distances = np.sort(nbrs.kneighbors(X_rad)[0][:, -1])   # knee ~0.03 rad
-
-dbscan = DBSCAN(eps=0.03, min_samples=10, metric='haversine')
-db_labels = dbscan.fit_predict(X_rad)
-\end{codebox}
+\input{code/exp05_dbscan}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -121,24 +114,21 @@ $\varepsilon$ merges boundaries and reduces noise. The largest clusters correspo
 known seismic zones, and the silhouette on non-noise events (3,000-event sample) is 0.326.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[Why does DBSCAN not require $K$?] Clusters are grown from density-connected core
+\begin{enumerate}
+  \item \textbf{Why does DBSCAN not require $K$?}\par\nobreak Clusters are grown from density-connected core
   points, so their number and shape emerge from the data instead of being fixed in advance.
-  \item[What does label $-1$ mean?] The point is neither a core nor a border point --- it lies
+  \item \textbf{What does label $-1$ mean?}\par\nobreak The point is neither a core nor a border point --- it lies
   in a sparse region and is treated as noise/outlier (here: isolated earthquakes).
-  \item[Why can DBSCAN struggle with varying densities?] A single $\varepsilon$ that is small
+  \item \textbf{Why can DBSCAN struggle with varying densities?}\par\nobreak A single $\varepsilon$ that is small
   enough for a dense cluster fragments a sparse one, while one large enough for the sparse
   cluster merges the dense ones.
-  \item[Why is haversine used instead of Euclidean distance?] Latitude/longitude are
+  \item \textbf{Why is haversine used instead of Euclidean distance?}\par\nobreak Latitude/longitude are
   spherical coordinates; haversine gives true great-circle distances (radian inputs,
   $\varepsilon$ in radians).
-  \item[How is $\varepsilon$ selected?] From the knee of the $k$-distance graph with
+  \item \textbf{How is $\varepsilon$ selected?}\par\nobreak From the knee of the $k$-distance graph with
   $k = \texttt{min\_samples}$ (0.03 rad here).
-\end{description}
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp05_dbscan}
 
 % ---------------------------------------------------------------------------
 \chapter{HDBSCAN}\label{exp:06}
@@ -188,10 +178,7 @@ no radius to tune.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={HDBSCAN on the earthquake data (no global epsilon)}]
-hdb = HDBSCAN(min_cluster_size=50, min_samples=10, metric='haversine', copy=False)
-hdb_labels = hdb.fit_predict(X_rad)
-\end{codebox}
+\input{code/exp06_hdbscan}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -224,20 +211,18 @@ clusters. Membership probabilities are high ($>0.9$) deep inside seismic zones a
 cluster edges.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[What is hierarchical about HDBSCAN?] It constructs a full hierarchy of density-based
+\begin{enumerate}
+  \item \textbf{What is hierarchical about HDBSCAN?}\par\nobreak It constructs a full hierarchy of density-based
   clusters across all density levels and then condenses it by tracking cluster birth and death,
   keeping only the most stable clusters.
-  \item[What does membership probability mean?] A per-point confidence that it belongs to its
+  \item \textbf{What does membership probability mean?}\par\nobreak A per-point confidence that it belongs to its
   assigned cluster, derived from the point's persistence as the density threshold changes;
   low values indicate borderline points.
-  \item[Why is HDBSCAN useful for variable-density data?] Clusters are selected by stability
+  \item \textbf{Why is HDBSCAN useful for variable-density data?}\par\nobreak Clusters are selected by stability
   across density levels rather than by one global $\varepsilon$, so dense and sparse clusters
   can coexist.
-  \item[What does \texttt{min\_cluster\_size} control?] The smallest group that may become a
+  \item \textbf{What does \texttt{min\_cluster\_size} control?}\par\nobreak The smallest group that may become a
   cluster; increasing it reduces the number of small clusters, decreasing it fragments the map.
-\end{description}
+\item \textbf{What does cluster persistence (stability) mean in HDBSCAN?}\par\nobreak It measures how long a cluster survives across the density hierarchy; clusters that persist over a wide range of density levels are selected, which is why HDBSCAN handles variable densities.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp06_hdbscan}

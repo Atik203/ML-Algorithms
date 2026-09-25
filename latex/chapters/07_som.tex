@@ -56,13 +56,7 @@ boundaries as ridges of high inter-neuron distance.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={Creating, initializing and training the Kohonen map}]
-som = MiniSom(x=12, y=12, input_len=13, sigma=1.5, learning_rate=0.5,
-              neighborhood_function='gaussian', random_seed=42)
-som.pca_weights_init(X)
-som.train_random(data=X, num_iteration=5000)
-qe = som.quantization_error(X); te = som.topographic_error(X)
-\end{codebox}
+\input{code/exp15_som}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -95,20 +89,17 @@ by bright ridges, even though the SOM never saw the labels --- evidence of unsup
 structure discovery. PCA initialization gave a well-unfolded map from the start.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[SOM vs K-means?] Both compress data with prototypes, but K-means only finds centroids
+\begin{enumerate}
+  \item \textbf{SOM vs K-means?}\par\nobreak Both compress data with prototypes, but K-means only finds centroids
   while SOM arranges them on a grid so neighboring neurons represent similar inputs (topology
   preservation).
-  \item[What is a BMU?] The neuron whose weight vector is closest to the input --- the winner
+  \item \textbf{What is a BMU?}\par\nobreak The neuron whose weight vector is closest to the input --- the winner
   of the competition.
-  \item[Why is SOM called a topology-preserving map?] The neighborhood update ensures nearby
+  \item \textbf{Why is SOM called a topology-preserving map?}\par\nobreak The neighborhood update ensures nearby
   grid positions end up with similar weight vectors, so high-dimensional neighborhoods are
   approximately preserved in 2D.
-  \item[Why initialize with PCA?] Random initialization can create folded maps; PCA starts the
+  \item \textbf{Why initialize with PCA?}\par\nobreak Random initialization can create folded maps; PCA starts the
   map spread along the data's principal directions, giving faster and more faithful
   convergence.
-\end{description}
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp15_som}

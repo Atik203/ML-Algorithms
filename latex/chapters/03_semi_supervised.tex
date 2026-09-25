@@ -52,12 +52,7 @@ expose \texttt{predict\_proba}, which is why the SVC is calibrated
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={Self-training with an RBF-kernel SVC}]
-self_training_svc = SelfTrainingClassifier(
-    estimator=SVC(kernel='rbf', probability=True, C=1.0, random_state=42),
-    threshold=0.80, criterion='threshold', max_iter=15, verbose=True)
-self_training_svc.fit(X_train_full_scaled, y_train_semi)   # labels + unlabeled (-1)
-\end{codebox}
+\input{code/exp07_selftraining}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -83,23 +78,21 @@ improves accuracy by $+1.2$ points over the baseline, closing part of the gap to
 supervised model; the remaining gap is the cost of noisy pseudo-labels.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[What is a pseudo-label?] A predicted label for an unlabeled sample that the model
+\begin{enumerate}
+  \item \textbf{What is a pseudo-label?}\par\nobreak A predicted label for an unlabeled sample that the model
   accepts as a training target because its confidence exceeds the threshold.
-  \item[What is confirmation bias in self-training?] The model reinforces its own mistakes:
+  \item \textbf{What is confirmation bias in self-training?}\par\nobreak The model reinforces its own mistakes:
   wrong confident predictions enter the training set, make the model more confident about
   similar errors and can degrade performance. High thresholds and convergence monitoring
   mitigate this.
-  \item[Why must the test labels remain hidden during training?] Otherwise the evaluation is
+  \item \textbf{Why must the test labels remain hidden during training?}\par\nobreak Otherwise the evaluation is
   contaminated: test data would influence the model and the reported accuracy would no longer
   estimate generalization.
-  \item[What does the confidence threshold control?] The purity/quantity trade-off of
+  \item \textbf{What does the confidence threshold control?}\par\nobreak The purity/quantity trade-off of
   pseudo-labels; 0.80 balanced the two here (convergence after four useful iterations).
-  \item[Why does the SVC need \texttt{probability=True}?] The wrapper requires
+  \item \textbf{Why does the SVC need \texttt{probability=True}?}\par\nobreak The wrapper requires
   \texttt{predict\_proba}; a plain SVC outputs only decision values, so Platt scaling is
   enabled.
-\end{description}
+\item \textbf{How can pseudo-labels be sanity-checked when no test labels are available?}\par\nobreak Hold out a small manually labelled set, inspect confidence distributions, and compare behaviour before and after adding pseudo-labels; agreement on held-out labels is evidence they are useful.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp07_selftraining}

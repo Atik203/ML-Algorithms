@@ -52,13 +52,7 @@ $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$, which lets gradients flow acr
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{codebox}[title={Recurrent model definitions (classification and forecasting)}]
-self.rnn = nn.RNN(1, hidden, batch_first=True) if cell == 'rnn' else nn.LSTM(1, hidden, batch_first=True)
-self.fc = nn.Linear(hidden, 1)          # classification output
-
-self.lstm = nn.LSTM(input_size=1, hidden_size=64, num_layers=2, batch_first=True)
-self.fc = nn.Linear(64, 1)              # forecasting output
-\end{codebox}
+\input{code/exp14_rnn}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
@@ -103,18 +97,16 @@ needs 12-step seasonal memory, exactly where gating prevents vanishing gradients
 synthetic benchmark both models do well because the decision rule (sum $> 0$) is nearly linear.
 
 \section{Viva / Discussion Questions}
-\begin{description}
-  \item[Why does an RNN have memory?] Its hidden state is carried across time steps, so each
+\begin{enumerate}
+  \item \textbf{Why does an RNN have memory?}\par\nobreak Its hidden state is carried across time steps, so each
   output depends on previous inputs, not only the current one.
-  \item[What is a hidden state?] The internal vector summarizing the sequence seen so far; it
+  \item \textbf{What is a hidden state?}\par\nobreak The internal vector summarizing the sequence seen so far; it
   is updated at every step and used to produce outputs.
-  \item[Why are LSTM/GRU often preferred for long dependencies?] Their gates control what is
+  \item \textbf{Why are LSTM/GRU often preferred for long dependencies?}\par\nobreak Their gates control what is
   stored or forgotten and the additive cell state lets gradients flow across many steps,
   avoiding the exponential decay of vanilla RNN gradients.
-  \item[Why is the train/test split chronological?] Shuffling sequences would leak future
+  \item \textbf{Why is the train/test split chronological?}\par\nobreak Shuffling sequences would leak future
   values into training and produce an optimistic, invalid evaluation.
-\end{description}
+\item \textbf{How do the gates of an LSTM control information flow?}\par\nobreak Forget, input and output gates multiply the cell and hidden states with values between 0 and 1, so the network learns what to keep, write and expose over long sequences.
+\end{enumerate}
 
-\FloatBarrier
-\section{Complete Code Listing}
-\input{code/exp14_rnn}
