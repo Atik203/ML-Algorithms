@@ -24,6 +24,7 @@ import pathlib
 import re
 import subprocess
 import sys
+import tempfile
 
 from nbconvert import HTMLExporter
 from pygments.formatters import HtmlFormatter
@@ -34,10 +35,10 @@ OUT_DIR = ROOT / "pdf"
 HTML_DIR = OUT_DIR / "html"
 
 BROWSERS = [
-    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
     r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
 ]
 
 # --- A4 print stylesheet injected into every exported HTML -------------------
@@ -89,13 +90,6 @@ EXTRA_CODE_CSS = """
 PRINT_CSS = PRINT_CSS.replace("</style>", PYGMENTS_CSS + EXTRA_CODE_CSS + "</style>")
 
 
-def find_browser() -> str:
-    for path in BROWSERS:
-        if pathlib.Path(path).exists():
-            return path
-    sys.exit("No Edge/Chrome found. Install one or edit BROWSERS in this script.")
-
-
 def export_html(ipynb: pathlib.Path) -> str:
     exporter = HTMLExporter()
     exporter.template_name = "lab"
@@ -109,26 +103,41 @@ def export_html(ipynb: pathlib.Path) -> str:
     return body.replace("</head>", PRINT_CSS + "</head>", 1)
 
 
-def html_to_pdf(browser: str, html_path: pathlib.Path, pdf_path: pathlib.Path) -> None:
-    """Print a local HTML file to PDF with headless Chromium."""
+def browser_candidates() -> list[str]:
+    """All installed Chromium browsers, in preferred order (Chrome first)."""
+    return [p for p in BROWSERS if pathlib.Path(p).exists()]
+
+
+def html_to_pdf(browsers: list[str], html_path: pathlib.Path, pdf_path: pathlib.Path) -> None:
+    """Print a local HTML file to PDF, trying each browser until one succeeds."""
     pdf_path.parent.mkdir(parents=True, exist_ok=True)
-    if pdf_path.exists():
-        pdf_path.unlink()  # remove stale file so a failed print cannot go unnoticed
     url = html_path.resolve().as_uri()
-    cmd = [
-        browser,
-        "--headless=new",
-        "--disable-gpu",
-        "--run-all-compositor-stages-before-draw",
-        "--virtual-time-budget=20000",  # wait for MathJax/fonts/plots to finish
-        "--no-pdf-header-footer",       # modern flag (no URL/date headers)
-        "--print-to-pdf-no-header",     # legacy flag, ignored by new versions
-        f"--print-to-pdf={pdf_path.resolve()}",
-        url,
-    ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-    if not pdf_path.exists():
-        sys.exit(f"PDF not produced for {html_path.name}\n{result.stderr[-1500:]}")
+    last_err = ""
+    for browser in browsers:
+        if pdf_path.exists():
+            pdf_path.unlink()  # remove stale file so a failed print cannot go unnoticed
+        # Isolated profile avoids conflicts with running/updated browser instances
+        profile = pathlib.Path(tempfile.mkdtemp(prefix="pdfprint_"))
+        cmd = [
+            browser,
+            "--headless=new",
+            "--disable-gpu",
+            f"--user-data-dir={profile}",
+            "--run-all-compositor-stages-before-draw",
+            "--virtual-time-budget=20000",  # wait for MathJax/fonts/plots to finish
+            "--no-pdf-header-footer",       # modern flag (no URL/date headers)
+            "--print-to-pdf-no-header",     # legacy flag, ignored by new versions
+            f"--print-to-pdf={pdf_path.resolve()}",
+            url,
+        ]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+            last_err = result.stderr[-800:]
+        except Exception as exc:  # browser launch problems -> try the next one
+            last_err = f"{type(exc).__name__}: {exc}"
+        if pdf_path.exists():
+            return
+    sys.exit(f"PDF not produced for {html_path.name}\n{last_err}")
 
 
 def build_combined_html(html_docs: list[tuple[str, str]], combined_path: pathlib.Path) -> None:
@@ -175,7 +184,7 @@ def main() -> None:
     if not paths:
         sys.exit("No notebooks found.")
 
-    browser = find_browser()
+    browsers = browser_candidates()
     HTML_DIR.mkdir(parents=True, exist_ok=True)
 
     html_docs: list[tuple[str, str]] = []
@@ -198,14 +207,14 @@ def main() -> None:
         for ipynb, (_, html) in zip(paths, html_docs):
             pdf_path = OUT_DIR / (ipynb.stem + ".pdf")
             print(f"[pdf ] {pdf_path.name}")
-            html_to_pdf(browser, HTML_DIR / (ipynb.stem + ".html"), pdf_path)
+            html_to_pdf(browsers, HTML_DIR / (ipynb.stem + ".html"), pdf_path)
 
     if len(html_docs) > 1:
         combined_html = HTML_DIR / "00_combined_all_notebooks.html"
         build_combined_html(html_docs, combined_html)
         combined_pdf = OUT_DIR / "00_combined_all_notebooks.pdf"
         print(f"[pdf ] {combined_pdf.name} (combined)")
-        html_to_pdf(browser, combined_html, combined_pdf)
+        html_to_pdf(browsers, combined_html, combined_pdf)
 
     print("\n--- output summary ---")
     for pdf in sorted(OUT_DIR.glob("*.pdf")):

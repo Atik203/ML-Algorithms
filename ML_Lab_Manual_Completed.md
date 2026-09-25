@@ -16,6 +16,8 @@ title: "Machine Learning Laboratory Manual — Completed Report"
 
 *Completed following the laboratory manual format of Dr. Ohidujjaman Tuhin, Dept. of CSE, UIU.*
 
+**Complete code.** Every experiment ends with its complete, runnable code listing taken from the executed notebooks (`notebooks/01`-`11`), so each experiment can be reproduced standalone.
+
 **Environment.** Python 3.12 (`.venv`), NumPy/Pandas, scikit-learn, XGBoost, CatBoost, PyTorch 2.14 (CUDA on RTX 3060 Laptop GPU), Hugging Face `transformers`, MiniSom, hmmlearn. Every experiment is fully implemented in the executed Jupyter notebooks (`notebooks/01`-`11`); results below are the actual outputs. All random seeds are fixed (`random_state=42` / `random_seed=42` / `torch.manual_seed(42)`).
 
 **Note on datasets.** All experiments use real, public datasets committed under `data/`: Mall Customers, USGS earthquakes 2023, Breast Cancer, California Housing, Heart Disease, Digits, Airline Passengers, Wine, DAX index (EuStockMarkets), Old Faithful geyser, Motorcycle accelerometer (MASS mcycle), SMS Spam Collection.
@@ -53,6 +55,108 @@ for k in range(2, 11):
     kmeans.fit(X_mall_scaled)
     wcss.append(kmeans.inertia_)
     silhouette_scores.append(silhouette_score(X_mall_scaled, kmeans.labels_))
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/01_clustering_algorithms.ipynb` (executed; results above are its actual output).*
+
+**Listing 1.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# ---- Scikit-Learn clustering models ----
+from sklearn.cluster import KMeans, AgglomerativeClustering
+# ---- Feature scaling + unsupervised evaluation metrics ----
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+# ---- SciPy hierarchical clustering utilities (linkage + dendrogram) ----
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+# Fix the random seed so every run reproduces the same results
+np.random.seed(42)
+print("Libraries successfully imported!")
+```
+
+**Listing 1.2 — Load the Mall Customers dataset**
+
+```python
+# ---- Load the Mall Customers dataset ----
+df_mall = pd.read_csv('../data/mall_customers.csv')
+print("Dataset Shape:", df_mall.shape)
+print(df_mall.head(3))
+
+# ---- Feature selection: two features so the clusters can be shown in 2D ----
+X_mall = df_mall[['Annual Income (k$)', 'Spending Score (1-100)']].values
+
+# ---- Standardize (mean = 0, std = 1): distance-based algorithms are scale-sensitive ----
+scaler = StandardScaler()
+X_mall_scaled = scaler.fit_transform(X_mall)
+```
+
+**Listing 1.3 — Selecting the optimal number of clusters K**
+
+```python
+# ---- Selecting the optimal number of clusters K ----
+# Try K = 2..10 and record two diagnostics:
+#   * Inertia (WCSS): total squared distance from points to their centroid
+#   * Silhouette score: cluster cohesion vs. separation
+k_range = range(2, 11)
+wcss = []
+silhouette_scores = []
+
+for k in k_range:
+    # n_init=10 runs K-Means from 10 different seeds and keeps the best run
+    kmeans = KMeans(n_clusters=k, init='k-means++', n_init=10, random_state=42)
+    kmeans.fit(X_mall_scaled)
+    wcss.append(kmeans.inertia_)                                               # WCSS of the fitted model
+    silhouette_scores.append(silhouette_score(X_mall_scaled, kmeans.labels_))  # partition quality
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+
+# ---- Left: elbow curve (look for the "knee" where inertia stops falling quickly) ----
+ax1.plot(k_range, wcss, 'bo-', linewidth=2, markersize=8)
+ax1.set_title("Elbow Method for Optimal K", fontsize=14, fontweight='bold')
+ax1.set_xlabel("Number of Clusters (K)", fontsize=12)
+ax1.set_ylabel("Inertia (WCSS)", fontsize=12)
+ax1.axvline(x=5, color='r', linestyle='--', label='Elbow at K=5')
+ax1.legend()
+
+# ---- Right: silhouette score for each K (higher is better) ----
+ax2.plot(k_range, silhouette_scores, 'go-', linewidth=2, markersize=8)
+ax2.set_title("Silhouette Scores across K", fontsize=14, fontweight='bold')
+ax2.set_xlabel("Number of Clusters (K)", fontsize=12)
+ax2.set_ylabel("Silhouette Score", fontsize=12)
+ax2.axvline(x=5, color='r', linestyle='--', label='Optimal K=5')
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+**Listing 1.4 — Final K-Means model with the selected K = 5**
+
+```python
+# ---- Final K-Means model with the selected K = 5 ----
+optimal_k = 5
+kmeans_model = KMeans(n_clusters=optimal_k, init='k-means++', n_init=20, random_state=42)
+kmeans_labels = kmeans_model.fit_predict(X_mall_scaled)  # hard cluster assignment per sample
+
+print(f"K-Means Silhouette Score: {silhouette_score(X_mall_scaled, kmeans_labels):.4f}")
+print(f"K-Means Davies-Bouldin Index: {davies_bouldin_score(X_mall_scaled, kmeans_labels):.4f}")
+```
+
 # final model
 kmeans_model = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
 kmeans_labels = kmeans_model.fit_predict(X_mall_scaled)
@@ -131,6 +235,86 @@ The variant is useful when the analyst needs to know which observations are poor
 
 ---
 
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/01_clustering_algorithms.ipynb` (executed; results above are its actual output).*
+
+**Listing 2.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# ---- Scikit-Learn clustering models ----
+from sklearn.cluster import KMeans, AgglomerativeClustering
+# ---- Feature scaling + unsupervised evaluation metrics ----
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+# ---- SciPy hierarchical clustering utilities (linkage + dendrogram) ----
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+# Fix the random seed so every run reproduces the same results
+np.random.seed(42)
+print("Libraries successfully imported!")
+```
+
+**Listing 2.2 — Load the Mall Customers dataset**
+
+```python
+# ---- Load the Mall Customers dataset ----
+df_mall = pd.read_csv('../data/mall_customers.csv')
+print("Dataset Shape:", df_mall.shape)
+print(df_mall.head(3))
+
+# ---- Feature selection: two features so the clusters can be shown in 2D ----
+X_mall = df_mall[['Annual Income (k$)', 'Spending Score (1-100)']].values
+
+# ---- Standardize (mean = 0, std = 1): distance-based algorithms are scale-sensitive ----
+scaler = StandardScaler()
+X_mall_scaled = scaler.fit_transform(X_mall)
+```
+
+**Listing 2.3 — Modified K-Means (manual variant): K-Means++ + outlier-distance check**
+
+```python
+# ---- Modified K-Means (manual variant): K-Means++ + outlier-distance check ----
+km_mod = KMeans(n_clusters=optimal_k, init='k-means++', n_init=20, random_state=42)
+mod_labels = km_mod.fit_predict(X_mall_scaled)
+
+# Distance of every sample to its assigned centroid
+dist_to_centroid = np.linalg.norm(X_mall_scaled - km_mod.cluster_centers_[mod_labels], axis=1)
+threshold = np.percentile(dist_to_centroid, 97)      # documented percentile
+outlier_flag = dist_to_centroid > threshold
+
+print(f"Distance threshold (97th percentile): {threshold:.3f}")
+print(f"Flagged candidate outliers: {outlier_flag.sum()} of {len(X_mall)}")
+
+# ---- Plot clusters with flagged candidate outliers highlighted ----
+plt.figure(figsize=(9, 6))
+for cluster_id in range(optimal_k):
+    pts = X_mall[mod_labels == cluster_id]
+    plt.scatter(pts[:, 0], pts[:, 1], s=45, edgecolors='k', alpha=0.8)
+plt.scatter(X_mall[outlier_flag, 0], X_mall[outlier_flag, 1], s=180, facecolors='none',
+            edgecolors='red', linewidths=2.5, label=f'Flagged outliers ({outlier_flag.sum()})')
+plt.title("Modified K-Means: K-Means++ with Outlier-Distance Flagging", fontsize=13, fontweight='bold')
+plt.xlabel("Annual Income (k$)", fontsize=12)
+plt.ylabel("Spending Score (1-100)", fontsize=12)
+plt.legend()
+plt.tight_layout()
+plt.show()
+```
+
 # Experiment 3: Hierarchical Clustering
 
 **Category:** Clustering
@@ -181,6 +365,93 @@ Ward linkage produces compact, balanced clusters and requires no initialization,
 - **When is Ward linkage inappropriate?** With non-spherical/elongated clusters, unequal cluster sizes or outliers — it assumes compact, similar-variance clusters.
 
 ---
+
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/01_clustering_algorithms.ipynb` (executed; results above are its actual output).*
+
+**Listing 3.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# ---- Scikit-Learn clustering models ----
+from sklearn.cluster import KMeans, AgglomerativeClustering
+# ---- Feature scaling + unsupervised evaluation metrics ----
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+# ---- SciPy hierarchical clustering utilities (linkage + dendrogram) ----
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+# Fix the random seed so every run reproduces the same results
+np.random.seed(42)
+print("Libraries successfully imported!")
+```
+
+**Listing 3.2 — Load the Mall Customers dataset**
+
+```python
+# ---- Load the Mall Customers dataset ----
+df_mall = pd.read_csv('../data/mall_customers.csv')
+print("Dataset Shape:", df_mall.shape)
+print(df_mall.head(3))
+
+# ---- Feature selection: two features so the clusters can be shown in 2D ----
+X_mall = df_mall[['Annual Income (k$)', 'Spending Score (1-100)']].values
+
+# ---- Standardize (mean = 0, std = 1): distance-based algorithms are scale-sensitive ----
+scaler = StandardScaler()
+X_mall_scaled = scaler.fit_transform(X_mall)
+```
+
+**Listing 3.3 — Build the linkage matrix and draw the dendrogram**
+
+```python
+# ---- Build the linkage matrix and draw the dendrogram ----
+# 'ward' linkage merges the pair of clusters that increases within-cluster variance the least.
+linkage_matrix = linkage(X_mall_scaled, method='ward')
+
+# The dendrogram shows every merge; we truncate it to the last 25 merges for readability.
+plt.figure(figsize=(12, 5))
+dendrogram(
+    linkage_matrix,
+    truncate_mode='lastp',   # show only the last p merged clusters
+    p=25,
+    leaf_rotation=45,
+    leaf_font_size=10,
+    show_contracted=True     # condensed leaves are shown as counts
+)
+plt.title("Hierarchical Clustering Dendrogram (Ward Linkage)", fontsize=14, fontweight='bold')
+plt.xlabel("Cluster Sample Index / Merged Size", fontsize=12)
+plt.ylabel("Euclidean Distance (Ward Threshold)", fontsize=12)
+plt.axhline(y=10.0, color='r', linestyle='--', label='Cut-off Threshold (K=5)')  # horizontal cut => cluster count
+plt.legend()
+plt.tight_layout()
+plt.show()
+```
+
+**Listing 3.4 — Fit the final Agglomerative model (Ward linkage, K = 5)**
+
+```python
+# ---- Fit the final Agglomerative model (Ward linkage, K = 5) ----
+agg_model = AgglomerativeClustering(n_clusters=optimal_k, metric='euclidean', linkage='ward')
+agg_labels = agg_model.fit_predict(X_mall_scaled)
+
+print(f"Hierarchical Silhouette Score: {silhouette_score(X_mall_scaled, agg_labels):.4f}")
+print(f"Hierarchical Davies-Bouldin Index: {davies_bouldin_score(X_mall_scaled, agg_labels):.4f}")
+```
 
 # Experiment 4: Fuzzy C-means
 
@@ -238,6 +509,133 @@ FCM converges to the same hard partition as K-means here (silhouette 0.5547) bec
 
 ---
 
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/01_clustering_algorithms.ipynb` (executed; results above are its actual output).*
+
+**Listing 4.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# ---- Scikit-Learn clustering models ----
+from sklearn.cluster import KMeans, AgglomerativeClustering
+# ---- Feature scaling + unsupervised evaluation metrics ----
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+# ---- SciPy hierarchical clustering utilities (linkage + dendrogram) ----
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+# Fix the random seed so every run reproduces the same results
+np.random.seed(42)
+print("Libraries successfully imported!")
+```
+
+**Listing 4.2 — Load the Mall Customers dataset**
+
+```python
+# ---- Load the Mall Customers dataset ----
+df_mall = pd.read_csv('../data/mall_customers.csv')
+print("Dataset Shape:", df_mall.shape)
+print(df_mall.head(3))
+
+# ---- Feature selection: two features so the clusters can be shown in 2D ----
+X_mall = df_mall[['Annual Income (k$)', 'Spending Score (1-100)']].values
+
+# ---- Standardize (mean = 0, std = 1): distance-based algorithms are scale-sensitive ----
+scaler = StandardScaler()
+X_mall_scaled = scaler.fit_transform(X_mall)
+```
+
+**Listing 4.3 — Fuzzy C-Means class (from scratch)**
+
+```python
+class FuzzyCMeans:
+    """
+    Fuzzy C-Means (FCM) clustering - implemented from scratch with NumPy.
+
+    Each sample belongs to every cluster with a membership degree u_ik in [0, 1],
+    and the memberships over the K clusters sum to 1 per sample.
+
+    Parameters
+    ----------
+    n_clusters   : number of fuzzy clusters K
+    m            : fuzzifier exponent (m > 1; larger m => fuzzier memberships)
+    max_iter     : maximum number of alternating-optimization iterations
+    tol          : convergence tolerance on the maximum membership change
+    random_state : seed for reproducible random initialization
+    """
+
+    def __init__(self, n_clusters=5, m=2.0, max_iter=150, tol=1e-5, random_state=42):
+        self.n_clusters = n_clusters
+        self.m = m
+        self.max_iter = max_iter
+        self.tol = tol
+        self.random_state = random_state
+
+    def fit(self, X):
+        rng = np.random.RandomState(self.random_state)
+        n_samples = X.shape[0]
+
+        # Step 1: initialize the membership matrix U randomly and normalize every row to sum to 1
+        U = rng.rand(n_samples, self.n_clusters)
+        U = U / U.sum(axis=1, keepdims=True)
+
+        # Step 2: alternate between centroid and membership updates until convergence
+        for iteration in range(self.max_iter):
+            U_old = U.copy()
+
+            # 2a: centroid update - membership-weighted mean of the data
+            Um = U ** self.m                                        # u_ik^m
+            centers = np.dot(Um.T, X) / Um.sum(axis=0)[:, np.newaxis]
+
+            # 2b: compute the (n_samples x n_clusters) distance matrix to every centroid
+            dist = np.linalg.norm(X[:, np.newaxis, :] - centers[np.newaxis, :, :], axis=2)
+            dist = np.fmax(dist, 1e-10)  # avoid division by zero
+
+            # 2c: membership update - closer points receive higher membership
+            #     u_ik = 1 / sum_j (d_ik / d_ij)^(2/(m-1))
+            inv_dist = 1.0 / dist
+            power = 2.0 / (self.m - 1.0)
+            inv_dist_p = inv_dist ** power
+            U = inv_dist_p / inv_dist_p.sum(axis=1, keepdims=True)
+
+            # 2d: stop when memberships stop changing (convergence)
+            if np.max(np.abs(U - U_old)) < self.tol:
+                break
+
+        # Store results: final centroids, full membership matrix, and hard labels
+        self.cluster_centers_ = centers
+        self.u_ = U
+        self.labels_ = np.argmax(U, axis=1)  # hard assignment = cluster with maximum membership
+        return self
+
+
+# Fit FCM with the same K as the other algorithms (m = 2 is the standard fuzzifier)
+fcm = FuzzyCMeans(n_clusters=optimal_k, m=2.0, random_state=42)
+fcm.fit(X_mall_scaled)
+fcm_labels = fcm.labels_
+fcm_centers = scaler.inverse_transform(fcm.cluster_centers_)
+
+# ---- Evaluation of the hard partition induced by the fuzzy memberships ----
+print(f"FCM Silhouette Score: {silhouette_score(X_mall_scaled, fcm_labels):.4f}")
+print(f"FCM Davies-Bouldin Index: {davies_bouldin_score(X_mall_scaled, fcm_labels):.4f}")
+fpc = np.mean(np.sum(fcm.u_ ** 2, axis=1))   # fuzzy partition coefficient (1/K fuzzy ... 1 hard)
+print(f"FCM Fuzzy Partition Coefficient (FPC): {fpc:.4f}")
+```
+
 # Experiment 5: DBSCAN
 
 **Category:** Density-based learning
@@ -292,6 +690,126 @@ DBSCAN recovers the global seismic structure without labels: dense chains along 
 
 ---
 
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/02_density_based_learning.ipynb` (executed; results above are its actual output).*
+
+**Listing 5.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ---- Density-based clustering algorithms ----
+from sklearn.cluster import DBSCAN, HDBSCAN
+# ---- Nearest-neighbor search (used to pick epsilon) ----
+from sklearn.neighbors import NearestNeighbors
+# ---- Evaluation metrics ----
+from sklearn.metrics import silhouette_score
+
+# Aesthetics setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (11, 6)
+plt.rcParams['figure.dpi'] = 110
+
+np.random.seed(42)
+print("Density-based libraries loaded successfully!")
+```
+
+**Listing 5.2 — Load the real USGS earthquake catalogue (global, 2023)**
+
+```python
+# ---- Load the real USGS earthquake catalogue (global, 2023) ----
+df = pd.read_csv('../data/earthquakes.csv')
+print(f"Full catalogue (magnitude >= 4.0): {len(df):,} events")
+print(df.head(3).to_string(index=False))
+
+# Keep well-recorded moderate+ events: magnitude >= 4.5
+quakes = df[df['mag'] >= 4.5].reset_index(drop=True)
+print(f"\nAnalysed subset (magnitude >= 4.5): {len(quakes):,} events")
+
+# ---- Convert epicenters to radians [latitude, longitude] ----
+# scikit-learn's 'haversine' metric expects radian coordinates and computes
+# great-circle distance on the sphere (correct for global data).
+X_rad = np.radians(quakes[['latitude', 'longitude']].values)
+print("Coordinate range (deg): lat", quakes.latitude.min(), "to", quakes.latitude.max(),
+      "| lon", quakes.longitude.min(), "to", quakes.longitude.max())
+```
+
+**Listing 5.3 — Choosing epsilon from the k-distance graph (haversine metric)**
+
+```python
+# ---- Choosing epsilon from the k-distance graph (haversine metric) ----
+# Sorted distance to each event's k-th nearest neighbor. The knee marks the
+# transition from dense seismic zones to sparse, isolated events.
+min_samples = 10
+nbrs = NearestNeighbors(n_neighbors=min_samples, metric='haversine').fit(X_rad)
+distances, _ = nbrs.kneighbors(X_rad)
+k_distances = np.sort(distances[:, -1])   # radians (0.03 rad = 191 km on Earth)
+
+plt.figure(figsize=(9, 5))
+plt.plot(k_distances, color='crimson', linewidth=2.5)
+plt.title(f"k-Distance Graph (k={min_samples}) for Epsilon Selection", fontsize=14, fontweight='bold')
+plt.xlabel("Earthquakes Sorted by Distance", fontsize=12)
+plt.ylabel(f"{min_samples}-NN Distance (radians)", fontsize=12)
+plt.axhline(y=0.03, color='navy', linestyle='--', label='Selected ε = 0.03 rad (~191 km)')
+plt.legend()
+plt.tight_layout()
+plt.show()
+```
+
+**Listing 5.4 — Fit DBSCAN with the chosen epsilon and MinPts**
+
+```python
+# ---- Fit DBSCAN with the chosen epsilon and MinPts ----
+# DBSCAN grows clusters from core events, connects them via density-reachability,
+# and labels everything else as noise (-1).
+eps_selected = 0.03   # radians -> 0.03 * 6371 km ~ 191 km
+dbscan = DBSCAN(eps=eps_selected, min_samples=min_samples, metric='haversine')
+db_labels = dbscan.fit_predict(X_rad)
+
+# Identify which events are core points (returned by the model) vs. border points
+core_samples_mask = np.zeros_like(db_labels, dtype=bool)
+core_samples_mask[dbscan.core_sample_indices_] = True
+
+n_clusters_db = len(set(db_labels)) - (1 if -1 in db_labels else 0)
+n_noise_db = np.sum(db_labels == -1)
+print(f"DBSCAN: {n_clusters_db} clusters, {n_noise_db:,} noise events ({n_noise_db / len(X_rad) * 100:.1f}%)")
+
+# ---- Visualize epicenters: clustered events in color, noise as black crosses ----
+plt.figure(figsize=(12, 5.5))
+palette = sns.color_palette("tab20", max(n_clusters_db, 1))
+for k in range(n_clusters_db):
+    mask = db_labels == k
+    plt.scatter(quakes.longitude[mask], quakes.latitude[mask], s=6, color=palette[k % 20], alpha=0.75)
+
+noise_mask = db_labels == -1
+plt.scatter(quakes.longitude[noise_mask], quakes.latitude[noise_mask], s=6, color='black', marker='x', label='Noise (-1)')
+plt.title(f"DBSCAN on Global Earthquakes 2023 (ε={eps_selected} rad, {n_clusters_db} clusters)", fontsize=13, fontweight='bold')
+plt.xlabel("Longitude", fontsize=12)
+plt.ylabel("Latitude", fontsize=12)
+plt.legend(loc='lower left')
+plt.tight_layout()
+plt.show()
+```
+
+**Listing 5.5 — Parameter sensitivity: DBSCAN under several (eps, min_samples) settings**
+
+```python
+# ---- Parameter sensitivity: DBSCAN under several (eps, min_samples) settings ----
+# The manual requires at least two settings so the effect of eps can be discussed.
+print("eps (rad)   approx km   clusters   noise %")
+for eps_test in [0.02, 0.03, 0.05]:
+    lbl = DBSCAN(eps=eps_test, min_samples=10, metric='haversine').fit_predict(X_rad)
+    n_clusters_test = len(set(lbl)) - (1 if -1 in lbl else 0)
+    noise_pct = (lbl == -1).mean() * 100
+    print(f"  {eps_test:.2f}       {eps_test * 6371:5.0f}      {n_clusters_test:3d}      {noise_pct:5.1f}%")
+```
+
 # Experiment 6: HDBSCAN
 
 **Category:** Density-based learning
@@ -339,6 +857,85 @@ HDBSCAN needs no ε and handles the varying density along plate boundaries bette
 - **Why is HDBSCAN useful for variable-density data?** Because clusters are selected by stability across density levels rather than by one global ε, so dense and sparse clusters can coexist.
 
 ---
+
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/02_density_based_learning.ipynb` (executed; results above are its actual output).*
+
+**Listing 6.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ---- Density-based clustering algorithms ----
+from sklearn.cluster import DBSCAN, HDBSCAN
+# ---- Nearest-neighbor search (used to pick epsilon) ----
+from sklearn.neighbors import NearestNeighbors
+# ---- Evaluation metrics ----
+from sklearn.metrics import silhouette_score
+
+# Aesthetics setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (11, 6)
+plt.rcParams['figure.dpi'] = 110
+
+np.random.seed(42)
+print("Density-based libraries loaded successfully!")
+```
+
+**Listing 6.2 — Load the real USGS earthquake catalogue (global, 2023)**
+
+```python
+# ---- Load the real USGS earthquake catalogue (global, 2023) ----
+df = pd.read_csv('../data/earthquakes.csv')
+print(f"Full catalogue (magnitude >= 4.0): {len(df):,} events")
+print(df.head(3).to_string(index=False))
+
+# Keep well-recorded moderate+ events: magnitude >= 4.5
+quakes = df[df['mag'] >= 4.5].reset_index(drop=True)
+print(f"\nAnalysed subset (magnitude >= 4.5): {len(quakes):,} events")
+
+# ---- Convert epicenters to radians [latitude, longitude] ----
+# scikit-learn's 'haversine' metric expects radian coordinates and computes
+# great-circle distance on the sphere (correct for global data).
+X_rad = np.radians(quakes[['latitude', 'longitude']].values)
+print("Coordinate range (deg): lat", quakes.latitude.min(), "to", quakes.latitude.max(),
+      "| lon", quakes.longitude.min(), "to", quakes.longitude.max())
+```
+
+**Listing 6.3 — Fit HDBSCAN (no global epsilon required)**
+
+```python
+# ---- Fit HDBSCAN (no global epsilon required) ----
+# min_cluster_size = smallest group considered a cluster; min_samples controls conservativeness.
+hdb = HDBSCAN(min_cluster_size=50, min_samples=10, metric='haversine', copy=False)
+hdb_labels = hdb.fit_predict(X_rad)
+
+n_clusters_hdb = len(set(hdb_labels)) - (1 if -1 in hdb_labels else 0)
+n_noise_hdb = np.sum(hdb_labels == -1)
+print(f"HDBSCAN: {n_clusters_hdb} clusters, {n_noise_hdb:,} noise events ({n_noise_hdb / len(X_rad) * 100:.1f}%)")
+
+# ---- Visualize the HDBSCAN partition ----
+plt.figure(figsize=(12, 5.5))
+palette = sns.color_palette("tab20", max(n_clusters_hdb, 1))
+for k in range(n_clusters_hdb):
+    mask = hdb_labels == k
+    plt.scatter(quakes.longitude[mask], quakes.latitude[mask], s=6, color=palette[k % 20], alpha=0.75)
+
+noise_mask = hdb_labels == -1
+plt.scatter(quakes.longitude[noise_mask], quakes.latitude[noise_mask], s=6, color='black', marker='x', label='Noise (-1)')
+plt.title(f"HDBSCAN on Global Earthquakes 2023 ({n_clusters_hdb} clusters, no ε)", fontsize=13, fontweight='bold')
+plt.xlabel("Longitude", fontsize=12)
+plt.ylabel("Latitude", fontsize=12)
+plt.legend(loc='lower left')
+plt.tight_layout()
+plt.show()
+```
 
 # Experiment 7: Self-training for Semi-supervised Learning
 
@@ -391,6 +988,155 @@ Using no extra human labels, self-training improves accuracy by +1.2 points over
 
 ---
 
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/03_semi_supervised_learning.ipynb` (executed; results above are its actual output).*
+
+**Listing 7.1 — Suppress a known sklearn deprecation notice for SVC(probability=True)**
+
+```python
+# ---- Suppress a known sklearn deprecation notice for SVC(probability=True) ----
+import warnings
+# ---- Core numerical and plotting libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ---- Dataset + train/test utilities ----
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+# ---- Semi-supervised self-training wrapper ----
+from sklearn.semi_supervised import SelfTrainingClassifier
+# ---- Base estimators compared inside self-training ----
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+# ---- Evaluation metrics ----
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, classification_report
+
+# Aesthetics setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+# The installed scikit-learn still supports SVC(probability=True) but warns; silence that specific notice
+warnings.filterwarnings("ignore", message="The `probability` parameter was deprecated", category=FutureWarning)
+np.random.seed(42)
+print("Semi-supervised libraries imported successfully!")
+
+# ---- Load the Breast Cancer Wisconsin dataset ----
+data = load_breast_cancer()
+X_full = data.data            # 30 continuous diagnostic features
+y_full = data.target          # 0 = malignant, 1 = benign
+feature_names = data.feature_names
+target_names = data.target_names
+
+# ---- Train / Test split (stratified to preserve class balance) ----
+X_train_full, X_test, y_train_full, y_test = train_test_split(
+    X_full, y_full, test_size=0.30, random_state=42, stratify=y_full
+)
+
+# ---- Standardize features (fit on train only to avoid test leakage) ----
+scaler = StandardScaler()
+X_train_full_scaled = scaler.fit_transform(X_train_full)
+X_test_scaled = scaler.transform(X_test)
+
+# ---- Simulate the semi-supervised setting: hide 85% of the training labels ----
+unlabeled_ratio = 0.85
+rng = np.random.RandomState(42)
+random_unlabeled_points = rng.rand(len(y_train_full)) < unlabeled_ratio   # True -> mask
+
+y_train_semi = np.copy(y_train_full)
+y_train_semi[random_unlabeled_points] = -1   # -1 is the scikit-learn convention for "unlabeled"
+
+n_labeled = np.sum(y_train_semi != -1)
+n_unlabeled = np.sum(y_train_semi == -1)
+
+print(f"Total Training Samples:   {len(y_train_full)}")
+print(f" - Labeled Samples (15%): {n_labeled}")
+print(f" - Unlabeled Samples (85%): {n_unlabeled}")
+print(f"Holdout Test Samples:     {len(y_test)}")
+```
+
+**Listing 7.2 — Experiment 1: Self-Training with an RBF-kernel SVC**
+
+```python
+# ---- Experiment 1: Self-Training with an RBF-kernel SVC ----
+
+# 1. Supervised baseline trained ONLY on the ~60 labeled samples
+mask_labeled = (y_train_semi != -1)                 # boolean mask of the labeled subset
+X_labeled = X_train_full_scaled[mask_labeled]
+y_labeled = y_train_semi[mask_labeled]
+
+base_svc = SVC(kernel='rbf', probability=True, C=1.0, random_state=42)
+base_svc.fit(X_labeled, y_labeled)
+y_pred_baseline_svc = base_svc.predict(X_test_scaled)
+acc_baseline_svc = accuracy_score(y_test, y_pred_baseline_svc)
+f1_baseline_svc = f1_score(y_test, y_pred_baseline_svc)
+
+# 2. Semi-supervised self-training: base SVC + iterative pseudo-labeling above threshold 0.80
+self_training_svc = SelfTrainingClassifier(
+    estimator=SVC(kernel='rbf', probability=True, C=1.0, random_state=42),
+    threshold=0.80,          # only accept pseudo-labels with confidence >= 0.80
+    criterion='threshold',   # use the confidence-threshold selection rule
+    max_iter=15,
+    verbose=True             # print how many labels are added per iteration
+)
+self_training_svc.fit(X_train_full_scaled, y_train_semi)
+y_pred_semi_svc = self_training_svc.predict(X_test_scaled)
+acc_semi_svc = accuracy_score(y_test, y_pred_semi_svc)
+f1_semi_svc = f1_score(y_test, y_pred_semi_svc)
+
+# 3. Fully supervised "ceiling": train on 100% of the ground-truth labels
+full_svc = SVC(kernel='rbf', probability=True, C=1.0, random_state=42)
+full_svc.fit(X_train_full_scaled, y_train_full)
+y_pred_full_svc = full_svc.predict(X_test_scaled)
+acc_full_svc = accuracy_score(y_test, y_pred_full_svc)
+f1_full_svc = f1_score(y_test, y_pred_full_svc)
+
+# ---- Compare the three settings ----
+print(f"\n--- SVC Evaluation Results ---")
+print(f"Supervised Baseline (15% labeled): Accuracy = {acc_baseline_svc:.4f}, F1 = {f1_baseline_svc:.4f}")
+print(f"Self-Training (Semi-supervised):   Accuracy = {acc_semi_svc:.4f}, F1 = {f1_semi_svc:.4f}")
+print(f"Fully Supervised Ceiling (100%):   Accuracy = {acc_full_svc:.4f}, F1 = {f1_full_svc:.4f}")
+```
+
+**Listing 7.3 — Inspect how self-training converged**
+
+```python
+# ---- Inspect how self-training converged ----
+# n_iter_                 : number of self-training iterations performed
+# termination_condition_  : why training stopped (e.g. 'no_change' = no new confident labels)
+# transduction_           : final labels for every training sample (-1 = still unlabeled)
+n_iter = self_training_svc.n_iter_
+termination_condition = self_training_svc.termination_condition_
+labeled_final_mask = (self_training_svc.transduction_ != -1)
+
+print(f"Self-Training Convergence Summary:")
+print(f" - Iterations completed: {n_iter}")
+print(f" - Termination condition: {termination_condition}")
+print(f" - Total samples labeled after self-training: {np.sum(labeled_final_mask)} / {len(y_train_full)}")
+print(f" - Pseudo-labels newly added: {np.sum(labeled_final_mask) - n_labeled}")
+```
+
+**Listing 7.4 — Compact comparison table (SVC)**
+
+```python
+# ---- Compact comparison table (SVC) ----
+summary_data = [
+    {"Model": "SVC (Baseline 15% Labeled)", "Accuracy": acc_baseline_svc, "F1-Score": f1_baseline_svc,
+     "Training Samples": n_labeled},
+    {"Model": "SVC (Self-Training Semi-Supervised)", "Accuracy": acc_semi_svc, "F1-Score": f1_semi_svc,
+     "Training Samples": np.sum(self_training_svc.transduction_ != -1)},
+    {"Model": "SVC (Fully Supervised Ceiling 100%)", "Accuracy": acc_full_svc, "F1-Score": f1_full_svc,
+     "Training Samples": len(y_train_full)},
+]
+summary_df = pd.DataFrame(summary_data).set_index("Model")
+display(summary_df.style.highlight_max(subset=['Accuracy', 'F1-Score'], color='lightgreen'))
+```
+
 # Experiment 8: Random Forest Regression (RFR)
 
 **Category:** Ensemble learning
@@ -441,6 +1187,76 @@ RFR provides a strong, low-maintenance baseline for tabular regression: no featu
 
 ---
 
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/04_ensemble_learning.ipynb` (executed; results above are its actual output).*
+
+**Listing 8.1 — Core libraries**
+
+```python
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+```
+
+**Listing 8.2 — Load the California Housing dataset (real-world regression benchmark)**
+
+```python
+# ---- Load the California Housing dataset (real-world regression benchmark) ----
+housing = fetch_california_housing(as_frame=True)
+# Sample 5,000 rows so every ensemble trains quickly while remaining representative
+df_reg = housing.frame.sample(n=5000, random_state=42)
+
+X_reg = df_reg[housing.feature_names]   # 8 socio-economic / geographic features
+y_reg = df_reg['MedHouseVal']           # target: median house value
+
+# ---- Train/test split (80% / 20%) ----
+X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(
+    X_reg, y_reg, test_size=0.20, random_state=42
+)
+
+print(f"Regression Training Samples: {X_train_reg.shape[0]}, Test Samples: {X_test_reg.shape[0]}")
+df_reg.head()
+```
+
+**Listing 8.3 — Random Forest Regression (bagging of decision trees)**
+
+```python
+# ---- Random Forest Regression (bagging of decision trees) ----
+# n_estimators = number of trees, oob_score = estimate accuracy from out-of-bag samples
+rf_reg = RandomForestRegressor(n_estimators=150, max_depth=12, oob_score=True, random_state=42, n_jobs=-1)
+rf_reg.fit(X_train_reg, y_train_reg)
+
+# ---- Predict and evaluate ----
+y_pred_rf = rf_reg.predict(X_test_reg)
+r2_rf = r2_score(y_test_reg, y_pred_rf)                          # explained variance (1.0 = perfect)
+rmse_rf = root_mean_squared_error(y_test_reg, y_pred_rf)         # error in target units
+mae_rf = mean_absolute_error(y_test_reg, y_pred_rf)              # robust average error
+
+print(f"Random Forest Regressor Results:")
+print(f" - Out-of-Bag (OOB) R² Score: {rf_reg.oob_score_:.4f}")
+print(f" - Test R² Score:              {r2_rf:.4f}")
+print(f" - Test RMSE:                  {rmse_rf:.4f}")
+print(f" - Test MAE:                   {mae_rf:.4f}")
+```
+
 # Experiment 9: Random Forest Classification (RFC)
 
 **Category:** Ensemble learning
@@ -490,6 +1306,73 @@ RFC gives a robust classifier with minimal preprocessing and interpretable featu
 - **How can class imbalance affect accuracy?** With a rare positive class, a model can predict the majority class everywhere and still show high accuracy; precision/recall/F1 and AUC expose the failure.
 
 ---
+
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/04_ensemble_learning.ipynb` (executed; results above are its actual output).*
+
+**Listing 9.1 — Core libraries**
+
+```python
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+```
+
+**Listing 9.2 — Load the Heart Disease dataset (real-world classification benchmark)**
+
+```python
+# ---- Load the Heart Disease dataset (real-world classification benchmark) ----
+df_clf = pd.read_csv('../data/heart_disease.csv')
+print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
+
+# Separate target and features (handle either 'target' or 'Target' as the column name)
+target_col = 'target' if 'target' in df_clf.columns else 'Target'
+y_clf = df_clf[target_col].values
+X_clf_raw = df_clf.drop(columns=[target_col])
+
+# One-hot encode categorical variables for RFC / XGBoost / AdaBoost
+X_clf_encoded = pd.get_dummies(X_clf_raw, drop_first=True)
+
+# Stratified split keeps the disease/no-disease ratio identical in train and test
+X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
+    X_clf_encoded, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+print(f"Classification Training Set: {X_train_clf.shape}, Test Set: {X_test_clf.shape}")
+
+# ---- Random Forest Classification (majority vote of trees) ----
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+
+# Predictions and probability of the positive (disease) class
+y_pred_rfc = rfc.predict(X_test_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+
+# ---- Evaluate: accuracy, F1 and ROC-AUC ----
+acc_rfc = accuracy_score(y_test_clf, y_pred_rfc)
+f1_rfc = f1_score(y_test_clf, y_pred_rfc)
+auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
+
+print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
+```
 
 # Experiment 10: XGBoost
 
@@ -542,6 +1425,93 @@ Gradient boosting is the strongest family for tabular data in general (see regre
 
 ---
 
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/04_ensemble_learning.ipynb` (executed; results above are its actual output).*
+
+**Listing 10.1 — Core libraries**
+
+```python
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+```
+
+**Listing 10.2 — Load the Heart Disease dataset (real-world classification benchmark)**
+
+```python
+# ---- Load the Heart Disease dataset (real-world classification benchmark) ----
+df_clf = pd.read_csv('../data/heart_disease.csv')
+print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
+
+# Separate target and features (handle either 'target' or 'Target' as the column name)
+target_col = 'target' if 'target' in df_clf.columns else 'Target'
+y_clf = df_clf[target_col].values
+X_clf_raw = df_clf.drop(columns=[target_col])
+
+# One-hot encode categorical variables for RFC / XGBoost / AdaBoost
+X_clf_encoded = pd.get_dummies(X_clf_raw, drop_first=True)
+
+# Stratified split keeps the disease/no-disease ratio identical in train and test
+X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
+    X_clf_encoded, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+print(f"Classification Training Set: {X_train_clf.shape}, Test Set: {X_test_clf.shape}")
+
+# ---- Random Forest Classification (majority vote of trees) ----
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+
+# Predictions and probability of the positive (disease) class
+y_pred_rfc = rfc.predict(X_test_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+
+# ---- Evaluate: accuracy, F1 and ROC-AUC ----
+acc_rfc = accuracy_score(y_test_clf, y_pred_rfc)
+f1_rfc = f1_score(y_test_clf, y_pred_rfc)
+auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
+
+print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
+```
+
+**Listing 10.3 — XGBoost classification on the same stratified split**
+
+```python
+# ---- XGBoost classification on the same stratified split ----
+xgb_clf = xgb.XGBClassifier(
+    n_estimators=120, learning_rate=0.08, max_depth=4,
+    subsample=0.8, colsample_bytree=0.8,
+    random_state=42, eval_metric='logloss'
+)
+xgb_clf.fit(X_train_clf, y_train_clf)
+
+y_pred_xgb_c = xgb_clf.predict(X_test_clf)
+y_prob_xgb_c = xgb_clf.predict_proba(X_test_clf)[:, 1]
+
+acc_xgb_c = accuracy_score(y_test_clf, y_pred_xgb_c)
+f1_xgb_c = f1_score(y_test_clf, y_pred_xgb_c)
+auc_xgb_c = roc_auc_score(y_test_clf, y_prob_xgb_c)
+print(f"XGBoost Classifier:   Accuracy = {acc_xgb_c:.4f}, F1 = {f1_xgb_c:.4f}, ROC-AUC = {auc_xgb_c:.4f}")
+```
+
 # Experiment 11: AdaBoost
 
 **Category:** Ensemble learning
@@ -589,6 +1559,89 @@ AdaBoost remains a strong, cheap baseline: stump ensembles are fast, need little
 - **What is the effect of noisy labels?** Mislabeled points look "hard", receive ever-larger weights, and can dominate training, degrading accuracy — AdaBoost is known to be noise-sensitive.
 
 ---
+
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/04_ensemble_learning.ipynb` (executed; results above are its actual output).*
+
+**Listing 11.1 — Core libraries**
+
+```python
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+```
+
+**Listing 11.2 — Load the Heart Disease dataset (real-world classification benchmark)**
+
+```python
+# ---- Load the Heart Disease dataset (real-world classification benchmark) ----
+df_clf = pd.read_csv('../data/heart_disease.csv')
+print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
+
+# Separate target and features (handle either 'target' or 'Target' as the column name)
+target_col = 'target' if 'target' in df_clf.columns else 'Target'
+y_clf = df_clf[target_col].values
+X_clf_raw = df_clf.drop(columns=[target_col])
+
+# One-hot encode categorical variables for RFC / XGBoost / AdaBoost
+X_clf_encoded = pd.get_dummies(X_clf_raw, drop_first=True)
+
+# Stratified split keeps the disease/no-disease ratio identical in train and test
+X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
+    X_clf_encoded, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+print(f"Classification Training Set: {X_train_clf.shape}, Test Set: {X_test_clf.shape}")
+
+# ---- Random Forest Classification (majority vote of trees) ----
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+
+# Predictions and probability of the positive (disease) class
+y_pred_rfc = rfc.predict(X_test_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+
+# ---- Evaluate: accuracy, F1 and ROC-AUC ----
+acc_rfc = accuracy_score(y_test_clf, y_pred_rfc)
+f1_rfc = f1_score(y_test_clf, y_pred_rfc)
+auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
+
+print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
+```
+
+**Listing 11.3 — AdaBoost classification**
+
+```python
+# ---- AdaBoost classification ----
+ada_clf = AdaBoostClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
+ada_clf.fit(X_train_clf, y_train_clf)
+
+y_pred_ada_c = ada_clf.predict(X_test_clf)
+y_prob_ada_c = ada_clf.predict_proba(X_test_clf)[:, 1]
+
+acc_ada_c = accuracy_score(y_test_clf, y_pred_ada_c)
+f1_ada_c = f1_score(y_test_clf, y_pred_ada_c)
+auc_ada_c = roc_auc_score(y_test_clf, y_prob_ada_c)
+print(f"AdaBoost Classifier:  Accuracy = {acc_ada_c:.4f}, F1 = {f1_ada_c:.4f}, ROC-AUC = {auc_ada_c:.4f}")
+```
 
 # Experiment 12: CatBoost
 
@@ -640,6 +1693,103 @@ CatBoost is the ensemble of choice when tables mix numeric and categorical colum
 
 ---
 
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/04_ensemble_learning.ipynb` (executed; results above are its actual output).*
+
+**Listing 12.1 — Core libraries**
+
+```python
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+```
+
+**Listing 12.2 — Load the Heart Disease dataset (real-world classification benchmark)**
+
+```python
+# ---- Load the Heart Disease dataset (real-world classification benchmark) ----
+df_clf = pd.read_csv('../data/heart_disease.csv')
+print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
+
+# Separate target and features (handle either 'target' or 'Target' as the column name)
+target_col = 'target' if 'target' in df_clf.columns else 'Target'
+y_clf = df_clf[target_col].values
+X_clf_raw = df_clf.drop(columns=[target_col])
+
+# One-hot encode categorical variables for RFC / XGBoost / AdaBoost
+X_clf_encoded = pd.get_dummies(X_clf_raw, drop_first=True)
+
+# Stratified split keeps the disease/no-disease ratio identical in train and test
+X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
+    X_clf_encoded, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+print(f"Classification Training Set: {X_train_clf.shape}, Test Set: {X_test_clf.shape}")
+
+# ---- Random Forest Classification (majority vote of trees) ----
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+
+# Predictions and probability of the positive (disease) class
+y_pred_rfc = rfc.predict(X_test_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+
+# ---- Evaluate: accuracy, F1 and ROC-AUC ----
+acc_rfc = accuracy_score(y_test_clf, y_pred_rfc)
+f1_rfc = f1_score(y_test_clf, y_pred_rfc)
+auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
+
+print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
+```
+
+**Listing 12.3 — CatBoost classification with native categorical features**
+
+```python
+# ---- CatBoost classification with native categorical features ----
+# Identify categorical columns in the raw (unencoded) heart data
+categorical_cols = X_clf_raw.select_dtypes(include=['object', 'category']).columns.tolist()
+X_raw_cb = X_clf_raw.copy()
+for col in categorical_cols:
+    X_raw_cb[col] = X_raw_cb[col].astype(str)
+
+# Same stratified split on the raw feature table
+X_tr_cb, X_te_cb, y_tr_cb, y_te_cb = train_test_split(
+    X_raw_cb, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+cb_clf = cb.CatBoostClassifier(
+    iterations=150, learning_rate=0.08, depth=5,
+    cat_features=categorical_cols, random_seed=42, verbose=False
+)
+cb_clf.fit(X_tr_cb, y_tr_cb)
+
+y_pred_cb_c = cb_clf.predict(X_te_cb)
+y_prob_cb_c = cb_clf.predict_proba(X_te_cb)[:, 1]
+
+acc_cb_c = accuracy_score(y_te_cb, y_pred_cb_c)
+f1_cb_c = f1_score(y_te_cb, y_pred_cb_c)
+auc_cb_c = roc_auc_score(y_te_cb, y_prob_cb_c)
+print(f"CatBoost Classifier:  Accuracy = {acc_cb_c:.4f}, F1 = {f1_cb_c:.4f}, ROC-AUC = {auc_cb_c:.4f}")
+```
+
 # Experiment 13: Multilayer Perceptron (MLP)
 
 **Category:** Neural networks
@@ -668,6 +1818,243 @@ An MLP stacks affine transformations with non-linear activations: a⁽ˡ⁾ = σ
 mlp_sklearn = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam',
                             alpha=0.001, batch_size=64, learning_rate_init=0.005,
                             max_iter=150, early_stopping=True, validation_fraction=0.15)
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/05_multilayer_perceptron.ipynb` (executed; results above are its actual output).*
+
+**Listing 13.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ---- Dataset + preprocessing/metrics ----
+from sklearn.datasets import load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+# ---- Scikit-Learn MLP implementation ----
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# ---- PyTorch for the custom deep MLP ----
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+# Fix seeds for reproducible training
+torch.manual_seed(42)
+torch.cuda.manual_seed_all(42)  # reproducible GPU training
+np.random.seed(42)
+print(f"PyTorch version: {torch.__version__}")
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # use GPU if available
+print(f"Computation Device: {device}")
+
+# ---- Load the handwritten digits dataset (8x8 grayscale images) ----
+digits = load_digits()
+X_raw = digits.data      # flattened images: 1797 samples x 64 pixel features
+y = digits.target        # digit class 0..9
+
+print(f"Dataset Shape: {X_raw.shape}, Target Classes: {np.unique(y)}")
+# ---- Train / Validation / Test split (70% / 15% / 15%) ----
+# First cut off the test set...
+X_train_val, X_test, y_train_val, y_test = train_test_split(
+    X_raw, y, test_size=0.15, random_state=42, stratify=y
+)
+# ...then split the remainder into train and validation
+X_train, X_val, y_train, y_val = train_test_split(
+    X_train_val, y_train_val, test_size=0.1765, random_state=42, stratify=y_train_val
+)
+
+# ---- Feature scaling: fit on training data only (avoid validation/test leakage) ----
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_val_scaled = scaler.transform(X_val)
+X_test_scaled = scaler.transform(X_test)
+
+print(f"Training samples:   {X_train_scaled.shape[0]}")
+print(f"Validation samples: {X_val_scaled.shape[0]}")
+print(f"Test samples:       {X_test_scaled.shape[0]}")
+```
+
+**Listing 13.2 — Scikit-Learn MLPClassifier: 64 -> 128 -> 64 -> 10**
+
+```python
+# ---- Scikit-Learn MLPClassifier: 64 -> 128 -> 64 -> 10 ----
+mlp_sklearn = MLPClassifier(
+    hidden_layer_sizes=(128, 64),   # two hidden layers
+    activation='relu',
+    solver='adam',                  # adaptive gradient optimizer
+    alpha=0.001,                    # L2 regularization strength
+    batch_size=64,
+    learning_rate_init=0.005,
+    max_iter=150,
+    early_stopping=True,            # stop when validation score stops improving
+    validation_fraction=0.15,       # internal validation split for early stopping
+    random_state=42
+)
+
+# Train (forward pass + backpropagation happen inside .fit)
+mlp_sklearn.fit(X_train_scaled, y_train)
+
+# Evaluate on the untouched test set
+y_pred_sk = mlp_sklearn.predict(X_test_scaled)
+acc_sk = accuracy_score(y_test, y_pred_sk)
+
+print(f"Scikit-Learn MLP Test Accuracy: {acc_sk:.4f}")
+print(f"Converged after {mlp_sklearn.n_iter_} iterations")
+
+# ---- Plot the training loss curve recorded by scikit-learn ----
+plt.figure(figsize=(8, 4.5))
+plt.plot(mlp_sklearn.loss_curve_, color='crimson', lw=2.2, label='Training Loss')
+if hasattr(mlp_sklearn, 'validation_scores_'):
+    # validation_scores_ stores accuracy; convert to error for a comparable scale
+    plt.plot([1 - s for s in mlp_sklearn.validation_scores_], color='navy', lw=2.2, linestyle='--', label='Validation Error')
+plt.title("Scikit-Learn MLP Training Loss Curve", fontsize=13, fontweight='bold')
+plt.xlabel("Epochs / Iterations", fontsize=11)
+plt.ylabel("Loss", fontsize=11)
+plt.legend()
+plt.tight_layout()
+plt.show()
+```
+
+**Listing 13.3 — Convert scaled NumPy arrays into PyTorch tensors + DataLoaders**
+
+```python
+# ---- Convert scaled NumPy arrays into PyTorch tensors + DataLoaders ----
+train_dataset = TensorDataset(torch.tensor(X_train_scaled, dtype=torch.float32), torch.tensor(y_train, dtype=torch.long))
+val_dataset   = TensorDataset(torch.tensor(X_val_scaled, dtype=torch.float32),   torch.tensor(y_val, dtype=torch.long))
+test_dataset  = TensorDataset(torch.tensor(X_test_scaled, dtype=torch.float32),  torch.tensor(y_test, dtype=torch.long))
+
+# DataLoaders handle mini-batching and shuffling during training
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+val_loader   = DataLoader(val_dataset, batch_size=64, shuffle=False)
+test_loader  = DataLoader(test_dataset, batch_size=64, shuffle=False)
+
+class DeepMLP(nn.Module):
+    """Fully-connected classifier: 64 -> 128 -> 64 -> 10 with BatchNorm + Dropout."""
+    def __init__(self, in_features=64, num_classes=10):
+        super(DeepMLP, self).__init__()
+        self.net = nn.Sequential(
+            # Hidden block 1
+            nn.Linear(in_features, 128),
+            nn.BatchNorm1d(128),    # stabilizes activations, speeds up training
+            nn.ReLU(),              # non-linear activation
+            nn.Dropout(0.25),       # regularization: randomly drop 25% of neurons
+
+            # Hidden block 2
+            nn.Linear(128, 64),
+            nn.BatchNorm1d(64),
+            nn.ReLU(),
+            nn.Dropout(0.20),
+
+            # Output layer: 10 raw logits (one per digit class)
+            nn.Linear(64, num_classes)
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+model = DeepMLP().to(device)   # move all parameters to CPU/GPU
+print(model)
+```
+
+**Listing 13.4 — Training configuration**
+
+```python
+# ---- Training configuration ----
+criterion = nn.CrossEntropyLoss()                                            # softmax + NLL loss
+optimizer = optim.Adam(model.parameters(), lr=0.003, weight_decay=1e-4)      # weight decay = L2
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
+
+epochs = 50
+history = {'train_loss': [], 'val_loss': [], 'train_acc': [], 'val_acc': []}
+
+for epoch in range(epochs):
+    # ---------- Training phase ----------
+    model.train()                          # enable Dropout/BatchNorm training behavior
+    running_loss, correct, total = 0.0, 0, 0
+    for inputs, labels in train_loader:
+        inputs, labels = inputs.to(device), labels.to(device)
+
+        optimizer.zero_grad()              # reset gradients from the previous step
+        outputs = model(inputs)            # forward pass
+        loss = criterion(outputs, labels)  # compute cross-entropy
+        loss.backward()                    # backpropagation (compute gradients)
+        optimizer.step()                   # update weights
+
+        # Accumulate metrics (loss is averaged over the batch, so multiply by batch size)
+        running_loss += loss.item() * inputs.size(0)
+        _, preds = torch.max(outputs, 1)   # predicted class = highest logit
+        correct += (preds == labels).sum().item()
+        total += labels.size(0)
+
+    epoch_train_loss = running_loss / total
+    epoch_train_acc = correct / total
+
+    # ---------- Validation phase ----------
+    model.eval()                           # disable Dropout, use running BatchNorm stats
+    val_loss, val_correct, val_total = 0.0, 0, 0
+    with torch.no_grad():                  # no gradients needed for evaluation
+        for inputs, labels in val_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+
+            val_loss += loss.item() * inputs.size(0)
+            _, preds = torch.max(outputs, 1)
+            val_correct += (preds == labels).sum().item()
+            val_total += labels.size(0)
+
+    epoch_val_loss = val_loss / val_total
+    epoch_val_acc = val_correct / val_total
+    scheduler.step(epoch_val_loss)         # reduce LR if validation loss plateaus
+
+    # Record metrics for plotting
+    history['train_loss'].append(epoch_train_loss)
+    history['val_loss'].append(epoch_val_loss)
+    history['train_acc'].append(epoch_train_acc)
+    history['val_acc'].append(epoch_val_acc)
+
+    # Print a progress line every 10 epochs (and the first one)
+    if (epoch + 1) % 10 == 0 or epoch == 0:
+        print(f"Epoch [{epoch+1:02d}/{epochs}] "
+              f"Train Loss: {epoch_train_loss:.4f} | Train Acc: {epoch_train_acc:.4f} || "
+              f"Val Loss: {epoch_val_loss:.4f} | Val Acc: {epoch_val_acc:.4f}")
+```
+
+**Listing 13.5 — Final evaluation on the held-out test set**
+
+```python
+# ---- Final evaluation on the held-out test set ----
+model.eval()
+test_preds = []
+test_targets = []
+
+with torch.no_grad():
+    for inputs, labels in test_loader:
+        inputs = inputs.to(device)
+        outputs = model(inputs)
+        _, preds = torch.max(outputs, 1)          # predicted digit
+        test_preds.extend(preds.cpu().numpy())    # move back to CPU for metrics
+        test_targets.extend(labels.numpy())
+
+acc_pytorch = accuracy_score(test_targets, test_preds)
+print(f"PyTorch Deep MLP Test Accuracy: {acc_pytorch:.4f}\n")
+print("Detailed Classification Report:")
+# Per-class precision/recall/F1 for all 10 digits
+print(classification_report(test_targets, test_preds, digits=4))
+```
+
 # PyTorch
 self.net = nn.Sequential(
     nn.Linear(64, 128), nn.BatchNorm1d(128), nn.ReLU(), nn.Dropout(0.25),
@@ -719,6 +2106,261 @@ An RNN maintains a hidden state h_t = tanh(W x_t + U h_{t−1} + b) so the outpu
 
 ## 6. Reference Implementation
 ```python
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/06_recurrent_neural_network.ipynb` (executed; results above are its actual output).*
+
+**Listing 14.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ---- Scaling + regression metrics ----
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import root_mean_squared_error, mean_absolute_error, accuracy_score
+
+# ---- PyTorch for the recurrent models ----
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+# Aesthetics setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 5)
+plt.rcParams['figure.dpi'] = 110
+
+# Reproducibility
+torch.manual_seed(42)
+torch.cuda.manual_seed_all(42)  # reproducible GPU training
+np.random.seed(42)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f"PyTorch version: {torch.__version__} on {device}")
+
+# ---- Load the monthly airline passengers time series ----
+df_air = pd.read_csv('../data/airline_passengers.csv')
+print("Dataset Head:")
+display(df_air.head())
+
+# Extract the target series as float32 (shape: N x 1)
+passengers = df_air['Passengers'].values.astype(np.float32).reshape(-1, 1)
+# ---- Normalize to [0, 1] (RNNs train much better on small inputs) ----
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled_data = scaler.fit_transform(passengers)
+
+# ---- Function to build supervised sliding-window sequences ----
+# For each time step t: X = values [t-seq_len ... t-1], y = value at t
+def create_sequences(data, seq_length=12):
+    xs, ys = [], []
+    for i in range(len(data) - seq_length):
+        x = data[i:(i + seq_length)]
+        y = data[i + seq_length]
+        xs.append(x)
+        ys.append(y)
+    return np.array(xs), np.array(ys)
+
+SEQ_LENGTH = 12  # 12-month lookback = one full annual seasonal cycle
+X_seq, y_seq = create_sequences(scaled_data, seq_length=SEQ_LENGTH)
+
+# ---- Temporal split: 80% train, 20% test WITHOUT shuffling (time order matters) ----
+train_size = int(len(X_seq) * 0.80)
+X_train, X_test = X_seq[:train_size], X_seq[train_size:]
+y_train, y_test = y_seq[:train_size], y_seq[train_size:]
+
+print(f"Total sequences created: {len(X_seq)}")
+print(f"Training sequences:      {X_train.shape[0]} (Shape: {X_train.shape})")
+print(f"Testing sequences:       {X_test.shape[0]}  (Shape: {X_test.shape})")
+
+# ---- DataLoader for mini-batch training (shuffle only the training set) ----
+train_loader = DataLoader(
+    TensorDataset(torch.tensor(X_train, dtype=torch.float32), torch.tensor(y_train, dtype=torch.float32)),
+    batch_size=16,
+    shuffle=True
+)
+```
+
+**Listing 14.2 — Vanilla RNN and LSTM model definitions**
+
+```python
+class VanillaRNN(nn.Module):
+    """Elman RNN: 2 stacked recurrent layers + a linear output layer."""
+    def __init__(self, input_size=1, hidden_size=64, num_layers=2):
+        super(VanillaRNN, self).__init__()
+        self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, 1)   # map final hidden state to a scalar forecast
+
+    def forward(self, x):
+        out, _ = self.rnn(x)                 # out: (batch, seq_len, hidden)
+        out = self.fc(out[:, -1, :])         # use ONLY the last time step's hidden state
+        return out
+
+class LSTMModel(nn.Module):
+    """LSTM: same interface, but gated cells preserve long-term information."""
+    def __init__(self, input_size=1, hidden_size=64, num_layers=2):
+        super(LSTMModel, self).__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, 1)
+
+    def forward(self, x):
+        out, _ = self.lstm(x)
+        out = self.fc(out[:, -1, :])
+        return out
+
+# Instantiate both models on the selected device so they can be compared fairly
+rnn_model = VanillaRNN().to(device)
+lstm_model = LSTMModel().to(device)
+print("Models instantiated successfully!")
+```
+
+**Listing 14.3 — Generic training function shared by both architectures**
+
+```python
+# ---- Generic training function shared by both architectures ----
+def train_model(model, loader, epochs=120, lr=0.005):
+    criterion = nn.MSELoss()                          # regression -> mean squared error
+    optimizer = optim.Adam(model.parameters(), lr=lr) # Adam optimizer
+    losses = []
+
+    for epoch in range(epochs):
+        model.train()
+        total_loss = 0.0
+        for x_b, y_b in loader:
+            x_b, y_b = x_b.to(device), y_b.to(device)
+
+            optimizer.zero_grad()          # clear previous gradients
+            pred = model(x_b)              # forward pass through the recurrent net
+            loss = criterion(pred, y_b)    # MSE between forecast and truth
+            loss.backward()                # backpropagation through time (BPTT)
+            optimizer.step()               # update weights
+
+            total_loss += loss.item() * len(x_b)   # de-average the batch loss
+
+        epoch_loss = total_loss / len(loader.dataset)
+        losses.append(epoch_loss)          # track loss per epoch for plotting
+
+    return losses
+
+# ---- Train both architectures with identical hyperparameters ----
+print("Training Vanilla RNN...")
+rnn_losses = train_model(rnn_model, train_loader, epochs=120, lr=0.005)
+
+print("Training LSTM Model...")
+lstm_losses = train_model(lstm_model, train_loader, epochs=120, lr=0.005)
+print("Training completed!")
+```
+
+**Listing 14.4 — Evaluate both models on the test horizon**
+
+```python
+# ---- Evaluate both models on the test horizon ----
+rnn_model.eval()
+lstm_model.eval()
+
+with torch.no_grad():   # inference only - no gradients
+    x_test_t = torch.tensor(X_test, dtype=torch.float32).to(device)
+    pred_rnn_scaled = rnn_model(x_test_t).cpu().numpy()    # normalized predictions
+    pred_lstm_scaled = lstm_model(x_test_t).cpu().numpy()
+
+# ---- Invert scaling to get real passenger counts ----
+y_test_true = scaler.inverse_transform(y_test)
+pred_rnn = scaler.inverse_transform(pred_rnn_scaled)
+pred_lstm = scaler.inverse_transform(pred_lstm_scaled)
+
+# ---- Compute error metrics in the original unit (passengers) ----
+rmse_rnn = root_mean_squared_error(y_test_true, pred_rnn)
+mae_rnn  = mean_absolute_error(y_test_true, pred_rnn)
+
+rmse_lstm = root_mean_squared_error(y_test_true, pred_lstm)
+mae_lstm  = mean_absolute_error(y_test_true, pred_lstm)
+
+# ---- Summary table (lower errors are better) ----
+eval_df = pd.DataFrame([
+    {"Model": "Vanilla RNN", "RMSE (Passengers)": rmse_rnn, "MAE (Passengers)": mae_rnn},
+    {"Model": "LSTM Network", "RMSE (Passengers)": rmse_lstm, "MAE (Passengers)": mae_lstm}
+]).set_index("Model")
+
+print("Time Series Forecasting Performance Comparison:")
+display(eval_df.style.highlight_min(subset=['RMSE (Passengers)', 'MAE (Passengers)'], color='lightgreen'))
+
+# ---- Plot ground truth vs. both forecast trajectories ----
+# Map each test target back to its true position on the month axis:
+# sequence i predicts month (i + SEQ_LENGTH)
+test_indices = range(train_size + SEQ_LENGTH, len(passengers))
+
+plt.figure(figsize=(12, 6))
+# Full historical series in the background
+plt.plot(range(len(passengers)), passengers, label='Ground Truth Historical', color='black', alpha=0.5, lw=1.5)
+
+# Test-period ground truth
+plt.plot(test_indices, y_test_true, label='Ground Truth (Test Horizon)', color='black', lw=2.5)
+
+# Model forecasts
+plt.plot(test_indices, pred_rnn, label=f'Vanilla RNN (RMSE: {rmse_rnn:.1f})', color='crimson', lw=2, linestyle='--')
+plt.plot(test_indices, pred_lstm, label=f'LSTM Network (RMSE: {rmse_lstm:.1f})', color='teal', lw=2.2)
+
+# Vertical line marking where the train period ends and test begins
+plt.axvline(x=train_size + SEQ_LENGTH, color='gray', linestyle=':', label='Train / Test Cutoff')
+plt.title("Airline Passengers Sequence Forecasting: Vanilla RNN vs LSTM", fontsize=14, fontweight='bold')
+plt.xlabel("Month Index", fontsize=12)
+plt.ylabel("Number of Passengers", fontsize=12)
+plt.legend()
+plt.tight_layout()
+plt.show()
+```
+
+**Listing 14.5 — Sequence classification benchmark (manual experiment)**
+
+```python
+# ---- Sequence classification benchmark (manual experiment) ----
+rng = np.random.default_rng(42)
+X_cls = rng.normal(size=(1200, 20, 1)).astype("float32")
+y_cls = (X_cls.sum(axis=1).ravel() > 0).astype("float32")
+
+X_tr_c, X_te_c = X_cls[:1000], X_cls[1000:]
+y_tr_c, y_te_c = y_cls[:1000], y_cls[1000:]
+print(f"Sequence classification data: train {X_tr_c.shape}, test {X_te_c.shape}")
+
+class RNNClassifier(nn.Module):
+    """Vanilla RNN or LSTM classifier over a 20-step sequence."""
+    def __init__(self, cell='rnn', hidden=32):
+        super().__init__()
+        self.rnn = nn.RNN(1, hidden, batch_first=True) if cell == 'rnn' else nn.LSTM(1, hidden, batch_first=True)
+        self.fc = nn.Linear(hidden, 1)
+
+    def forward(self, x):
+        out, _ = self.rnn(x)
+        return self.fc(out[:, -1, :]).squeeze(-1)
+
+def train_classifier(model, epochs=10):
+    """Train a sequence classifier and return test accuracy."""
+    model = model.to(device)
+    optimizer = optim.Adam(model.parameters(), lr=0.005)
+    loss_fn = nn.BCEWithLogitsLoss()
+    loader = DataLoader(TensorDataset(torch.tensor(X_tr_c), torch.tensor(y_tr_c)), batch_size=32, shuffle=True)
+    for epoch in range(epochs):
+        model.train()
+        for xb, yb in loader:
+            xb, yb = xb.to(device), yb.to(device)
+            optimizer.zero_grad()
+            loss = loss_fn(model(xb), yb)
+            loss.backward()
+            optimizer.step()
+    model.eval()
+    with torch.no_grad():
+        logits = model(torch.tensor(X_te_c).to(device))
+        preds = (torch.sigmoid(logits) > 0.5).cpu().numpy().astype(int)
+    return accuracy_score(y_te_c.astype(int), preds)
+
+acc_rnn_cls = train_classifier(RNNClassifier('rnn'))
+acc_lstm_cls = train_classifier(RNNClassifier('lstm'))
+print(f"Sequence classification test accuracy: Vanilla RNN {acc_rnn_cls:.4f} | LSTM {acc_lstm_cls:.4f}")
+```
+
 # classification
 self.rnn = nn.RNN(1, hidden, batch_first=True) if cell == 'rnn' else nn.LSTM(1, hidden, batch_first=True)
 self.fc = nn.Linear(hidden, 1)
@@ -803,6 +2445,118 @@ The map halved its quantization error during training and preserves topology wel
 
 ---
 
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/07_self_organizing_map.ipynb` (executed; results above are its actual output).*
+
+**Listing 15.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ---- Dataset + scaling ----
+from sklearn.datasets import load_wine
+from sklearn.preprocessing import MinMaxScaler
+# ---- MiniSom: lightweight Kohonen Self-Organizing Map implementation ----
+from minisom import MiniSom
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+np.random.seed(42)
+print("MiniSom and libraries loaded successfully!")
+
+# ---- Load the Wine recognition dataset ----
+wine = load_wine()
+X_raw = wine.data          # 178 samples x 13 chemical features
+y = wine.target            # 3 wine cultivars (only used for visualization - SOM is unsupervised)
+feature_names = wine.feature_names
+target_names = wine.target_names
+
+print(f"Samples: {X_raw.shape[0]}, Features: {X_raw.shape[1]}, Classes: {target_names.tolist()}")
+
+# ---- MinMax scaling to [0, 1] ----
+# SOM weight vectors live in the same range as the inputs, so scaling keeps learning stable.
+scaler = MinMaxScaler()
+X = scaler.fit_transform(X_raw)
+```
+
+**Listing 15.2 — Configure the Kohonen grid**
+
+```python
+# ---- Configure the Kohonen grid ----
+grid_x, grid_y = 12, 12  # 12x12 grid = 144 neurons (fewer than the 178 samples)
+input_len = X.shape[1]   # 13 chemical features per neuron weight vector
+
+som = MiniSom(
+    x=grid_x,
+    y=grid_y,
+    input_len=input_len,
+    sigma=1.5,                       # initial neighborhood radius
+    learning_rate=0.5,               # initial learning rate
+    neighborhood_function='gaussian',# smooth Gaussian neighborhood kernel
+    random_seed=42
+)
+
+# ---- Initialize weights with PCA for topologically faithful, faster convergence ----
+som.pca_weights_init(X)
+print("Initial Quantization Error:", som.quantization_error(X))
+
+# ---- Train: 5000 random samples presented to the map ----
+som.train_random(data=X, num_iteration=5000, verbose=False)
+final_qe = som.quantization_error(X)   # average distance from samples to their BMU
+final_te = som.topographic_error(X)    # fraction of samples whose 2nd BMU is not a grid neighbor
+
+print(f"Training complete after 5,000 iterations!")
+print(f" - Final Quantization Error (mean distance to BMU): {final_qe:.4f}")
+print(f" - Final Topographic Error (proportion of foldings): {final_te:.4f}")
+```
+
+**Listing 15.3 — Plot the U-Matrix (unified distance map)**
+
+```python
+# ---- Plot the U-Matrix (unified distance map) ----
+# Each cell = average distance between a neuron and its immediate grid neighbors.
+# Dark valleys = dense clusters; bright ridges = boundaries between clusters.
+plt.figure(figsize=(10, 8))
+plt.pcolor(som.distance_map().T, cmap='bone_r', alpha=0.9)
+cbar = plt.colorbar()
+cbar.set_label("Normalized Inter-Neuron Distance (U-Matrix)", fontsize=11)
+
+# ---- Project every sample onto its Best Matching Unit (BMU) ----
+markers = ['o', 's', '^']
+colors = ['red', 'green', 'blue']
+
+for idx, x_vec in enumerate(X):
+    w = som.winner(x_vec)  # grid coordinates of the best matching neuron for this sample
+    plt.plot(
+        w[0] + 0.5,        # +0.5 centers the marker inside the pcolor cell
+        w[1] + 0.5,
+        markers[y[idx]],   # marker shape encodes the true cultivar
+        markerfacecolor='None',
+        markeredgecolor=colors[y[idx]],
+        markersize=10,
+        markeredgewidth=2
+    )
+
+# Build a legend for the three cultivars
+for c_idx, c_name in enumerate(target_names):
+    plt.plot([], [], marker=markers[c_idx], color=colors[c_idx], linestyle='None',
+             label=f'Cultivar {c_name}', markersize=9, markeredgewidth=2)
+
+plt.title("SOM U-Matrix with Projected Wine Cultivars", fontsize=14, fontweight='bold')
+plt.legend(bbox_to_anchor=(1.25, 1), loc='upper left')
+plt.tight_layout()
+plt.show()
+```
+
 # Experiment 16: Hidden Markov Model (HMM)
 
 **Category:** Probabilistic sequence modeling
@@ -853,6 +2607,119 @@ The 3-state Gaussian HMM extracts interpretable, persistent market regimes from 
 - **What is the Markov assumption?** The future state depends on the past only through the present state: P(z_t | z_{1:t−1}) = P(z_t | z_{t−1}).
 
 ---
+
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/08_hidden_markov_model.ipynb` (executed; results above are its actual output).*
+
+**Listing 16.1 — Core libraries**
+
+```python
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from hmmlearn.hmm import GaussianHMM
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+
+# ---- Load the real DAX stock index (daily closes 1991-1998) ----
+df_market = pd.read_csv('../data/stock_index.csv')
+dates = pd.to_datetime(df_market['Date'])
+print(f"Trading days: {len(df_market)} | {dates.iloc[0].date()} to {dates.iloc[-1].date()}")
+print(df_market.head(3).to_string(index=False))
+
+returns = df_market['Daily_Return'].values.reshape(-1, 1)   # HMM observations
+prices = df_market['Close'].values                          # only used for visualization
+```
+
+**Listing 16.2 — Fit a 3-state Gaussian HMM with the Baum-Welch (EM) algorithm**
+
+```python
+# ---- Fit a 3-state Gaussian HMM with the Baum-Welch (EM) algorithm ----
+n_components = 3
+hmm_model = GaussianHMM(
+    n_components=n_components,        # Bull / Sideways / Bear regimes
+    covariance_type="full",           # each state has its own full covariance Gaussian emission
+    n_iter=200,                       # EM iterations
+    random_state=42,
+    verbose=False
+)
+
+hmm_model.fit(returns)
+print("EM Training Converged:", hmm_model.monitor_.converged)
+print(f"Model Log-Likelihood: {hmm_model.score(returns):.2f}")
+
+# ---- Decode the most likely hidden state sequence with the Viterbi algorithm ----
+hidden_states = hmm_model.predict(returns)
+
+# ---- Sort regimes by volatility so labels have a consistent economic meaning ----
+# Regime 0: Low Volatility (Bull) | Regime 1: Moderate (Sideways) | Regime 2: High (Bear/Crisis)
+volatilities = [np.sqrt(hmm_model.covars_[i][0][0]) for i in range(n_components)]
+state_order = np.argsort(volatilities)                                           # ascending volatility
+state_mapping = {old_state: new_state for new_state, old_state in enumerate(state_order)}
+
+sorted_hidden_states = np.array([state_mapping[s] for s in hidden_states])       # relabel sequence
+sorted_means = [hmm_model.means_[old][0] for old in state_order]                 # reordered means
+sorted_stds  = [np.sqrt(hmm_model.covars_[old][0][0]) for old in state_order]    # reordered std devs
+
+# ---- Reorder the transition matrix to match the sorted regimes ----
+sorted_transmat = np.zeros((n_components, n_components))
+for i in range(n_components):
+    for j in range(n_components):
+        sorted_transmat[i, j] = hmm_model.transmat_[state_order[i], state_order[j]]
+
+regime_names = ["Bull (Low Vol)", "Sideways (Med Vol)", "Bear (High Vol)"]
+```
+
+**Listing 16.3 — Transition probability matrix**
+
+```python
+# ---- Transition probability matrix ----
+fig, ax = plt.subplots(figsize=(6, 4.5))
+sns.heatmap(sorted_transmat, annot=True, fmt='.3f', cmap='Blues', ax=ax,
+            xticklabels=regime_names, yticklabels=regime_names, cbar=False)
+ax.set_title("HMM Transition Probability Matrix ($A_{ij}$)", fontweight='bold')
+ax.set_xlabel("Transition To Regime")
+ax.set_ylabel("Current Regime")
+plt.tight_layout()
+plt.show()
+
+# ---- Viterbi-decoded regimes over the price series ----
+colors = ['forestgreen', 'royalblue', 'crimson']
+x = np.arange(len(prices))
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(13, 7), sharex=True, gridspec_kw={'height_ratios': [3, 1]})
+
+# Top: color every consecutive price segment by its decoded regime
+for i in range(len(prices) - 1):
+    ax1.plot([x[i], x[i + 1]], [prices[i], prices[i + 1]], color=colors[sorted_hidden_states[i]], lw=1.2)
+for i, name in enumerate(regime_names):
+    ax1.plot([], [], color=colors[i], label=name, lw=2.5)
+ax1.set_title("DAX Index 1991-1998 Colored by Decoded HMM Regime (Viterbi Path)", fontsize=13, fontweight='bold')
+ax1.set_ylabel("Index Level")
+ax1.legend(loc='upper left')
+
+# Bottom: raw sequence of decoded states over time
+ax2.scatter(x, sorted_hidden_states, c=[colors[s] for s in sorted_hidden_states], s=8, marker='|')
+ax2.set_yticks(range(n_components))
+ax2.set_yticklabels(regime_names)
+ax2.set_xlabel("Trading Day Index")
+
+# Label the x-axis with years (real dates)
+year_pos = np.where(dates.dt.year.diff().fillna(0).values != 0)[0]
+ax2.set_xticks(year_pos)
+ax2.set_xticklabels(dates.dt.year.iloc[year_pos].astype(str))
+
+plt.tight_layout()
+plt.show()
+```
 
 # Experiment 17: Support Vector Machine (SVM)
 
@@ -905,6 +2772,163 @@ SVMs give accurate, sparse solutions: 77% of the cancer training points could be
 - **Why does SVM require careful scaling?** Margins and kernels use Euclidean distances; unscaled features with larger ranges dominate them and degrade the fit.
 
 ---
+
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/09_support_vector_machine.ipynb` (executed; results above are its actual output).*
+
+**Listing 17.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ---- Dataset + model selection ----
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+# ---- SVM models: classification and regression ----
+from sklearn.svm import SVC, SVR
+# ---- Evaluation metrics ----
+from sklearn.metrics import r2_score, root_mean_squared_error
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+np.random.seed(42)
+print("SVM modules loaded successfully!")
+```
+
+**Listing 17.2 — 2D real data for visualizing margins and kernels**
+
+```python
+# ---- 2D real data for visualizing margins and kernels ----
+# Two diagnostic measurements from the Breast Cancer dataset (malignant vs benign).
+cancer_2d = load_breast_cancer()
+X_2d = cancer_2d.data[:, [0, 1]]    # mean radius and mean texture
+y_2d = cancer_2d.target
+feature_names_2d = ['mean radius', 'mean texture']
+
+scaler_2d = StandardScaler()
+X_2d_scaled = scaler_2d.fit_transform(X_2d)
+
+kernels = ['linear', 'poly', 'rbf']
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+# Coordinate grid used to draw the decision boundary as a contour
+x_min, x_max = X_2d_scaled[:, 0].min() - 0.5, X_2d_scaled[:, 0].max() + 0.5
+y_min, y_max = X_2d_scaled[:, 1].min() - 0.5, X_2d_scaled[:, 1].max() + 0.5
+xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200), np.linspace(y_min, y_max, 200))
+
+for ax, k_name in zip(axes, kernels):
+    # Train one SVC per kernel on the same real data
+    clf = SVC(kernel=k_name, C=1.0, gamma='scale', degree=3, random_state=42)
+    clf.fit(X_2d_scaled, y_2d)
+
+    # Signed distance to the hyperplane for every grid point
+    Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+
+    # Filled contour = decision regions; solid line = boundary (Z=0); dashed = margins (Z=±1)
+    ax.contourf(xx, yy, Z, levels=np.linspace(Z.min(), Z.max(), 20), cmap='coolwarm', alpha=0.3)
+    ax.contour(xx, yy, Z, levels=[-1.0, 0.0, 1.0], linestyles=['--', '-', '--'], colors=['k', 'k', 'k'], linewidths=[1.5, 2.5, 1.5])
+
+    # Scatter the data points (colored by class)
+    ax.scatter(X_2d_scaled[:, 0], X_2d_scaled[:, 1], c=y_2d, cmap='coolwarm', edgecolors='k', s=25, alpha=0.8)
+
+    # Highlight the support vectors (the points that define the margin)
+    sv = clf.support_vectors_
+    ax.scatter(sv[:, 0], sv[:, 1], s=90, facecolors='none', edgecolors='gold', linewidths=2.0, label=f'SV ({len(sv)})')
+
+    ax.set_title(f"SVC with {k_name.capitalize()} Kernel\n(Acc: {clf.score(X_2d_scaled, y_2d):.3f}, SVs: {len(sv)})", fontweight='bold')
+    ax.set_xlabel(feature_names_2d[0])
+    ax.set_ylabel(feature_names_2d[1])
+    ax.legend(loc='lower right')
+
+plt.suptitle("SVC Decision Boundaries on Real Breast Cancer Data (2 features)", fontsize=15, fontweight='bold')
+plt.tight_layout()
+plt.show()
+```
+
+**Listing 17.3 — SVC on a real dataset: Breast Cancer (RBF kernel)**
+
+```python
+# ---- SVC on a real dataset: Breast Cancer (RBF kernel) ----
+cancer = load_breast_cancer()
+X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
+    cancer.data, cancer.target, test_size=0.25, random_state=42, stratify=cancer.target
+)
+scaler_c = StandardScaler()
+X_train_c_s = scaler_c.fit_transform(X_train_c)
+X_test_c_s = scaler_c.transform(X_test_c)
+
+svc_rbf = SVC(kernel='rbf', C=1.0, random_state=42)
+svc_rbf.fit(X_train_c_s, y_train_c)
+print(f"SVC (RBF) test accuracy on Breast Cancer: {svc_rbf.score(X_test_c_s, y_test_c):.4f}")
+print(f"Support vectors used: {len(svc_rbf.support_)} of {len(X_train_c)} training samples")
+```
+
+**Listing 17.4 — Real 1D regression: Old Faithful geyser**
+
+```python
+# ---- Real 1D regression: Old Faithful geyser ----
+# x = waiting time before an eruption (minutes), y = eruption duration (minutes)
+geyser = pd.read_csv('../data/geyser.csv')
+X_svr = geyser['waiting'].values.reshape(-1, 1)
+y_svr = geyser['eruptions'].values
+print(f"Old Faithful: {len(geyser)} eruptions | waiting {X_svr.min()}-{X_svr.max()} min | duration {y_svr.min()}-{y_svr.max()} min")
+
+# Scale the feature (SVR is distance-based); the target stays in minutes for interpretability
+scaler_svr = StandardScaler()
+X_svr_scaled = scaler_svr.fit_transform(X_svr)
+
+# epsilon defines the width of the "no penalty" tube around the prediction (in minutes)
+epsilon_val = 0.3
+svr_model = SVR(kernel='rbf', C=10.0, epsilon=epsilon_val, gamma='scale')
+svr_model.fit(X_svr_scaled, y_svr)
+
+# Dense grid for drawing a smooth prediction curve, converted back to minutes
+X_grid = np.linspace(X_svr_scaled.min(), X_svr_scaled.max(), 300).reshape(-1, 1)
+y_grid_pred = svr_model.predict(X_grid)
+X_grid_orig = scaler_svr.inverse_transform(X_grid).ravel()
+
+# Support vectors = training points that lie on/outside the epsilon tube
+sv_indices = svr_model.support_
+X_sv = X_svr[sv_indices]
+y_sv = y_svr[sv_indices]
+
+plt.figure(figsize=(11, 6))
+# Training samples
+plt.scatter(X_svr, y_svr, color='navy', s=35, alpha=0.75, label='Eruptions')
+
+# Regression surface
+plt.plot(X_grid_orig, y_grid_pred, color='crimson', lw=2.5, label='SVR Prediction $f(x)$')
+
+# Epsilon-insensitive tube boundaries + shaded tube
+plt.plot(X_grid_orig, y_grid_pred + epsilon_val, color='gray', linestyle='--', lw=1.5, label=rf'Upper Tube ($+\epsilon={epsilon_val}$)')
+plt.plot(X_grid_orig, y_grid_pred - epsilon_val, color='gray', linestyle='--', lw=1.5, label=rf'Lower Tube ($-\epsilon={epsilon_val}$)')
+plt.fill_between(X_grid_orig, y_grid_pred - epsilon_val, y_grid_pred + epsilon_val, color='gray', alpha=0.15)
+
+# Support vectors are highlighted - only these points influence the fitted curve
+plt.scatter(X_sv, y_sv, s=120, facecolors='none', edgecolors='gold', linewidths=2.5, label=f'Support Vectors ({len(X_sv)})')
+
+plt.title(f"Support Vector Regression on Old Faithful (C=10, ε={epsilon_val})", fontsize=14, fontweight='bold')
+plt.xlabel("Waiting time before eruption (minutes)", fontsize=12)
+plt.ylabel("Eruption duration (minutes)", fontsize=12)
+plt.legend(loc='lower right')
+plt.tight_layout()
+plt.show()
+
+# ---- Quantitative evaluation ----
+print(f"SVR R² Score: {r2_score(y_svr, svr_model.predict(X_svr_scaled)):.4f}")
+print(f"SVR RMSE:     {root_mean_squared_error(y_svr, svr_model.predict(X_svr_scaled)):.4f} minutes")
+print(f"Support Vectors: {len(X_sv)} out of {len(X_svr)} points ({len(X_sv)/len(X_svr)*100:.1f}%)")
+```
 
 # Experiment 18: Large Language Model (LLM) Experiment
 
@@ -959,6 +2983,234 @@ The experiment shows the complete practical LLM pipeline and that fine-tuning a 
 
 ---
 
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/10_large_language_model.ipynb` (executed; results above are its actual output).*
+
+**Listing 18.1 — Core numerical and plotting libraries**
+
+```python
+# ---- Core numerical and plotting libraries ----
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ---- PyTorch: used for the fine-tuning demo ----
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, Dataset
+# ---- Dataset splitting + metrics for the fine-tune evaluation ----
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, f1_score
+# ---- Hugging Face Transformers: tokenizers, models, pipelines, generation configs ----
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
+    AutoModelForCausalLM,
+    GenerationConfig,
+    pipeline
+)
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 5)
+plt.rcParams['figure.dpi'] = 110
+
+torch.manual_seed(42)
+torch.cuda.manual_seed_all(42)  # reproducible GPU training
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # GPU if available
+print(f"PyTorch on {device}")
+```
+
+**Listing 18.2 — Load a pre-trained DistilBERT tokenizer (fast, subword/WordPiece based)**
+
+```python
+# ---- Load a pre-trained DistilBERT tokenizer (fast, subword/WordPiece based) ----
+model_id = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
+print(f"Loading Tokenizer: {model_id}...")
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+sample_text = "Machine learning and deep neural networks are transforming modern science!"
+# Tokenize with padding/truncation so the output has a fixed shape (here 20 tokens)
+encoded = tokenizer(
+    sample_text,
+    padding="max_length",
+    max_length=20,
+    truncation=True,
+    return_tensors="pt"
+)
+
+# Convert integer IDs back to readable subword tokens
+tokens = tokenizer.convert_ids_to_tokens(encoded['input_ids'][0])
+print(f"Original Text: {sample_text}\n")
+print(f"Subword Tokens ({len(tokens)}):\n", tokens)
+print(f"Input IDs:      \n", encoded['input_ids'][0].tolist())
+print(f"Attention Mask: \n", encoded['attention_mask'][0].tolist())
+```
+
+**Listing 18.3 — Load a pre-trained sentiment-analysis pipeline (DistilBERT SST-2)**
+
+```python
+# ---- Load a pre-trained sentiment-analysis pipeline (DistilBERT SST-2) ----
+classifier = pipeline("sentiment-analysis", model=model_id, device=0 if torch.cuda.is_available() else -1)
+
+test_sentences = [
+    "The new neural network model demonstrated extraordinary accuracy and remarkable speed.",
+    "The dataset was poorly labeled, noisy, and the model completely failed to converge.",
+    "The gradient descent algorithm performed reasonably well, meeting standard expectations.",
+    "A catastrophic failure occurred during training due to exploding gradient issues."
+]
+
+# One forward pass per sentence -> label + calibrated confidence score
+predictions = classifier(test_sentences)
+
+# Collect results in a table for display
+results_table = []
+for sent, pred in zip(test_sentences, predictions):
+    results_table.append({
+        "Sentence": sent,
+        "Predicted Label": pred['label'],
+        "Confidence Score": f"{pred['score']*100:.2f}%"
+    })
+
+df_preds = pd.DataFrame(results_table)
+display(df_preds)
+```
+
+**Listing 18.4 — Load a small causal LM (DistilGPT2) for text generation**
+
+```python
+# ---- Load a small causal LM (DistilGPT2) for text generation ----
+gen_model_id = "distilbert/distilgpt2"
+print(f"Loading Text Generator: {gen_model_id}...")
+# clean_up_tokenization_spaces=False keeps BPE spacing intact
+generator = pipeline("text-generation", model=gen_model_id,
+                     device=0 if torch.cuda.is_available() else -1, clean_up_tokenization_spaces=False)
+
+prompt = "Artificial Intelligence will fundamentally transform"
+
+# 1. Greedy Search: always pick the most likely next token (deterministic)
+greedy_output = generator(
+    prompt, generation_config=GenerationConfig(max_new_tokens=40, do_sample=False)
+)[0]['generated_text']
+
+# 2. Temperature + Top-p (Nucleus) Sampling: sample from the most likely tokens up to cumulative p
+sampled_output = generator(
+    prompt, generation_config=GenerationConfig(max_new_tokens=40, do_sample=True, temperature=0.7, top_p=0.9)
+)[0]['generated_text']
+
+print(f"PROMPT: '{prompt}'\n")
+print(f"--- 1. GREEDY SEARCH OUTPUT ---\n{greedy_output.strip()}\n")
+print(f"--- 2. NUCLEUS SAMPLING (T=0.7, p=0.9) OUTPUT ---\n{sampled_output.strip()}")
+```
+
+**Listing 18.5 — Real dataset: SMS Spam Collection (5,572 labeled messages)**
+
+```python
+# ---- Real dataset: SMS Spam Collection (5,572 labeled messages) ----
+sms = pd.read_csv('../data/sms_spam.csv')
+sms['y'] = (sms['label'] == 'spam').astype(int)
+print(f"SMS Spam Collection: {len(sms)} messages | ham {(sms.y == 0).sum()}, spam {(sms.y == 1).sum()}")
+
+# Balanced subset for a fast fine-tune demo: 300 ham + 300 spam
+ham = sms[sms.y == 0].sample(n=300, random_state=42)
+spam = sms[sms.y == 1].sample(n=300, random_state=42)
+subset = pd.concat([ham, spam]).sample(frac=1, random_state=42).reset_index(drop=True)
+
+# Stratified split keeps the ham/spam ratio identical in train and test
+train_df, test_df = train_test_split(subset, test_size=200, random_state=42, stratify=subset.y)
+print(f"Train messages: {len(train_df)} | Test messages: {len(test_df)} | spam share: {subset.y.mean():.1%}")
+
+class SMSDataset(Dataset):
+    """Tokenize SMS texts and expose them as PyTorch samples."""
+    def __init__(self, texts, labels, tokenizer):
+        self.encodings = tokenizer(list(texts), padding=True, truncation=True, max_length=64, return_tensors="pt")
+        self.labels = list(labels)
+
+    def __getitem__(self, idx):
+        item = {key: val[idx] for key, val in self.encodings.items()}
+        item['labels'] = torch.tensor(self.labels[idx], dtype=torch.long)
+        return item
+
+    def __len__(self):
+        return len(self.labels)
+
+train_loader = DataLoader(SMSDataset(train_df.text, train_df.y, tokenizer), batch_size=16, shuffle=True)
+test_loader = DataLoader(SMSDataset(test_df.text, test_df.y, tokenizer), batch_size=32)
+
+# ---- Load the pre-trained classifier with a fresh 2-class head ----
+# ignore_mismatched_sizes allows replacing the original SST-2 head with a new one.
+ft_model = AutoModelForSequenceClassification.from_pretrained(model_id, num_labels=2, ignore_mismatched_sizes=True)
+ft_model.to(device)
+optimizer = torch.optim.AdamW(ft_model.parameters(), lr=5e-5)  # small LR for fine-tuning
+
+print("Pre-trained Transformer loaded for fine-tuning!")
+```
+
+**Listing 18.6 — Fine-tuning loop (2 epochs on 400 real SMS messages)**
+
+```python
+# ---- Fine-tuning loop (2 epochs on 400 real SMS messages) ----
+epochs = 2
+ft_model.train()
+epoch_losses = []
+
+for epoch in range(epochs):
+    running_loss = 0.0
+    for batch in train_loader:
+        optimizer.zero_grad()
+
+        # Move the batch to the selected device
+        input_ids = batch['input_ids'].to(device)
+        attention_mask = batch['attention_mask'].to(device)
+        labels = batch['labels'].to(device)
+
+        # Forward pass: the model computes the classification loss internally
+        outputs = ft_model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+        loss = outputs.loss
+        loss.backward()      # backpropagate through the whole transformer
+        optimizer.step()     # update weights
+
+        running_loss += loss.item() * len(input_ids)   # de-average the batch loss
+
+    avg_loss = running_loss / len(train_df)
+    epoch_losses.append(avg_loss)
+    print(f"Epoch [{epoch+1}/{epochs}] Fine-Tuning Loss: {avg_loss:.4f}")
+```
+
+**Listing 18.7 — Evaluate the fine-tuned model on held-out real SMS messages**
+
+```python
+# ---- Evaluate the fine-tuned model on held-out real SMS messages ----
+ft_model.eval()
+preds, targets = [], []
+
+with torch.no_grad():
+    for batch in test_loader:
+        # Move the batch to the same device as the fine-tuned model (GPU when available)
+        input_ids = batch['input_ids'].to(device)
+        attention_mask = batch['attention_mask'].to(device)
+        logits = ft_model(input_ids=input_ids, attention_mask=attention_mask).logits
+        preds += logits.argmax(-1).tolist()       # predicted class (0 = ham, 1 = spam)
+        targets += batch['labels'].tolist()
+
+print(f"Held-out test accuracy: {accuracy_score(targets, preds):.4f}")
+print(f"Held-out test F1 (spam): {f1_score(targets, preds):.4f}")
+
+# ---- Show a few individual predictions with confidence ----
+labels_map = {0: "ham", 1: "spam"}
+with torch.no_grad():
+    for i in range(3):
+        message = test_df.text.iloc[i]
+        enc = tokenizer(message, truncation=True, max_length=64, return_tensors="pt").to(device)
+        probs = torch.softmax(ft_model(**enc).logits, dim=1).cpu().numpy()[0]
+        print(f"\nMessage: {message[:75]}...")
+        print(f"True: {labels_map[test_df.y.iloc[i]]} | Predicted: {labels_map[probs.argmax()]} ({probs.max()*100:.1f}%)")
+```
+
 # Experiment 19: Generalized Regression Neural Network (GRNN)
 
 **Category:** Non-parametric regression
@@ -1009,6 +3261,170 @@ GRNN is instant to train and needs only one hyperparameter. On the smooth 1D sin
 - **How is GRNN related to kernel regression?** It is exactly the Nadaraya-Watson Gaussian kernel regression estimator of E[y | x], with one kernel per training observation.
 
 ---
+
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/11_generalized_regression_neural_network.ipynb` (executed; results above are its actual output).*
+
+**Listing 19.1 — Core libraries**
+
+```python
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.model_selection import KFold, train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import r2_score, root_mean_squared_error
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+```
+
+**Listing 19.2 — GRNN class (from scratch)**
+
+```python
+class GRNN(BaseEstimator, RegressorMixin):
+    """
+    Generalized Regression Neural Network (Specht, 1991) - vectorized implementation.
+
+    Prediction is the Nadaraya-Watson kernel regression estimate:
+        y_hat(x) = sum_i y_i * exp(-||x - x_i||^2 / (2*sigma^2))
+                 / sum_i     exp(-||x - x_i||^2 / (2*sigma^2))
+
+    Training is one-pass: the model simply stores the training set (no gradient descent).
+    The only hyperparameter is the smoothing spread sigma.
+    """
+
+    def __init__(self, sigma=1.0):
+        self.sigma = sigma
+
+    def fit(self, X, y):
+        # "Training" = memorizing the data (pattern + summation layers)
+        self.X_train_ = np.asarray(X, dtype=np.float64)
+        self.y_train_ = np.asarray(y, dtype=np.float64).ravel()
+        return self
+
+    def predict(self, X):
+        X_test = np.asarray(X, dtype=np.float64)
+
+        # ---- Pattern layer: squared Euclidean distance between each test and train point ----
+        # Uses the expansion ||a-b||^2 = ||a||^2 + ||b||^2 - 2 a.b for efficiency.
+        dist_sq = np.sum(X_test**2, axis=1, keepdims=True) + \
+                  np.sum(self.X_train_**2, axis=1, keepdims=True).T - \
+                  2 * np.dot(X_test, self.X_train_.T)
+        dist_sq = np.maximum(dist_sq, 0.0)  # guard against tiny negative values from rounding
+
+        # ---- Pattern layer activation: Gaussian kernel of each training point ----
+        kernels = np.exp(-dist_sq / (2.0 * (self.sigma ** 2)))
+
+        # ---- Summation layer: D-sum (denominator) and S-sum (numerator) ----
+        D = np.sum(kernels, axis=1)                 # unweighted sum of activations
+        S = np.dot(kernels, self.y_train_)          # activation-weighted sum of targets
+
+        # ---- Output layer: normalized weighted average (prevents 0/0 for isolated queries) ----
+        D_safe = np.where(D < 1e-12, 1e-12, D)
+        return S / D_safe
+
+
+print("Custom vectorized GRNN class defined!")
+```
+
+**Listing 19.3 — Load the real motorcycle impact data (MASS::mcycle)**
+
+```python
+# ---- Load the real motorcycle impact data (MASS::mcycle) ----
+moto = pd.read_csv('../data/motorcycle.csv')
+X = StandardScaler().fit_transform(moto['times'].values.reshape(-1, 1))  # time after impact (scaled)
+y = moto['accel'].values                                                 # head acceleration (g)
+print(f"Motorcycle data: {len(moto)} observations | time {moto.times.min()}-{moto.times.max()} ms | accel {moto.accel.min():.0f} to {moto.accel.max():.0f} g")
+
+X_eval = np.linspace(X.min(), X.max(), 300).reshape(-1, 1)
+
+# Under-smoothing, near-optimal, over-smoothing
+sigmas = [0.05, 0.25, 1.0]
+colors = ['purple', 'crimson', 'teal']
+
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+for ax, sig, col in zip(axes, sigmas, colors):
+    # Fit a fresh GRNN for each sigma (training is instant)
+    grnn_demo = GRNN(sigma=sig).fit(X, y)
+    y_pred_demo = grnn_demo.predict(X_eval)
+
+    ax.scatter(X, y, color='navy', s=25, alpha=0.6, label='Observations')
+    ax.plot(X_eval, y_pred_demo, color=col, lw=2.5, label=rf'GRNN ($\sigma={sig}$)')
+
+    # Training R² shows the bias-variance behavior for each sigma
+    r2 = r2_score(y, grnn_demo.predict(X))
+    ax.set_title(rf"Smoothing $\sigma = {sig}$ (Train $R^2 = {r2:.3f}$)", fontweight='bold')
+    ax.set_xlabel("Time after impact (standardized)")
+    ax.set_ylabel("Head acceleration (g)")
+    ax.legend(loc='lower right')
+
+plt.suptitle("GRNN Behavior on Real Motorcycle Impact Data (σ sweep)", fontsize=15, fontweight='bold')
+plt.tight_layout()
+plt.show()
+```
+
+**Listing 19.4 — 5-fold CV grid search for the optimal smoothing sigma**
+
+```python
+# ---- 5-fold CV grid search for the optimal smoothing sigma ----
+sigma_candidates = np.linspace(0.02, 1.0, 50)
+cv_scores = []
+kf = KFold(n_splits=5, shuffle=True, random_state=42)   # fixed folds for a fair comparison
+
+for sig in sigma_candidates:
+    fold_rmses = []
+    for train_idx, val_idx in kf.split(X):
+        # Split the data into this fold's train/validation parts
+        X_tr, y_tr = X[train_idx], y[train_idx]
+        X_va, y_va = X[val_idx], y[val_idx]
+
+        # Fit GRNN on the training fold and score on the validation fold
+        model = GRNN(sigma=sig).fit(X_tr, y_tr)
+        preds = model.predict(X_va)
+        fold_rmses.append(root_mean_squared_error(y_va, preds))
+
+    cv_scores.append(np.mean(fold_rmses))   # average CV error for this sigma
+
+best_idx = np.argmin(cv_scores)
+best_sigma = sigma_candidates[best_idx]
+print(f"Optimal Smoothing Parameter σ: {best_sigma:.3f} (CV RMSE: {cv_scores[best_idx]:.4f} g)")
+
+# ---- Plot the CV error curve and mark the optimum ----
+plt.figure(figsize=(9, 4.5))
+plt.plot(sigma_candidates, cv_scores, 'b-', lw=2.2)
+plt.axvline(x=best_sigma, color='crimson', linestyle='--', label=f'Optimal σ = {best_sigma:.3f}')
+plt.title("5-Fold Cross-Validation Error vs Smoothing Parameter (σ)", fontsize=13, fontweight='bold')
+plt.xlabel("Smoothing Parameter (σ)", fontsize=11)
+plt.ylabel("Cross-Validation RMSE (g)", fontsize=11)
+plt.legend()
+plt.tight_layout()
+plt.show()
+```
+
+**Listing 19.5 — Final model: refit with the CV-selected sigma and evaluate on a held-out split**
+
+```python
+# ---- Final model: refit with the CV-selected sigma and evaluate on a held-out split ----
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.25, random_state=42)
+final_model = GRNN(sigma=best_sigma).fit(X_tr, y_tr)
+y_hat = final_model.predict(X_te)
+
+print(f"Final GRNN with CV-selected sigma = {best_sigma:.3f}")
+print(f" - Train R²:  {r2_score(y_tr, final_model.predict(X_tr)):.4f}")
+print(f" - Test R²:   {r2_score(y_te, y_hat):.4f}")
+print(f" - Test RMSE: {root_mean_squared_error(y_te, y_hat):.4f} g")
+```
 
 # Integrated Mini Project: Comparative Machine Learning Study
 

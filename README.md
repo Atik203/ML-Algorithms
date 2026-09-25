@@ -37,7 +37,7 @@ d:/ML/Assignment/
 ├── scripts/
 │   └── export_pdf.py                             # Rebuilds pdf/ (nbconvert -> HTML -> Chromium print)
 ├── Machine_Learning_Lab_Manual.docx              # Faculty's laboratory manual (reference format)
-├── Machine_Learning_Lab_Manual_Completed.docx    # Completed 19-experiment report (faculty format)
+├── Machine_Learning_Lab_Manual_Completed.docx    # Completed 19-experiment report, 82 pages with full code (faculty format)
 ├── ML_Lab_Manual_Completed.md                    # Markdown source of the completed manual
 ├── image.jpg                                     # Original Assignment Prompt Image
 └── README.md                                     # Project Documentation & Guide
