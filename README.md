@@ -4,7 +4,7 @@ Code and data repository behind the **Machine Learning Laboratory Manual — Com
 
 Repository: <https://github.com/Atik203/ML-Algorithms>
 
-> **Note:** this repo tracks code, data and scripts only. The LaTeX manual source (`latex/`) and all built PDFs are kept local and listed in `.gitignore` — build them with the commands below.
+> **Note:** this repo tracks code, data and scripts only. The LaTeX manual source (`latex/`) and all built PDFs are kept local and listed in `.gitignore`.
 
 ---
 
@@ -92,26 +92,3 @@ In Jupyter or VS Code, select the registered kernel: **`Python (ML Assignment)`*
 .venv\Scripts\jupyter nbconvert --to notebook --execute notebooks/01_clustering_algorithms.ipynb --inplace
 ```
 All 11 notebooks in this repository are pre-executed and verified with this kernel (Python 3.12.13, zero cell errors).
-
-### 5. Exporting to A4 PDF (print / submission)
-The `pdf/` folder is a local build output (not committed). To regenerate it after editing a notebook:
-```bash
-.venv\Scripts\python scripts\export_pdf.py                                  # all notebooks + combined PDF
-.venv\Scripts\python scripts\export_pdf.py 01_clustering_algorithms.ipynb   # a single notebook
-.venv\Scripts\python scripts\export_pdf.py --combined-only                  # rebuild only the combined PDF
-```
-
----
-
-## Laboratory manual (local build)
-
-The formal lab manual (19 experiments across 12 parts, integrated mini project, appendices A–D; prepared by **Dr. Ohidujjaman Tuhin**, Associate Professor, Dept. of CSE, UIU) is typeset from the local `latex/` project — kept out of version control by design. To build its PDF:
-
-```bash
-cd latex
-latexmk main.tex
-```
-
-- **VS Code (LaTeX Workshop):** open `latex/main.tex` and Build with the default `latexmk` recipe.
-- **Overleaf:** upload the `latex/` folder and Recompile with the default compiler (pdfLaTeX).
-- Requires a full TeX Live installation (`libertinus`, `inconsolata`, `tcolorbox`, `titlesec`, `titletoc`, `microtype`, `placeins` — all standard).
