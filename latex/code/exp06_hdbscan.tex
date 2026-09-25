@@ -3,7 +3,7 @@
 % Source: notebooks/02_density_based_learning.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core numerical and plotting libraries}]
+\begin{codebox}[title={Core numerical and plotting libraries}]
 # ---- Core numerical and plotting libraries ----
 import numpy as np
 import pandas as pd
@@ -25,9 +25,9 @@ plt.rcParams['figure.dpi'] = 110
 
 np.random.seed(42)
 print("Density-based libraries loaded successfully!")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Load the real USGS earthquake catalogue (global, 2023)}]
+\begin{codebox}[title={Load the real USGS earthquake catalogue (global, 2023)}]
 # ---- Load the real USGS earthquake catalogue (global, 2023) ----
 df = pd.read_csv('../data/earthquakes.csv')
 print(f"Full catalogue (magnitude >= 4.0): {len(df):,} events")
@@ -43,9 +43,9 @@ print(f"\nAnalysed subset (magnitude >= 4.5): {len(quakes):,} events")
 X_rad = np.radians(quakes[['latitude', 'longitude']].values)
 print("Coordinate range (deg): lat", quakes.latitude.min(), "to", quakes.latitude.max(),
       "| lon", quakes.longitude.min(), "to", quakes.longitude.max())
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Fit HDBSCAN (no global epsilon required)}]
+\begin{codebox}[title={Fit HDBSCAN (no global epsilon required)}]
 # ---- Fit HDBSCAN (no global epsilon required) ----
 # min_cluster_size = smallest group considered a cluster; min_samples controls conservativeness.
 hdb = HDBSCAN(min_cluster_size=50, min_samples=10, metric='haversine', copy=False)
@@ -64,10 +64,10 @@ for k in range(n_clusters_hdb):
 
 noise_mask = hdb_labels == -1
 plt.scatter(quakes.longitude[noise_mask], quakes.latitude[noise_mask], s=6, color='black', marker='x', label='Noise (-1)')
-plt.title(f"HDBSCAN on Global Earthquakes 2023 ({n_clusters_hdb} clusters, no ε)", fontsize=13, fontweight='bold')
+plt.title(f"HDBSCAN on Global Earthquakes 2023 ({n_clusters_hdb} clusters, no eps)", fontsize=13, fontweight='bold')
 plt.xlabel("Longitude", fontsize=12)
 plt.ylabel("Latitude", fontsize=12)
 plt.legend(loc='lower left')
 plt.tight_layout()
 plt.show()
-\end{lstlisting}
+\end{codebox}

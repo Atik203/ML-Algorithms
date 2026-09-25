@@ -5,7 +5,9 @@
 \part{Semi-Supervised Learning}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 7: Self-training for Semi-supervised Learning}\label{exp:07}
+\chapter{Self-training for Semi-supervised Learning}\label{exp:07}
+
+\runninghead{Experiment 7: Self-training for Semi-supervised Learning}
 
 \quickfacts
   {Dataset}{Breast Cancer Wisconsin (569 $\times$ 30, binary); training set 398 samples with only 15\% labeled (61), 337 unlabeled}
@@ -50,25 +52,27 @@ expose \texttt{predict\_proba}, which is why the SVC is calibrated
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={Self-training with an RBF-kernel SVC}]
+\begin{codebox}[title={Self-training with an RBF-kernel SVC}]
 self_training_svc = SelfTrainingClassifier(
     estimator=SVC(kernel='rbf', probability=True, C=1.0, random_state=42),
     threshold=0.80, criterion='threshold', max_iter=15, verbose=True)
 self_training_svc.fit(X_train_full_scaled, y_train_semi)   # labels + unlabeled (-1)
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{Self-training compared with the supervised baseline and the fully supervised ceiling.}
-  \begin{tabular}{@{}lrrr@{}}
-    \toprule
-    \textbf{Setting} & \textbf{Accuracy} & \textbf{F1} & \textbf{Training samples} \\
-    \midrule
+  \begin{tabular}{|l|r|r|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Setting} & \textbf{Accuracy} & \textbf{F1} & \textbf{Training samples} \\
+    \hline
     Supervised baseline (15\% labeled) & 0.9298 & 0.9469 & 61 \\
+\hline
     Self-training (semi-supervised) & \best{0.9415} & \best{0.9554} & 382 \\
+\hline
     Fully supervised ceiling (100\%) & 0.9766 & 0.9813 & 398 \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -96,5 +100,6 @@ supervised model; the remaining gap is the cost of noisy pseudo-labels.
   enabled.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp07_selftraining}

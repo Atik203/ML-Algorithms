@@ -5,7 +5,9 @@
 \part{Clustering}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 1: K-means Clustering}\label{exp:01}
+\chapter{K-means Clustering}\label{exp:01}
+
+\runninghead{Experiment 1: K-means Clustering}
 
 \quickfacts
   {Dataset}{Mall Customers (\texttt{data/mall\_customers.csv}); 200 customers, 2 features (Annual Income, Spending Score)}
@@ -50,7 +52,7 @@ be standardized. $K$ itself must be chosen externally: the \emph{elbow} (inertia
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={Selecting K, then fitting the final K-means model}]
+\begin{codebox}[title={Selecting K, then fitting the final K-means model}]
 for k in range(2, 11):
     kmeans = KMeans(n_clusters=k, init='k-means++', n_init=10, random_state=42)
     kmeans.fit(X_mall_scaled)
@@ -59,7 +61,7 @@ for k in range(2, 11):
 
 kmeans_model = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
 kmeans_labels = kmeans_model.fit_predict(X_mall_scaled)
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 Both the elbow curve and the silhouette curve indicate $K = 5$ (Figure~\ref{fig:exp01-elbow}).
@@ -75,15 +77,18 @@ Both the elbow curve and the silhouette curve indicate $K = 5$ (Figure~\ref{fig:
 \begin{table}[htbp]
   \centering
   \caption{K-means evaluation on the standardized Mall Customers features.}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Metric} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Metric} & \textbf{Value} \\
+    \hline
     Selected $K$ (elbow + silhouette peak) & 5 \\
+\hline
     Silhouette score & \best{0.5547} \\
+\hline
     Davies--Bouldin index & 0.5722 \\
+\hline
     Calinski--Harabasz score & 248.65 \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -106,11 +111,14 @@ Davies--Bouldin $< 1$ confirms good separation.
   centroids out, reducing convergence to poor local optima and giving more stable inertia.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp01_kmeans}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 2: Modified K-means}\label{exp:02}
+\chapter{Modified K-means}\label{exp:02}
+
+\runninghead{Experiment 2: Modified K-means}
 
 \quickfacts
   {Dataset}{Mall Customers (200 $\times$ 2, standardized)}
@@ -155,28 +163,31 @@ is not a standard replacement for robust clustering methods.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={K-Means++ followed by the outlier-distance check}]
+\begin{codebox}[title={K-Means++ followed by the outlier-distance check}]
 km_mod = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
 mod_labels = km_mod.fit_predict(X_mall_scaled)
 
 dist_to_centroid = np.linalg.norm(X_mall_scaled - km_mod.cluster_centers_[mod_labels], axis=1)
 threshold = np.percentile(dist_to_centroid, 97)
 outlier_flag = dist_to_centroid > threshold
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{Modified K-means: outlier-distance check on the standardized features.}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Item} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Item} & \textbf{Value} \\
+    \hline
     Distance threshold (97th percentile) & 1.072 (standardized units) \\
+\hline
     Flagged candidate outliers & \best{6 of 200 (3\%)} \\
+\hline
     Cluster labels & identical to standard K-means \\
+\hline
     Silhouette / Davies--Bouldin (same partition) & 0.5547 / 0.5722 \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -197,11 +208,14 @@ is unchanged, which is expected: the modification adds an outlier interpretation
   axis, so elongated clusters can flag legitimate points and hide real outliers.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp02_modified_kmeans}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 3: Hierarchical Clustering}\label{exp:03}
+\chapter{Hierarchical Clustering}\label{exp:03}
+
+\runninghead{Experiment 3: Hierarchical Clustering}
 
 \quickfacts
   {Dataset}{Mall Customers (200 $\times$ 2, standardized)}
@@ -240,13 +254,13 @@ yields a flat partition with the desired number of clusters.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={Ward linkage, dendrogram and the final agglomerative model}]
+\begin{codebox}[title={Ward linkage, dendrogram and the final agglomerative model}]
 linkage_matrix = linkage(X_mall_scaled, method='ward')
 dendrogram(linkage_matrix, truncate_mode='lastp', p=25, show_contracted=True)
 
 agg_model = AgglomerativeClustering(n_clusters=5, metric='euclidean', linkage='ward')
 agg_labels = agg_model.fit_predict(X_mall_scaled)
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 The dendrogram (Figure~\ref{fig:exp03-dendro}) shows a clear large merge gap that supports
@@ -263,14 +277,16 @@ cutting at five clusters.
 \begin{table}[htbp]
   \centering
   \caption{Hierarchical (Ward) clustering evaluation on the standardized features.}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Metric} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Metric} & \textbf{Value} \\
+    \hline
     Silhouette score & 0.5538 \\
+\hline
     Davies--Bouldin index & 0.5779 \\
+\hline
     Calinski--Harabasz score & 244.41 \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -289,11 +305,14 @@ but requires no initialization and exposes the full merge hierarchy.
   variance.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp03_hierarchical}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 4: Fuzzy C-means}\label{exp:04}
+\chapter{Fuzzy C-means}\label{exp:04}
+
+\runninghead{Experiment 4: Fuzzy C-means}
 
 \quickfacts
   {Dataset}{Mall Customers (200 $\times$ 2, standardized); $K = 5$}
@@ -338,28 +357,31 @@ measures the fuzziness of the result ($1$ = completely hard, $1/K$ = maximally f
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={Core alternating updates of Fuzzy C-means}]
+\begin{codebox}[title={Core alternating updates of Fuzzy C-means}]
 Um = U ** self.m
 centers = np.dot(Um.T, X) / Um.sum(axis=0)[:, np.newaxis]
 dist = np.linalg.norm(X[:, np.newaxis, :] - centers[np.newaxis, :, :], axis=2) + 1e-10
 U = (1.0 / dist) ** (2.0 / (self.m - 1.0))
 U = U / U.sum(axis=1, keepdims=True)
 labels = np.argmax(U, axis=1)
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{Fuzzy C-means evaluation ($K = 5$, $m = 2.0$).}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Metric} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Metric} & \textbf{Value} \\
+    \hline
     Silhouette score (hard labels) & 0.5547 \\
+\hline
     Davies--Bouldin index & 0.5722 \\
+\hline
     Fuzzy Partition Coefficient (FPC) & \best{0.6711} \\
+\hline
     Iterations to convergence & fewer than 50 \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -386,5 +408,6 @@ partitions obtained in this part of the manual.
   belongs to each cluster; near-uniform values indicate an ambiguous point on a boundary.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp04_fuzzy_cmeans}

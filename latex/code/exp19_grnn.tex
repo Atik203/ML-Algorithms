@@ -3,7 +3,7 @@
 % Source: notebooks/11_generalized_regression_neural_network.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core libraries}]
+\begin{codebox}[title={Core libraries}]
 # ---- Core libraries ----
 import numpy as np
 import pandas as pd
@@ -21,9 +21,9 @@ plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
 plt.rcParams['figure.figsize'] = (10, 6)
 plt.rcParams['figure.dpi'] = 110
 np.random.seed(42)
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={GRNN class (from scratch)}]
+\begin{codebox}[title={GRNN class (from scratch)}]
 class GRNN(BaseEstimator, RegressorMixin):
     """
     Generalized Regression Neural Network (Specht, 1991) - vectorized implementation.
@@ -68,9 +68,9 @@ class GRNN(BaseEstimator, RegressorMixin):
 
 
 print("Custom vectorized GRNN class defined!")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Load the real motorcycle impact data (MASS::mcycle)}]
+\begin{codebox}[title={Load the real motorcycle impact data (MASS::mcycle)}]
 # ---- Load the real motorcycle impact data (MASS::mcycle) ----
 moto = pd.read_csv('../data/motorcycle.csv')
 X = StandardScaler().fit_transform(moto['times'].values.reshape(-1, 1))  # time after impact (scaled)
@@ -93,19 +93,19 @@ for ax, sig, col in zip(axes, sigmas, colors):
     ax.scatter(X, y, color='navy', s=25, alpha=0.6, label='Observations')
     ax.plot(X_eval, y_pred_demo, color=col, lw=2.5, label=rf'GRNN ($\sigma={sig}$)')
 
-    # Training R² shows the bias-variance behavior for each sigma
+    # Training R2 shows the bias-variance behavior for each sigma
     r2 = r2_score(y, grnn_demo.predict(X))
     ax.set_title(rf"Smoothing $\sigma = {sig}$ (Train $R^2 = {r2:.3f}$)", fontweight='bold')
     ax.set_xlabel("Time after impact (standardized)")
     ax.set_ylabel("Head acceleration (g)")
     ax.legend(loc='lower right')
 
-plt.suptitle("GRNN Behavior on Real Motorcycle Impact Data (σ sweep)", fontsize=15, fontweight='bold')
+plt.suptitle("GRNN Behavior on Real Motorcycle Impact Data (sigma sweep)", fontsize=15, fontweight='bold')
 plt.tight_layout()
 plt.show()
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={5-fold CV grid search for the optimal smoothing sigma}]
+\begin{codebox}[title={5-fold CV grid search for the optimal smoothing sigma}]
 # ---- 5-fold CV grid search for the optimal smoothing sigma ----
 sigma_candidates = np.linspace(0.02, 1.0, 50)
 cv_scores = []
@@ -127,28 +127,28 @@ for sig in sigma_candidates:
 
 best_idx = np.argmin(cv_scores)
 best_sigma = sigma_candidates[best_idx]
-print(f"Optimal Smoothing Parameter σ: {best_sigma:.3f} (CV RMSE: {cv_scores[best_idx]:.4f} g)")
+print(f"Optimal Smoothing Parameter sigma: {best_sigma:.3f} (CV RMSE: {cv_scores[best_idx]:.4f} g)")
 
 # ---- Plot the CV error curve and mark the optimum ----
 plt.figure(figsize=(9, 4.5))
 plt.plot(sigma_candidates, cv_scores, 'b-', lw=2.2)
-plt.axvline(x=best_sigma, color='crimson', linestyle='--', label=f'Optimal σ = {best_sigma:.3f}')
-plt.title("5-Fold Cross-Validation Error vs Smoothing Parameter (σ)", fontsize=13, fontweight='bold')
-plt.xlabel("Smoothing Parameter (σ)", fontsize=11)
+plt.axvline(x=best_sigma, color='crimson', linestyle='--', label=f'Optimal sigma = {best_sigma:.3f}')
+plt.title("5-Fold Cross-Validation Error vs Smoothing Parameter (sigma)", fontsize=13, fontweight='bold')
+plt.xlabel("Smoothing Parameter (sigma)", fontsize=11)
 plt.ylabel("Cross-Validation RMSE (g)", fontsize=11)
 plt.legend()
 plt.tight_layout()
 plt.show()
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Final model: refit with the CV-selected sigma and evaluate on a held-out split}]
+\begin{codebox}[title={Final model: refit with the CV-selected sigma and evaluate on a held-out split}]
 # ---- Final model: refit with the CV-selected sigma and evaluate on a held-out split ----
 X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.25, random_state=42)
 final_model = GRNN(sigma=best_sigma).fit(X_tr, y_tr)
 y_hat = final_model.predict(X_te)
 
 print(f"Final GRNN with CV-selected sigma = {best_sigma:.3f}")
-print(f" - Train R²:  {r2_score(y_tr, final_model.predict(X_tr)):.4f}")
-print(f" - Test R²:   {r2_score(y_te, y_hat):.4f}")
+print(f" - Train R2:  {r2_score(y_tr, final_model.predict(X_tr)):.4f}")
+print(f" - Test R2:   {r2_score(y_te, y_hat):.4f}")
 print(f" - Test RMSE: {root_mean_squared_error(y_te, y_hat):.4f} g")
-\end{lstlisting}
+\end{codebox}

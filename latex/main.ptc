@@ -9,6 +9,7 @@
 \contentsline {chapter}{Laboratory Guidelines}{xi}{section*.18}%
 \contentsline {chapter}{Minimum Report Format}{xii}{section*.20}%
 \contentsline {chapter}{Recommended Evaluation Metrics}{xiii}{section*.22}%
+\ttl@starttoc {parts@1}
 \contentsline {part}{I\hspace {1em}Clustering}{1}{part.1}%
 \contentsline {chapter}{\numberline {1}K-means Clustering}{2}{chapter.1}%
 \contentsline {section}{Objective}{2}{section*.23}%
@@ -50,6 +51,8 @@
 \contentsline {section}{Evaluation / Expected Output}{16}{section*.61}%
 \contentsline {section}{Viva / Discussion Questions}{16}{section*.64}%
 \contentsline {section}{Complete Code Listing}{17}{section*.65}%
+\ttl@stoptoc {parts@1}
+\ttl@starttoc {parts@2}
 \contentsline {part}{II\hspace {1em}Density-Based Learning}{21}{part.2}%
 \contentsline {chapter}{\numberline {5}DBSCAN}{22}{chapter.5}%
 \contentsline {section}{Objective}{22}{section*.66}%
@@ -71,6 +74,8 @@
 \contentsline {section}{Evaluation / Expected Output}{29}{section*.85}%
 \contentsline {section}{Viva / Discussion Questions}{29}{section*.88}%
 \contentsline {section}{Complete Code Listing}{30}{section*.89}%
+\ttl@stoptoc {parts@2}
+\ttl@starttoc {parts@3}
 \contentsline {part}{III\hspace {1em}Semi-Supervised Learning}{32}{part.3}%
 \contentsline {chapter}{\numberline {7}Self-training for Semi-supervised Learning}{33}{chapter.7}%
 \contentsline {section}{Objective}{33}{section*.90}%
@@ -82,6 +87,8 @@
 \contentsline {section}{Evaluation / Expected Output}{34}{section*.96}%
 \contentsline {section}{Viva / Discussion Questions}{34}{section*.98}%
 \contentsline {section}{Complete Code Listing}{35}{section*.99}%
+\ttl@stoptoc {parts@3}
+\ttl@starttoc {parts@4}
 \contentsline {part}{IV\hspace {1em}Ensemble Learning}{39}{part.4}%
 \contentsline {chapter}{\numberline {8}Random Forest Regression (RFR)}{40}{chapter.8}%
 \contentsline {section}{Objective}{40}{section*.100}%
@@ -133,6 +140,8 @@
 \contentsline {section}{Evaluation / Expected Output}{57}{section*.146}%
 \contentsline {section}{Viva / Discussion Questions}{57}{section*.148}%
 \contentsline {section}{Complete Code Listing}{57}{section*.149}%
+\ttl@stoptoc {parts@4}
+\ttl@starttoc {parts@5}
 \contentsline {part}{V\hspace {1em}Neural Networks: Multilayer Perceptron}{60}{part.5}%
 \contentsline {chapter}{\numberline {13}Multilayer Perceptron (MLP)}{61}{chapter.13}%
 \contentsline {section}{Objective}{61}{section*.150}%
@@ -144,6 +153,8 @@
 \contentsline {section}{Evaluation / Expected Output}{62}{section*.156}%
 \contentsline {section}{Viva / Discussion Questions}{62}{section*.159}%
 \contentsline {section}{Complete Code Listing}{63}{section*.160}%
+\ttl@stoptoc {parts@5}
+\ttl@starttoc {parts@6}
 \contentsline {part}{VI\hspace {1em}Sequence Modeling: Recurrent Neural Networks}{69}{part.6}%
 \contentsline {chapter}{\numberline {14}Recurrent Neural Network (RNN)}{70}{chapter.14}%
 \contentsline {section}{Objective}{70}{section*.161}%
@@ -155,6 +166,8 @@
 \contentsline {section}{Evaluation / Expected Output}{71}{section*.167}%
 \contentsline {section}{Viva / Discussion Questions}{72}{section*.171}%
 \contentsline {section}{Complete Code Listing}{72}{section*.172}%
+\ttl@stoptoc {parts@6}
+\ttl@starttoc {parts@7}
 \contentsline {part}{VII\hspace {1em}Unsupervised Neural Learning: Self-Organizing Maps}{78}{part.7}%
 \contentsline {chapter}{\numberline {15}Self-Organizing Map (SOM)}{79}{chapter.15}%
 \contentsline {section}{Objective}{79}{section*.173}%
@@ -166,6 +179,8 @@
 \contentsline {section}{Evaluation / Expected Output}{80}{section*.179}%
 \contentsline {section}{Viva / Discussion Questions}{81}{section*.182}%
 \contentsline {section}{Complete Code Listing}{81}{section*.183}%
+\ttl@stoptoc {parts@7}
+\ttl@starttoc {parts@8}
 \contentsline {part}{VIII\hspace {1em}Probabilistic Sequence Modeling: Hidden Markov Models}{84}{part.8}%
 \contentsline {chapter}{\numberline {16}Hidden Markov Model (HMM)}{85}{chapter.16}%
 \contentsline {section}{Objective}{85}{section*.184}%
@@ -177,6 +192,8 @@
 \contentsline {section}{Evaluation / Expected Output}{86}{section*.190}%
 \contentsline {section}{Viva / Discussion Questions}{86}{section*.194}%
 \contentsline {section}{Complete Code Listing}{87}{section*.195}%
+\ttl@stoptoc {parts@8}
+\ttl@starttoc {parts@9}
 \contentsline {part}{IX\hspace {1em}Margin-Based Learning: Support Vector Machines}{90}{part.9}%
 \contentsline {chapter}{\numberline {17}Support Vector Machine (SVM)}{91}{chapter.17}%
 \contentsline {section}{Objective}{91}{section*.196}%
@@ -188,6 +205,8 @@
 \contentsline {section}{Evaluation / Expected Output}{92}{section*.202}%
 \contentsline {section}{Viva / Discussion Questions}{92}{section*.206}%
 \contentsline {section}{Complete Code Listing}{93}{section*.207}%
+\ttl@stoptoc {parts@9}
+\ttl@starttoc {parts@10}
 \contentsline {part}{X\hspace {1em}Generative / Foundation Models: Large Language Models}{97}{part.10}%
 \contentsline {chapter}{\numberline {18}Large Language Model (LLM) Experiment}{98}{chapter.18}%
 \contentsline {section}{Objective}{98}{section*.208}%
@@ -199,6 +218,8 @@
 \contentsline {section}{Evaluation / Expected Output}{99}{section*.214}%
 \contentsline {section}{Viva / Discussion Questions}{99}{section*.216}%
 \contentsline {section}{Complete Code Listing}{100}{section*.217}%
+\ttl@stoptoc {parts@10}
+\ttl@starttoc {parts@11}
 \contentsline {part}{XI\hspace {1em}Non-Parametric Regression: Generalized Regression Neural Network}{105}{part.11}%
 \contentsline {chapter}{\numberline {19}Generalized Regression Neural Network (GRNN)}{106}{chapter.19}%
 \contentsline {section}{Objective}{106}{section*.218}%
@@ -210,6 +231,8 @@
 \contentsline {section}{Evaluation / Expected Output}{107}{section*.224}%
 \contentsline {section}{Viva / Discussion Questions}{108}{section*.228}%
 \contentsline {section}{Complete Code Listing}{108}{section*.229}%
+\ttl@stoptoc {parts@11}
+\ttl@starttoc {parts@12}
 \contentsline {part}{XII\hspace {1em}Integrated Mini Project and Appendices}{112}{part.12}%
 \contentsline {chapter}{Integrated Mini Project: Comparative Machine Learning Study}{113}{section*.231}%
 \contentsline {section}{Objective}{113}{section*.232}%

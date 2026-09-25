@@ -5,7 +5,9 @@
 \part{Neural Networks: Multilayer Perceptron}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 13: Multilayer Perceptron (MLP)}\label{exp:13}
+\chapter{Multilayer Perceptron (MLP)}\label{exp:13}
+
+\runninghead{Experiment 13: Multilayer Perceptron (MLP)}
 
 \quickfacts
   {Dataset}{Digits (scikit-learn): 1,797 samples, 8$\times$8 images (64 features), 10 classes; 70/15/15 split}
@@ -50,7 +52,7 @@ stop training when validation performance stalls.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={The two MLP architectures}]
+\begin{codebox}[title={The two MLP architectures}]
 mlp_sklearn = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam',
                             alpha=0.001, batch_size=64, learning_rate_init=0.005,
                             max_iter=150, early_stopping=True, validation_fraction=0.15)
@@ -59,19 +61,20 @@ self.net = nn.Sequential(
     nn.Linear(64, 128), nn.BatchNorm1d(128), nn.ReLU(), nn.Dropout(0.25),
     nn.Linear(128, 64), nn.BatchNorm1d(64),  nn.ReLU(), nn.Dropout(0.20),
     nn.Linear(64, 10))
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{MLP implementations on the digits test set (270 images).}
-  \begin{tabular}{@{}lrl@{}}
-    \toprule
-    \textbf{Model} & \textbf{Test accuracy} & \textbf{Notes} \\
-    \midrule
+  \begin{tabular}{|l|r|l|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Model} & \textbf{Test accuracy} & \textbf{Notes} \\
+    \hline
     Scikit-learn MLP (128--64) & 0.9630 & early stopping after 15 iterations \\
+\hline
     PyTorch deep MLP & \best{0.9815} & GPU (CUDA), 50 epochs, validation accuracy 0.9889 \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -103,5 +106,6 @@ over more epochs.
   training; the scikit-learn model stops early at iteration 15.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp13_mlp}

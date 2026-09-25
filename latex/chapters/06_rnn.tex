@@ -5,7 +5,9 @@
 \part{Sequence Modeling: Recurrent Neural Networks}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 14: Recurrent Neural Network (RNN)}\label{exp:14}
+\chapter{Recurrent Neural Network (RNN)}\label{exp:14}
+
+\runninghead{Experiment 14: Recurrent Neural Network (RNN)}
 
 \quickfacts
   {Dataset}{Synthetic 20-step sequences (1,200; label = positive sum) and Monthly Airline Passengers (12-month windows)}
@@ -50,38 +52,40 @@ $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$, which lets gradients flow acr
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={Recurrent model definitions (classification and forecasting)}]
+\begin{codebox}[title={Recurrent model definitions (classification and forecasting)}]
 self.rnn = nn.RNN(1, hidden, batch_first=True) if cell == 'rnn' else nn.LSTM(1, hidden, batch_first=True)
 self.fc = nn.Linear(hidden, 1)          # classification output
 
 self.lstm = nn.LSTM(input_size=1, hidden_size=64, num_layers=2, batch_first=True)
 self.fc = nn.Linear(64, 1)              # forecasting output
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{Sequence classification on the synthetic benchmark (200 test sequences).}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Model} & \textbf{Test accuracy} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Model} & \textbf{Test accuracy} \\
+    \hline
     Vanilla RNN & 0.9300 \\
+\hline
     LSTM & \best{0.9450} \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
 \begin{table}[htbp]
   \centering
   \caption{Airline passenger forecasting on the chronological test horizon (27 windows).}
-  \begin{tabular}{@{}lrr@{}}
-    \toprule
-    \textbf{Model} & \textbf{RMSE (passengers)} & \textbf{MAE} \\
-    \midrule
+  \begin{tabular}{|l|r|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Model} & \textbf{RMSE (passengers)} & \textbf{MAE} \\
+    \hline
     Vanilla RNN & 69.93 & 62.36 \\
+\hline
     LSTM & \best{44.12} & \best{36.78} \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -111,5 +115,6 @@ synthetic benchmark both models do well because the decision rule (sum $> 0$) is
   values into training and produce an optimistic, invalid evaluation.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp14_rnn}

@@ -3,7 +3,7 @@
 % Source: notebooks/06_recurrent_neural_network.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core numerical and plotting libraries}]
+\begin{codebox}[title={Core numerical and plotting libraries}]
 # ---- Core numerical and plotting libraries ----
 import numpy as np
 import pandas as pd
@@ -73,9 +73,9 @@ train_loader = DataLoader(
     batch_size=16,
     shuffle=True
 )
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Vanilla RNN and LSTM model definitions}]
+\begin{codebox}[title={Vanilla RNN and LSTM model definitions}]
 class VanillaRNN(nn.Module):
     """Elman RNN: 2 stacked recurrent layers + a linear output layer."""
     def __init__(self, input_size=1, hidden_size=64, num_layers=2):
@@ -104,9 +104,9 @@ class LSTMModel(nn.Module):
 rnn_model = VanillaRNN().to(device)
 lstm_model = LSTMModel().to(device)
 print("Models instantiated successfully!")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Generic training function shared by both architectures}]
+\begin{codebox}[title={Generic training function shared by both architectures}]
 # ---- Generic training function shared by both architectures ----
 def train_model(model, loader, epochs=120, lr=0.005):
     criterion = nn.MSELoss()                          # regression -> mean squared error
@@ -139,9 +139,9 @@ rnn_losses = train_model(rnn_model, train_loader, epochs=120, lr=0.005)
 print("Training LSTM Model...")
 lstm_losses = train_model(lstm_model, train_loader, epochs=120, lr=0.005)
 print("Training completed!")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Evaluate both models on the test horizon}]
+\begin{codebox}[title={Evaluate both models on the test horizon}]
 # ---- Evaluate both models on the test horizon ----
 rnn_model.eval()
 lstm_model.eval()
@@ -196,9 +196,9 @@ plt.ylabel("Number of Passengers", fontsize=12)
 plt.legend()
 plt.tight_layout()
 plt.show()
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Sequence classification benchmark (manual experiment)}]
+\begin{codebox}[title={Sequence classification benchmark (manual experiment)}]
 # ---- Sequence classification benchmark (manual experiment) ----
 rng = np.random.default_rng(42)
 X_cls = rng.normal(size=(1200, 20, 1)).astype("float32")
@@ -242,4 +242,4 @@ def train_classifier(model, epochs=10):
 acc_rnn_cls = train_classifier(RNNClassifier('rnn'))
 acc_lstm_cls = train_classifier(RNNClassifier('lstm'))
 print(f"Sequence classification test accuracy: Vanilla RNN {acc_rnn_cls:.4f} | LSTM {acc_lstm_cls:.4f}")
-\end{lstlisting}
+\end{codebox}

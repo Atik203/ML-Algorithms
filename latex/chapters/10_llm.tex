@@ -5,7 +5,9 @@
 \part{Generative / Foundation Models: Large Language Models}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 18: Large Language Model (LLM) Experiment}\label{exp:18}
+\chapter{Large Language Model (LLM) Experiment}\label{exp:18}
+
+\runninghead{Experiment 18: Large Language Model (LLM) Experiment}
 
 \quickfacts
   {Dataset}{SMS Spam Collection (\texttt{data/sms\_spam.csv}, 5,572 messages; balanced subset 400 train / 200 test) + DistilBERT / DistilGPT2}
@@ -51,7 +53,7 @@ and trains briefly with a small learning rate.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={Inference pipeline and the fine-tuning loop}]
+\begin{codebox}[title={Inference pipeline and the fine-tuning loop}]
 classifier = pipeline("sentiment-analysis", model=model_id,
                       device=0 if torch.cuda.is_available() else -1)
 
@@ -60,20 +62,22 @@ ft_model = AutoModelForSequenceClassification.from_pretrained(model_id, num_labe
 optimizer = torch.optim.AdamW(ft_model.parameters(), lr=5e-5)
 outputs = ft_model(input_ids=ids, attention_mask=mask, labels=labels)
 outputs.loss.backward(); optimizer.step()
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{DistilBERT fine-tuned on the SMS Spam Collection (200 held-out messages).}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Item} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Item} & \textbf{Value} \\
+    \hline
     Fine-tune loss (epoch 1 $\rightarrow$ 2) & 0.705 $\rightarrow$ 0.079 \\
+\hline
     Held-out accuracy & \best{0.9600} \\
+\hline
     Held-out F1 (spam) & \best{0.9592} \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -104,5 +108,6 @@ small and can hallucinate, and prompts/data must be fixed for reproducibility.
   reported.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp18_llm}

@@ -3,7 +3,7 @@
 % Source: notebooks/05_multilayer_perceptron.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core numerical and plotting libraries}]
+\begin{codebox}[title={Core numerical and plotting libraries}]
 # ---- Core numerical and plotting libraries ----
 import numpy as np
 import pandas as pd
@@ -63,9 +63,9 @@ X_test_scaled = scaler.transform(X_test)
 print(f"Training samples:   {X_train_scaled.shape[0]}")
 print(f"Validation samples: {X_val_scaled.shape[0]}")
 print(f"Test samples:       {X_test_scaled.shape[0]}")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Scikit-Learn MLPClassifier: 64 -> 128 -> 64 -> 10}]
+\begin{codebox}[title={Scikit-Learn MLPClassifier: 64 -> 128 -> 64 -> 10}]
 # ---- Scikit-Learn MLPClassifier: 64 -> 128 -> 64 -> 10 ----
 mlp_sklearn = MLPClassifier(
     hidden_layer_sizes=(128, 64),   # two hidden layers
@@ -102,9 +102,9 @@ plt.ylabel("Loss", fontsize=11)
 plt.legend()
 plt.tight_layout()
 plt.show()
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Convert scaled NumPy arrays into PyTorch tensors + DataLoaders}]
+\begin{codebox}[title={Convert scaled NumPy arrays into PyTorch tensors + DataLoaders}]
 # ---- Convert scaled NumPy arrays into PyTorch tensors + DataLoaders ----
 train_dataset = TensorDataset(torch.tensor(X_train_scaled, dtype=torch.float32), torch.tensor(y_train, dtype=torch.long))
 val_dataset   = TensorDataset(torch.tensor(X_val_scaled, dtype=torch.float32),   torch.tensor(y_val, dtype=torch.long))
@@ -141,9 +141,9 @@ class DeepMLP(nn.Module):
 
 model = DeepMLP().to(device)   # move all parameters to CPU/GPU
 print(model)
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Training configuration}]
+\begin{codebox}[title={Training configuration}]
 # ---- Training configuration ----
 criterion = nn.CrossEntropyLoss()                                            # softmax + NLL loss
 optimizer = optim.Adam(model.parameters(), lr=0.003, weight_decay=1e-4)      # weight decay = L2
@@ -203,9 +203,9 @@ for epoch in range(epochs):
         print(f"Epoch [{epoch+1:02d}/{epochs}] "
               f"Train Loss: {epoch_train_loss:.4f} | Train Acc: {epoch_train_acc:.4f} || "
               f"Val Loss: {epoch_val_loss:.4f} | Val Acc: {epoch_val_acc:.4f}")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Final evaluation on the held-out test set}]
+\begin{codebox}[title={Final evaluation on the held-out test set}]
 # ---- Final evaluation on the held-out test set ----
 model.eval()
 test_preds = []
@@ -224,4 +224,4 @@ print(f"PyTorch Deep MLP Test Accuracy: {acc_pytorch:.4f}\n")
 print("Detailed Classification Report:")
 # Per-class precision/recall/F1 for all 10 digits
 print(classification_report(test_targets, test_preds, digits=4))
-\end{lstlisting}
+\end{codebox}

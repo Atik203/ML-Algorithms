@@ -5,7 +5,9 @@
 \part{Unsupervised Neural Learning: Self-Organizing Maps}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 15: Self-Organizing Map (SOM)}\label{exp:15}
+\chapter{Self-Organizing Map (SOM)}\label{exp:15}
+
+\runninghead{Experiment 15: Self-Organizing Map (SOM)}
 
 \quickfacts
   {Dataset}{UCI Wine: 178 samples, 13 chemical features, 3 cultivars (labels used only for visualization)}
@@ -54,26 +56,28 @@ boundaries as ridges of high inter-neuron distance.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={Creating, initializing and training the Kohonen map}]
+\begin{codebox}[title={Creating, initializing and training the Kohonen map}]
 som = MiniSom(x=12, y=12, input_len=13, sigma=1.5, learning_rate=0.5,
               neighborhood_function='gaussian', random_seed=42)
 som.pca_weights_init(X)
 som.train_random(data=X, num_iteration=5000)
 qe = som.quantization_error(X); te = som.topographic_error(X)
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{SOM quality metrics on the Wine data.}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Metric} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Metric} & \textbf{Value} \\
+    \hline
     Initial quantization error & 0.4447 \\
+\hline
     Final quantization error & \best{0.1965} \\
+\hline
     Topographic error & \best{0.0393} ($\approx$ 4\% foldings) \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -105,5 +109,6 @@ structure discovery. PCA initialization gave a well-unfolded map from the start.
   convergence.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp15_som}

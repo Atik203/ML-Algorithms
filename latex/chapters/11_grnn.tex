@@ -5,7 +5,9 @@
 \part{Non-Parametric Regression: Generalized Regression Neural Network}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 19: Generalized Regression Neural Network (GRNN)}\label{exp:19}
+\chapter{Generalized Regression Neural Network (GRNN)}\label{exp:19}
+
+\runninghead{Experiment 19: Generalized Regression Neural Network (GRNN)}
 
 \quickfacts
   {Dataset}{Real motorcycle impact data (\texttt{data/motorcycle.csv}, R \texttt{MASS::mcycle}); 133 observations, time vs head acceleration}
@@ -52,26 +54,29 @@ variance), large values over-smooth (high bias).
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={GRNN prediction: pattern, summation and output layers}]
+\begin{codebox}[title={GRNN prediction: pattern, summation and output layers}]
 kernels = np.exp(-dist_sq / (2.0 * self.sigma ** 2))   # pattern layer
 D = np.sum(kernels, axis=1)                            # denominator
 S = np.dot(kernels, self.y_train_)                     # numerator
 return S / np.where(D < 1e-12, 1e-12, D)               # output layer
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{GRNN on the real motorcycle impact data (133 observations).}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Item} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Item} & \textbf{Value} \\
+    \hline
     CV-selected $\sigma$ & 0.080 (CV RMSE 25.00 g) \\
+\hline
     Train $R^2$ & 0.8073 \\
+\hline
     Test $R^2$ & \best{0.7255} \\
+\hline
     Test RMSE & 22.78 g (acceleration range $-134 \ldots +75$ g) \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -114,5 +119,6 @@ polynomial regression would improve it.
   polynomial (LOESS) regression, or feature scaling plus anisotropic kernels.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp19_grnn}

@@ -3,7 +3,7 @@
 % Source: notebooks/04_ensemble_learning.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core libraries}]
+\begin{codebox}[title={Core libraries}]
 # ---- Core libraries ----
 import numpy as np
 import pandas as pd
@@ -24,9 +24,9 @@ plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
 plt.rcParams['figure.figsize'] = (10, 6)
 plt.rcParams['figure.dpi'] = 110
 np.random.seed(42)
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Load the Heart Disease dataset (real-world classification benchmark)}]
+\begin{codebox}[title={Load the Heart Disease dataset (real-world classification benchmark)}]
 # ---- Load the Heart Disease dataset (real-world classification benchmark) ----
 df_clf = pd.read_csv('../data/heart_disease.csv')
 print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
@@ -60,9 +60,9 @@ f1_rfc = f1_score(y_test_clf, y_pred_rfc)
 auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
 
 print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={AdaBoost classification}]
+\begin{codebox}[title={AdaBoost classification}]
 # ---- AdaBoost classification ----
 ada_clf = AdaBoostClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
 ada_clf.fit(X_train_clf, y_train_clf)
@@ -74,4 +74,4 @@ acc_ada_c = accuracy_score(y_test_clf, y_pred_ada_c)
 f1_ada_c = f1_score(y_test_clf, y_pred_ada_c)
 auc_ada_c = roc_auc_score(y_test_clf, y_prob_ada_c)
 print(f"AdaBoost Classifier:  Accuracy = {acc_ada_c:.4f}, F1 = {f1_ada_c:.4f}, ROC-AUC = {auc_ada_c:.4f}")
-\end{lstlisting}
+\end{codebox}

@@ -3,7 +3,7 @@
 % Source: notebooks/10_large_language_model.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core numerical and plotting libraries}]
+\begin{codebox}[title={Core numerical and plotting libraries}]
 # ---- Core numerical and plotting libraries ----
 import os
 import numpy as np
@@ -37,9 +37,9 @@ torch.manual_seed(42)
 torch.cuda.manual_seed_all(42)  # reproducible GPU training
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # GPU if available
 print(f"PyTorch on {device}")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Load a pre-trained DistilBERT tokenizer (fast, subword/WordPiece based)}]
+\begin{codebox}[title={Load a pre-trained DistilBERT tokenizer (fast, subword/WordPiece based)}]
 # ---- Load a pre-trained DistilBERT tokenizer (fast, subword/WordPiece based) ----
 model_id = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
 print(f"Loading Tokenizer: {model_id}...")
@@ -61,9 +61,9 @@ print(f"Original Text: {sample_text}\n")
 print(f"Subword Tokens ({len(tokens)}):\n", tokens)
 print(f"Input IDs:      \n", encoded['input_ids'][0].tolist())
 print(f"Attention Mask: \n", encoded['attention_mask'][0].tolist())
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Load a pre-trained sentiment-analysis pipeline (DistilBERT SST-2)}]
+\begin{codebox}[title={Load a pre-trained sentiment-analysis pipeline (DistilBERT SST-2)}]
 # ---- Load a pre-trained sentiment-analysis pipeline (DistilBERT SST-2) ----
 classifier = pipeline("sentiment-analysis", model=model_id, device=0 if torch.cuda.is_available() else -1)
 
@@ -88,9 +88,9 @@ for sent, pred in zip(test_sentences, predictions):
 
 df_preds = pd.DataFrame(results_table)
 display(df_preds)
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Load a small causal LM (DistilGPT2) for text generation}]
+\begin{codebox}[title={Load a small causal LM (DistilGPT2) for text generation}]
 # ---- Load a small causal LM (DistilGPT2) for text generation ----
 gen_model_id = "distilbert/distilgpt2"
 print(f"Loading Text Generator: {gen_model_id}...")
@@ -113,9 +113,9 @@ sampled_output = generator(
 print(f"PROMPT: '{prompt}'\n")
 print(f"--- 1. GREEDY SEARCH OUTPUT ---\n{greedy_output.strip()}\n")
 print(f"--- 2. NUCLEUS SAMPLING (T=0.7, p=0.9) OUTPUT ---\n{sampled_output.strip()}")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Real dataset: SMS Spam Collection (5,572 labeled messages)}]
+\begin{codebox}[title={Real dataset: SMS Spam Collection (5,572 labeled messages)}]
 # ---- Real dataset: SMS Spam Collection (5,572 labeled messages) ----
 sms = pd.read_csv('../data/sms_spam.csv')
 sms['y'] = (sms['label'] == 'spam').astype(int)
@@ -154,9 +154,9 @@ ft_model.to(device)
 optimizer = torch.optim.AdamW(ft_model.parameters(), lr=5e-5)  # small LR for fine-tuning
 
 print("Pre-trained Transformer loaded for fine-tuning!")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Fine-tuning loop (2 epochs on 400 real SMS messages)}]
+\begin{codebox}[title={Fine-tuning loop (2 epochs on 400 real SMS messages)}]
 # ---- Fine-tuning loop (2 epochs on 400 real SMS messages) ----
 epochs = 2
 ft_model.train()
@@ -183,9 +183,9 @@ for epoch in range(epochs):
     avg_loss = running_loss / len(train_df)
     epoch_losses.append(avg_loss)
     print(f"Epoch [{epoch+1}/{epochs}] Fine-Tuning Loss: {avg_loss:.4f}")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Evaluate the fine-tuned model on held-out real SMS messages}]
+\begin{codebox}[title={Evaluate the fine-tuned model on held-out real SMS messages}]
 # ---- Evaluate the fine-tuned model on held-out real SMS messages ----
 ft_model.eval()
 preds, targets = [], []
@@ -211,4 +211,4 @@ with torch.no_grad():
         probs = torch.softmax(ft_model(**enc).logits, dim=1).cpu().numpy()[0]
         print(f"\nMessage: {message[:75]}...")
         print(f"True: {labels_map[test_df.y.iloc[i]]} | Predicted: {labels_map[probs.argmax()]} ({probs.max()*100:.1f}%)")
-\end{lstlisting}
+\end{codebox}

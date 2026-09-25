@@ -5,7 +5,9 @@
 \part{Probabilistic Sequence Modeling: Hidden Markov Models}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 16: Hidden Markov Model (HMM)}\label{exp:16}
+\chapter{Hidden Markov Model (HMM)}\label{exp:16}
+
+\runninghead{Experiment 16: Hidden Markov Model (HMM)}
 
 \quickfacts
   {Dataset}{DAX stock index 1991--1998 (\texttt{data/stock\_index.csv}, real \texttt{EuStockMarkets}); 1,859 trading days}
@@ -50,25 +52,27 @@ forward--backward E-step with parameter re-estimation until the log-likelihood c
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={Fitting, decoding and volatility-sorting the HMM}]
+\begin{codebox}[title={Fitting, decoding and volatility-sorting the HMM}]
 hmm_model = GaussianHMM(n_components=3, covariance_type="full", n_iter=200, random_state=42)
 hmm_model.fit(returns)
 hidden_states = hmm_model.predict(returns)                 # Viterbi
 state_order = np.argsort([np.sqrt(hmm_model.covars_[i][0][0]) for i in range(3)])
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{Gaussian HMM on the DAX index (1,859 trading days, 1991--1998).}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Item} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Item} & \textbf{Value} \\
+    \hline
     EM converged & True \\
+\hline
     Model log-likelihood & \best{6019.79} \\
+\hline
     Regimes & Bull (low vol), Sideways (medium), Bear (high vol) \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -109,5 +113,6 @@ such as $t$-emissions or semi-Markov models.
   and violate the Gaussian emission assumption.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp16_hmm}

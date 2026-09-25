@@ -5,7 +5,9 @@
 \part{Density-Based Learning}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 5: DBSCAN}\label{exp:05}
+\chapter{DBSCAN}\label{exp:05}
+
+\runninghead{Experiment 5: DBSCAN}
 
 \quickfacts
   {Dataset}{USGS earthquakes 2023 (\texttt{data/earthquakes.csv}); 7,638 events with magnitude $\ge$ 4.5}
@@ -49,44 +51,51 @@ vary. Because latitude/longitude are spherical coordinates, the \textbf{haversin
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={$\varepsilon$ from the $k$-distance knee, then DBSCAN with the haversine metric}]
+\begin{codebox}[title={$\varepsilon$ from the $k$-distance knee, then DBSCAN with the haversine metric}]
 X_rad = np.radians(quakes[['latitude', 'longitude']].values)
 nbrs = NearestNeighbors(n_neighbors=10, metric='haversine').fit(X_rad)
 k_distances = np.sort(nbrs.kneighbors(X_rad)[0][:, -1])   # knee ~0.03 rad
 
 dbscan = DBSCAN(eps=0.03, min_samples=10, metric='haversine')
 db_labels = dbscan.fit_predict(X_rad)
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{DBSCAN parameter sensitivity (\texttt{min\_samples} = 10).}
-  \begin{tabular}{@{}lrrr@{}}
-    \toprule
-    \textbf{$\varepsilon$ (rad)} & \textbf{approx.\ km} & \textbf{clusters} & \textbf{noise} \\
-    \midrule
+  \begin{tabular}{|l|r|r|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{$\varepsilon$ (rad)} & \textbf{approx.\ km} & \textbf{clusters} & \textbf{noise} \\
+    \hline
     0.02 & 127 & 70 & 21.2\% \\
+\hline
     \best{0.03 (selected)} & \best{191} & \best{55} & \best{13.5\%} \\
+\hline
     0.05 & 319 & 50 & 5.7\% \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
 \begin{table}[htbp]
   \centering
   \caption{Largest DBSCAN clusters and their dominant region (real-world validation).}
-  \begin{tabular}{@{}lrrl@{}}
-    \toprule
-    \textbf{Cluster} & \textbf{Events} & \textbf{Center lat/lon} & \textbf{Dominant region} \\
-    \midrule
+  \begin{tabular}{|l|r|r|l|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Cluster} & \textbf{Events} & \textbf{Center lat/lon} & \textbf{Dominant region} \\
+    \hline
     4 & 1,629 & 6.1, 126.1 & Philippines \\
+\hline
     0 & 1,068 & $-12.5$, 160.0 & Papua New Guinea \\
+\hline
     1 & 947 & $-24.0$, $-154.5$ & Tonga \\
+\hline
     5 & 895 & 30.8, 145.0 & Japan region \\
+\hline
     2 & 253 & $-57.8$, $-26.3$ & South Sandwich Islands \\
+\hline
     8 & 207 & 37.7, 37.2 & Turkey \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -127,11 +136,14 @@ known seismic zones, and the silhouette on non-noise events (3,000-event sample)
   $k = \texttt{min\_samples}$ (0.03 rad here).
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp05_dbscan}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 6: HDBSCAN}\label{exp:06}
+\chapter{HDBSCAN}\label{exp:06}
+
+\runninghead{Experiment 6: HDBSCAN}
 
 \quickfacts
   {Dataset}{USGS earthquakes 2023 (7,638 events, magnitude $\ge$ 4.5; radians + haversine)}
@@ -176,22 +188,23 @@ no radius to tune.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={HDBSCAN on the earthquake data (no global epsilon)}]
+\begin{codebox}[title={HDBSCAN on the earthquake data (no global epsilon)}]
 hdb = HDBSCAN(min_cluster_size=50, min_samples=10, metric='haversine', copy=False)
 hdb_labels = hdb.fit_predict(X_rad)
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{Density-based comparison on the 2023 earthquake catalogue.}
-  \begin{tabular}{@{}lrrrr@{}}
-    \toprule
-    \textbf{Algorithm} & \textbf{Clusters} & \textbf{Noise} & \textbf{Largest cluster} & \textbf{Silhouette} \\
-    \midrule
+  \begin{tabular}{|l|r|r|r|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Algorithm} & \textbf{Clusters} & \textbf{Noise} & \textbf{Largest cluster} & \textbf{Silhouette} \\
+    \hline
     DBSCAN ($\varepsilon = 0.03$) & 55 & 13.5\% & 1,629 & 0.326 \\
+\hline
     HDBSCAN & 40 & 21.5\% & 560 & \best{0.631} \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -225,5 +238,6 @@ cluster edges.
   cluster; increasing it reduces the number of small clusters, decreasing it fragments the map.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp06_hdbscan}

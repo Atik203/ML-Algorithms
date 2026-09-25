@@ -3,7 +3,7 @@
 % Source: notebooks/08_hidden_markov_model.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core libraries}]
+\begin{codebox}[title={Core libraries}]
 # ---- Core libraries ----
 import numpy as np
 import pandas as pd
@@ -26,9 +26,9 @@ print(df_market.head(3).to_string(index=False))
 
 returns = df_market['Daily_Return'].values.reshape(-1, 1)   # HMM observations
 prices = df_market['Close'].values                          # only used for visualization
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Fit a 3-state Gaussian HMM with the Baum-Welch (EM) algorithm}]
+\begin{codebox}[title={Fit a 3-state Gaussian HMM with the Baum-Welch (EM) algorithm}]
 # ---- Fit a 3-state Gaussian HMM with the Baum-Welch (EM) algorithm ----
 n_components = 3
 hmm_model = GaussianHMM(
@@ -63,9 +63,9 @@ for i in range(n_components):
         sorted_transmat[i, j] = hmm_model.transmat_[state_order[i], state_order[j]]
 
 regime_names = ["Bull (Low Vol)", "Sideways (Med Vol)", "Bear (High Vol)"]
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Transition probability matrix}]
+\begin{codebox}[title={Transition probability matrix}]
 # ---- Transition probability matrix ----
 fig, ax = plt.subplots(figsize=(6, 4.5))
 sns.heatmap(sorted_transmat, annot=True, fmt='.3f', cmap='Blues', ax=ax,
@@ -104,4 +104,4 @@ ax2.set_xticklabels(dates.dt.year.iloc[year_pos].astype(str))
 
 plt.tight_layout()
 plt.show()
-\end{lstlisting}
+\end{codebox}

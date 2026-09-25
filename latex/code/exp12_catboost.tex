@@ -3,7 +3,7 @@
 % Source: notebooks/04_ensemble_learning.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core libraries}]
+\begin{codebox}[title={Core libraries}]
 # ---- Core libraries ----
 import numpy as np
 import pandas as pd
@@ -24,9 +24,9 @@ plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
 plt.rcParams['figure.figsize'] = (10, 6)
 plt.rcParams['figure.dpi'] = 110
 np.random.seed(42)
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Load the Heart Disease dataset (real-world classification benchmark)}]
+\begin{codebox}[title={Load the Heart Disease dataset (real-world classification benchmark)}]
 # ---- Load the Heart Disease dataset (real-world classification benchmark) ----
 df_clf = pd.read_csv('../data/heart_disease.csv')
 print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
@@ -60,9 +60,9 @@ f1_rfc = f1_score(y_test_clf, y_pred_rfc)
 auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
 
 print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={CatBoost classification with native categorical features}]
+\begin{codebox}[title={CatBoost classification with native categorical features}]
 # ---- CatBoost classification with native categorical features ----
 # Identify categorical columns in the raw (unencoded) heart data
 categorical_cols = X_clf_raw.select_dtypes(include=['object', 'category']).columns.tolist()
@@ -88,4 +88,4 @@ acc_cb_c = accuracy_score(y_te_cb, y_pred_cb_c)
 f1_cb_c = f1_score(y_te_cb, y_pred_cb_c)
 auc_cb_c = roc_auc_score(y_te_cb, y_prob_cb_c)
 print(f"CatBoost Classifier:  Accuracy = {acc_cb_c:.4f}, F1 = {f1_cb_c:.4f}, ROC-AUC = {auc_cb_c:.4f}")
-\end{lstlisting}
+\end{codebox}

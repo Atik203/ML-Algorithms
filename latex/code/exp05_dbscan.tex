@@ -3,7 +3,7 @@
 % Source: notebooks/02_density_based_learning.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core numerical and plotting libraries}]
+\begin{codebox}[title={Core numerical and plotting libraries}]
 # ---- Core numerical and plotting libraries ----
 import numpy as np
 import pandas as pd
@@ -25,9 +25,9 @@ plt.rcParams['figure.dpi'] = 110
 
 np.random.seed(42)
 print("Density-based libraries loaded successfully!")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Load the real USGS earthquake catalogue (global, 2023)}]
+\begin{codebox}[title={Load the real USGS earthquake catalogue (global, 2023)}]
 # ---- Load the real USGS earthquake catalogue (global, 2023) ----
 df = pd.read_csv('../data/earthquakes.csv')
 print(f"Full catalogue (magnitude >= 4.0): {len(df):,} events")
@@ -43,9 +43,9 @@ print(f"\nAnalysed subset (magnitude >= 4.5): {len(quakes):,} events")
 X_rad = np.radians(quakes[['latitude', 'longitude']].values)
 print("Coordinate range (deg): lat", quakes.latitude.min(), "to", quakes.latitude.max(),
       "| lon", quakes.longitude.min(), "to", quakes.longitude.max())
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Choosing epsilon from the k-distance graph (haversine metric)}]
+\begin{codebox}[title={Choosing epsilon from the k-distance graph (haversine metric)}]
 # ---- Choosing epsilon from the k-distance graph (haversine metric) ----
 # Sorted distance to each event's k-th nearest neighbor. The knee marks the
 # transition from dense seismic zones to sparse, isolated events.
@@ -59,13 +59,13 @@ plt.plot(k_distances, color='crimson', linewidth=2.5)
 plt.title(f"k-Distance Graph (k={min_samples}) for Epsilon Selection", fontsize=14, fontweight='bold')
 plt.xlabel("Earthquakes Sorted by Distance", fontsize=12)
 plt.ylabel(f"{min_samples}-NN Distance (radians)", fontsize=12)
-plt.axhline(y=0.03, color='navy', linestyle='--', label='Selected ε = 0.03 rad (~191 km)')
+plt.axhline(y=0.03, color='navy', linestyle='--', label='Selected eps = 0.03 rad (~191 km)')
 plt.legend()
 plt.tight_layout()
 plt.show()
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Fit DBSCAN with the chosen epsilon and MinPts}]
+\begin{codebox}[title={Fit DBSCAN with the chosen epsilon and MinPts}]
 # ---- Fit DBSCAN with the chosen epsilon and MinPts ----
 # DBSCAN grows clusters from core events, connects them via density-reachability,
 # and labels everything else as noise (-1).
@@ -90,15 +90,15 @@ for k in range(n_clusters_db):
 
 noise_mask = db_labels == -1
 plt.scatter(quakes.longitude[noise_mask], quakes.latitude[noise_mask], s=6, color='black', marker='x', label='Noise (-1)')
-plt.title(f"DBSCAN on Global Earthquakes 2023 (ε={eps_selected} rad, {n_clusters_db} clusters)", fontsize=13, fontweight='bold')
+plt.title(f"DBSCAN on Global Earthquakes 2023 (eps={eps_selected} rad, {n_clusters_db} clusters)", fontsize=13, fontweight='bold')
 plt.xlabel("Longitude", fontsize=12)
 plt.ylabel("Latitude", fontsize=12)
 plt.legend(loc='lower left')
 plt.tight_layout()
 plt.show()
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Parameter sensitivity: DBSCAN under several (eps, min\_samples) settings}]
+\begin{codebox}[title={Parameter sensitivity: DBSCAN under several (eps, min\_samples) settings}]
 # ---- Parameter sensitivity: DBSCAN under several (eps, min_samples) settings ----
 # The manual requires at least two settings so the effect of eps can be discussed.
 print("eps (rad)   approx km   clusters   noise %")
@@ -107,4 +107,4 @@ for eps_test in [0.02, 0.03, 0.05]:
     n_clusters_test = len(set(lbl)) - (1 if -1 in lbl else 0)
     noise_pct = (lbl == -1).mean() * 100
     print(f"  {eps_test:.2f}       {eps_test * 6371:5.0f}      {n_clusters_test:3d}      {noise_pct:5.1f}%")
-\end{lstlisting}
+\end{codebox}

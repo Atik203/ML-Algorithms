@@ -3,7 +3,7 @@
 % Source: notebooks/01_clustering_algorithms.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core numerical and plotting libraries}]
+\begin{codebox}[title={Core numerical and plotting libraries}]
 # ---- Core numerical and plotting libraries ----
 import os
 import numpy as np
@@ -29,9 +29,9 @@ plt.rcParams['figure.dpi'] = 110
 # Fix the random seed so every run reproduces the same results
 np.random.seed(42)
 print("Libraries successfully imported!")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Load the Mall Customers dataset}]
+\begin{codebox}[title={Load the Mall Customers dataset}]
 # ---- Load the Mall Customers dataset ----
 df_mall = pd.read_csv('../data/mall_customers.csv')
 print("Dataset Shape:", df_mall.shape)
@@ -43,9 +43,9 @@ X_mall = df_mall[['Annual Income (k$)', 'Spending Score (1-100)']].values
 # ---- Standardize (mean = 0, std = 1): distance-based algorithms are scale-sensitive ----
 scaler = StandardScaler()
 X_mall_scaled = scaler.fit_transform(X_mall)
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Fuzzy C-Means class (from scratch)}]
+\begin{codebox}[title={Fuzzy C-Means class (from scratch)}]
 class FuzzyCMeans:
     """
     Fuzzy C-Means (FCM) clustering - implemented from scratch with NumPy.
@@ -118,4 +118,4 @@ print(f"FCM Silhouette Score: {silhouette_score(X_mall_scaled, fcm_labels):.4f}"
 print(f"FCM Davies-Bouldin Index: {davies_bouldin_score(X_mall_scaled, fcm_labels):.4f}")
 fpc = np.mean(np.sum(fcm.u_ ** 2, axis=1))   # fuzzy partition coefficient (1/K fuzzy ... 1 hard)
 print(f"FCM Fuzzy Partition Coefficient (FPC): {fpc:.4f}")
-\end{lstlisting}
+\end{codebox}

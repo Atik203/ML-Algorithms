@@ -5,7 +5,11 @@
 \part{Integrated Mini Project and Appendices}
 
 % ---------------------------------------------------------------------------
-\chapter{Integrated Mini Project: Comparative Machine Learning Study}\label{exp:mini}
+\chapter*{Integrated Mini Project: Comparative Machine Learning Study}
+\phantomsection
+\addcontentsline{toc}{chapter}{Integrated Mini Project: Comparative Machine Learning Study}
+\label{exp:mini}
+\runninghead{Integrated Mini Project}
 
 \quickfacts
   {Scope}{Compare algorithms from different families on identical data, splits and seeds}
@@ -25,39 +29,192 @@ catalogue (density-based clustering).
 \section{Required Libraries}
 scikit-learn, xgboost, catboost, numpy, pandas, matplotlib.
 
-\placeholder
-
 \section{Workflow}
+\begin{enumerate}
+  \item Define a specific prediction or clustering problem.
+  \item Identify the target variable (supervised) or justify the absence of labels.
+  \item Inspect missing values, duplicates, class balance and feature types.
+  \item Create a train/test split before fitting preprocessing steps that learn from data.
+  \item Build a simple baseline.
+  \item Train at least three candidate algorithms from different families.
+  \item Use cross-validation on the training data for model selection where appropriate.
+  \item Evaluate once on the untouched test set.
+  \item Analyze errors, not only aggregate metrics.
+  \item Document limitations, reproducibility settings and possible future improvements.
+\end{enumerate}
+
 \section{Comparative Results}
+\subsection{Classification --- Heart Disease (same stratified 75/25 split, seed 42)}
+\begin{table}[htbp]
+  \centering
+  \caption{Ensemble and margin-based classifiers on the same split (76 test samples).}
+  \begin{tabular}{|l|r|r|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Model} & \textbf{Accuracy} & \textbf{F1} & \textbf{ROC-AUC} \\
+    \hline
+    Random Forest (RFC) & 0.7763 & 0.8046 & 0.8704 \\
+\hline
+    XGBoost & 0.7763 & 0.8132 & 0.8509 \\
+\hline
+    AdaBoost & \best{0.7895} & \best{0.8182} & \best{0.8714} \\
+\hline
+    CatBoost & 0.7632 & 0.7955 & 0.8551 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\subsection{Regression --- California Housing (5,000 sample, same 80/20 split)}
+\begin{table}[htbp]
+  \centering
+  \caption{Ensemble regressors on the same split; lower RMSE/MAE is better.}
+  \begin{tabular}{|l|r|r|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Model} & \textbf{$R^2$} & \textbf{RMSE} & \textbf{MAE} \\
+    \hline
+    Random Forest (OOB $R^2$ 0.7513) & 0.7415 & 0.5908 & 0.3999 \\
+\hline
+    XGBoost & 0.8025 & 0.5165 & \best{0.3467} \\
+\hline
+    AdaBoost & 0.5888 & 0.7452 & 0.5842 \\
+\hline
+    CatBoost & \best{0.8029} & \best{0.5160} & 0.3535 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\subsection{Clustering --- Mall Customers ($K = 5$, standardized)}
+\begin{table}[htbp]
+  \centering
+  \caption{Clustering algorithms on the same two features.}
+  \begin{tabular}{|l|r|r|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Algorithm} & \textbf{Silhouette} & \textbf{Davies--Bouldin} & \textbf{Calinski--Harabasz} \\
+    \hline
+    K-Means & \best{0.5547} & \best{0.5722} & \best{248.65} \\
+\hline
+    Modified K-Means (97th pct.\ outlier flag) & 0.5547 & 0.5722 & 248.65 (6 flagged) \\
+\hline
+    Hierarchical (Ward) & 0.5538 & 0.5779 & 244.41 \\
+\hline
+    Fuzzy C-Means (FPC 0.6711) & 0.5547 & 0.5722 & 248.65 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\subsection{Density-Based --- USGS Earthquakes 2023 (7,638 events)}
+\begin{table}[htbp]
+  \centering
+  \caption{Density-based algorithms on the same catalogue (haversine metric).}
+  \begin{tabular}{|l|r|r|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Algorithm} & \textbf{Clusters} & \textbf{Noise} & \textbf{Silhouette} \\
+    \hline
+    DBSCAN ($\varepsilon = 0.03$ rad) & 55 & 13.5\% & 0.326 \\
+\hline
+    HDBSCAN & 40 & 21.5\% & \best{0.631} \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\subsection{Representative results across the remaining families}
+\begin{table}[htbp]
+  \centering
+  \caption{Headline result of each remaining laboratory experiment.}
+  \begin{tabular}{|p{0.30\textwidth}|p{0.62\textwidth}|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Experiment} & \textbf{Headline result} \\
+    \hline
+    Self-training (7) & 0.9298 $\rightarrow$ 0.9415 accuracy using 15\% labels (ceiling 0.9766) \\
+\hline
+    MLP (13) & scikit-learn 0.9630; PyTorch 0.9815 test accuracy \\
+\hline
+    RNN vs LSTM (14) & forecasting RMSE 69.93 vs 44.12; classification 0.9300 vs 0.9450 \\
+\hline
+    SOM (15) & quantization error 0.1965; topographic error 0.0393 \\
+\hline
+    HMM (16) & EM converged; log-likelihood 6019.79 on 1,859 DAX days \\
+\hline
+    SVM (17) & SVC 0.9790 accuracy; SVR $R^2$ 0.8968 \\
+\hline
+    LLM (18) & SMS spam fine-tune 0.9600 accuracy / 0.9592 F1 \\
+\hline
+    GRNN (19) & $\sigma = 0.08$ by 5-fold CV; held-out $R^2$ 0.7255 \\
+    \hline
+  \end{tabular}
+\end{table}
+
 \section{Discussion and Conclusions}
+\begin{enumerate}
+  \item On small tabular classification, simple boosting (AdaBoost) or bagging (RFC) match the
+        heavier models; differences are within noise for 76 test samples.
+  \item On larger regression data, gradient boosting clearly wins ($R^2 \approx 0.80$ vs.\
+        0.74 for random forests and 0.59 for AdaBoost).
+  \item Clustering algorithms agree on well-separated data (silhouette $\approx 0.55$);
+        density methods are the only option for arbitrary shapes and noise, and their clusters
+        match real seismic zones without labels.
+  \item Sequence models confirm the expected ranking: LSTM $>$ vanilla RNN, with the largest
+        gap on the task that needs long-range memory.
+  \item Fair comparison requires identical splits, fixed seeds, untouched test sets and at
+        least two metrics per task; no test-set model selection was performed.
+\end{enumerate}
+
 \section{Viva / Discussion Questions}
+\begin{description}
+  \item[Which model performed best overall?] It is task-dependent: AdaBoost/RFC on small
+  classification, XGBoost/CatBoost on tabular regression, LSTM for sequences, RBF SVC for
+  small high-dimensional classification and GRNN for smooth low-dimensional regression.
+  \item[Why not select the model by its test score?] That leaks the test set into model
+  selection; candidates should be compared on validation data and evaluated once on the test
+  set.
+  \item[Why report more than one metric?] Each metric captures a different failure mode:
+  accuracy hides class imbalance, RMSE weights outliers more than MAE, and silhouette favours
+  compact convex clusters.
+  \item[How is reproducibility ensured?] Fixed seeds everywhere, committed datasets, documented
+  preprocessing and splits, and complete code listings for every experiment.
+\end{description}
 
 % ===========================================================================
 % Appendices
 % ===========================================================================
 
-\chapter{Appendix A: Quick Reference Formulas}
+\chapter*{Appendix A: Quick Reference Formulas}
+\phantomsection
+\addcontentsline{toc}{chapter}{Appendix A: Quick Reference Formulas}
+\runninghead{Appendix A: Quick Reference Formulas}
 
-\begin{longtable}{@{}p{0.30\textwidth}p{0.64\textwidth}@{}}
-\toprule
-\textbf{Concept} & \textbf{Formula / Definition} \\
-\midrule
+\begin{longtable}{|p{0.30\textwidth}|p{0.64\textwidth}|}
+\hline
+\rowcolor{mlblue!8}\textbf{Concept} & \textbf{Formula / Definition} \\
+\hline
 \endhead
 Euclidean distance & $d(x,y) = \sqrt{\sum_j (x_j - y_j)^2}$ \\
+\hline
 K-means objective & $J = \sum_i \lVert x_i - \mu_{c_i} \rVert^2$ \\
+\hline
 Regression MAE & $\mathrm{MAE} = \frac{1}{n}\sum_i |y_i - \hat{y}_i|$ \\
+\hline
 Regression RMSE & $\mathrm{RMSE} = \sqrt{\frac{1}{n}\sum_i (y_i - \hat{y}_i)^2}$ \\
+\hline
 $R^2$ & $R^2 = 1 - \mathrm{SS_{res}} / \mathrm{SS_{tot}}$ \\
+\hline
 Precision & $\mathrm{TP} / (\mathrm{TP} + \mathrm{FP})$ \\
+\hline
 Recall & $\mathrm{TP} / (\mathrm{TP} + \mathrm{FN})$ \\
+\hline
 F1 & $2 \times \mathrm{Precision} \times \mathrm{Recall} / (\mathrm{Precision} + \mathrm{Recall})$ \\
+\hline
 Sigmoid & $\sigma(z) = 1 / (1 + e^{-z})$ \\
+\hline
 SVM margin idea & Maximize margin while penalizing violations via $C$ \\
+\hline
 GRNN kernel & $w_i(x) = \exp\!\left(-\lVert x - x_i \rVert^2 / (2\sigma^2)\right)$ \\
-\bottomrule
+\hline
 \end{longtable}
 
-\chapter{Appendix B: Reproducibility Checklist}
+\chapter*{Appendix B: Reproducibility Checklist}
+\phantomsection
+\addcontentsline{toc}{chapter}{Appendix B: Reproducibility Checklist}
+\runninghead{Appendix B: Reproducibility Checklist}
 
 \begin{itemize}
   \item Python version recorded.
@@ -72,41 +229,64 @@ GRNN kernel & $w_i(x) = \exp\!\left(-\lVert x - x_i \rVert^2 / (2\sigma^2)\right
   \item Code runs from a clean environment or requirements file.
 \end{itemize}
 
-\chapter{Appendix C: Suggested Assessment Rubric}
+\chapter*{Appendix C: Suggested Assessment Rubric}
+\phantomsection
+\addcontentsline{toc}{chapter}{Appendix C: Suggested Assessment Rubric}
+\runninghead{Appendix C: Suggested Assessment Rubric}
 
-\begin{longtable}{@{}p{0.68\textwidth}r@{}}
-\toprule
-\textbf{Component} & \textbf{Suggested Weight} \\
-\midrule
+\begin{longtable}{|p{0.68\textwidth}|r|}
+\hline
+\rowcolor{mlblue!8}\textbf{Component} & \textbf{Suggested Weight} \\
+\hline
 \endhead
 Pre-lab preparation / algorithm understanding & 10\% \\
+\hline
 Correct implementation & 25\% \\
+\hline
 Experimental design and preprocessing & 15\% \\
+\hline
 Evaluation and visualization & 15\% \\
+\hline
 Analysis and interpretation & 20\% \\
+\hline
 Report quality / reproducibility & 10\% \\
+\hline
 Viva / discussion & 5\% \\
-\bottomrule
+\hline
 \end{longtable}
 
-\chapter{Appendix D: Student Experiment Record}
+\chapter*{Appendix D: Student Experiment Record}
+\phantomsection
+\addcontentsline{toc}{chapter}{Appendix D: Student Experiment Record}
+\runninghead{Appendix D: Student Experiment Record}
 
-\begin{longtable}{@{}p{0.36\textwidth}p{0.58\textwidth}@{}}
-\toprule
-\textbf{Field} & \textbf{Student Entry} \\
-\midrule
+\begin{longtable}{|p{0.36\textwidth}|p{0.58\textwidth}|}
+\hline
+\rowcolor{mlblue!8}\textbf{Field} & \textbf{Student Entry} \\
+\hline
 \endhead
 Name & \\
+\hline
 ID & \\
+\hline
 Section & \\
+\hline
 Experiment No. & \\
+\hline
 Date & \\
+\hline
 Dataset & \\
+\hline
 Algorithm / Version & \\
+\hline
 Key Hyperparameters & \\
+\hline
 Random Seed & \\
+\hline
 Main Result & \\
+\hline
 Observation & \\
+\hline
 Instructor Signature & \\
-\bottomrule
+\hline
 \end{longtable}

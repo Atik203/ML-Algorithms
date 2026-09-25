@@ -3,7 +3,7 @@
 % Source: notebooks/09_support_vector_machine.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core numerical and plotting libraries}]
+\begin{codebox}[title={Core numerical and plotting libraries}]
 # ---- Core numerical and plotting libraries ----
 import numpy as np
 import pandas as pd
@@ -27,9 +27,9 @@ plt.rcParams['figure.dpi'] = 110
 
 np.random.seed(42)
 print("SVM modules loaded successfully!")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={2D real data for visualizing margins and kernels}]
+\begin{codebox}[title={2D real data for visualizing margins and kernels}]
 # ---- 2D real data for visualizing margins and kernels ----
 # Two diagnostic measurements from the Breast Cancer dataset (malignant vs benign).
 cancer_2d = load_breast_cancer()
@@ -56,7 +56,7 @@ for ax, k_name in zip(axes, kernels):
     # Signed distance to the hyperplane for every grid point
     Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
 
-    # Filled contour = decision regions; solid line = boundary (Z=0); dashed = margins (Z=±1)
+    # Filled contour = decision regions; solid line = boundary (Z=0); dashed = margins (Z=+/-1)
     ax.contourf(xx, yy, Z, levels=np.linspace(Z.min(), Z.max(), 20), cmap='coolwarm', alpha=0.3)
     ax.contour(xx, yy, Z, levels=[-1.0, 0.0, 1.0], linestyles=['--', '-', '--'], colors=['k', 'k', 'k'], linewidths=[1.5, 2.5, 1.5])
 
@@ -75,9 +75,9 @@ for ax, k_name in zip(axes, kernels):
 plt.suptitle("SVC Decision Boundaries on Real Breast Cancer Data (2 features)", fontsize=15, fontweight='bold')
 plt.tight_layout()
 plt.show()
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={SVC on a real dataset: Breast Cancer (RBF kernel)}]
+\begin{codebox}[title={SVC on a real dataset: Breast Cancer (RBF kernel)}]
 # ---- SVC on a real dataset: Breast Cancer (RBF kernel) ----
 cancer = load_breast_cancer()
 X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
@@ -91,9 +91,9 @@ svc_rbf = SVC(kernel='rbf', C=1.0, random_state=42)
 svc_rbf.fit(X_train_c_s, y_train_c)
 print(f"SVC (RBF) test accuracy on Breast Cancer: {svc_rbf.score(X_test_c_s, y_test_c):.4f}")
 print(f"Support vectors used: {len(svc_rbf.support_)} of {len(X_train_c)} training samples")
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Real 1D regression: Old Faithful geyser}]
+\begin{codebox}[title={Real 1D regression: Old Faithful geyser}]
 # ---- Real 1D regression: Old Faithful geyser ----
 # x = waiting time before an eruption (minutes), y = eruption duration (minutes)
 geyser = pd.read_csv('../data/geyser.csv')
@@ -135,7 +135,7 @@ plt.fill_between(X_grid_orig, y_grid_pred - epsilon_val, y_grid_pred + epsilon_v
 # Support vectors are highlighted - only these points influence the fitted curve
 plt.scatter(X_sv, y_sv, s=120, facecolors='none', edgecolors='gold', linewidths=2.5, label=f'Support Vectors ({len(X_sv)})')
 
-plt.title(f"Support Vector Regression on Old Faithful (C=10, ε={epsilon_val})", fontsize=14, fontweight='bold')
+plt.title(f"Support Vector Regression on Old Faithful (C=10, eps={epsilon_val})", fontsize=14, fontweight='bold')
 plt.xlabel("Waiting time before eruption (minutes)", fontsize=12)
 plt.ylabel("Eruption duration (minutes)", fontsize=12)
 plt.legend(loc='lower right')
@@ -143,7 +143,7 @@ plt.tight_layout()
 plt.show()
 
 # ---- Quantitative evaluation ----
-print(f"SVR R² Score: {r2_score(y_svr, svr_model.predict(X_svr_scaled)):.4f}")
+print(f"SVR R2 Score: {r2_score(y_svr, svr_model.predict(X_svr_scaled)):.4f}")
 print(f"SVR RMSE:     {root_mean_squared_error(y_svr, svr_model.predict(X_svr_scaled)):.4f} minutes")
 print(f"Support Vectors: {len(X_sv)} out of {len(X_svr)} points ({len(X_sv)/len(X_svr)*100:.1f}%)")
-\end{lstlisting}
+\end{codebox}

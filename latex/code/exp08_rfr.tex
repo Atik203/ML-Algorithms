@@ -3,7 +3,7 @@
 % Source: notebooks/04_ensemble_learning.ipynb (executed)
 % ===========================================================================
 
-\begin{lstlisting}[style=mlcode,caption={Core libraries}]
+\begin{codebox}[title={Core libraries}]
 # ---- Core libraries ----
 import numpy as np
 import pandas as pd
@@ -24,9 +24,9 @@ plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
 plt.rcParams['figure.figsize'] = (10, 6)
 plt.rcParams['figure.dpi'] = 110
 np.random.seed(42)
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Load the California Housing dataset (real-world regression benchmark)}]
+\begin{codebox}[title={Load the California Housing dataset (real-world regression benchmark)}]
 # ---- Load the California Housing dataset (real-world regression benchmark) ----
 housing = fetch_california_housing(as_frame=True)
 # Sample 5,000 rows so every ensemble trains quickly while remaining representative
@@ -42,9 +42,9 @@ X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(
 
 print(f"Regression Training Samples: {X_train_reg.shape[0]}, Test Samples: {X_test_reg.shape[0]}")
 df_reg.head()
-\end{lstlisting}
+\end{codebox}
 
-\begin{lstlisting}[style=mlcode,caption={Random Forest Regression (bagging of decision trees)}]
+\begin{codebox}[title={Random Forest Regression (bagging of decision trees)}]
 # ---- Random Forest Regression (bagging of decision trees) ----
 # n_estimators = number of trees, oob_score = estimate accuracy from out-of-bag samples
 rf_reg = RandomForestRegressor(n_estimators=150, max_depth=12, oob_score=True, random_state=42, n_jobs=-1)
@@ -57,8 +57,8 @@ rmse_rf = root_mean_squared_error(y_test_reg, y_pred_rf)         # error in targ
 mae_rf = mean_absolute_error(y_test_reg, y_pred_rf)              # robust average error
 
 print(f"Random Forest Regressor Results:")
-print(f" - Out-of-Bag (OOB) R² Score: {rf_reg.oob_score_:.4f}")
-print(f" - Test R² Score:              {r2_rf:.4f}")
+print(f" - Out-of-Bag (OOB) R2 Score: {rf_reg.oob_score_:.4f}")
+print(f" - Test R2 Score:              {r2_rf:.4f}")
 print(f" - Test RMSE:                  {rmse_rf:.4f}")
 print(f" - Test MAE:                   {mae_rf:.4f}")
-\end{lstlisting}
+\end{codebox}

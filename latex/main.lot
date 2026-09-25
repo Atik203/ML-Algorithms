@@ -1,0 +1,46 @@
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {1.1}{\ignorespaces K-means evaluation on the standardized Mall Customers features.}}{3}{table.caption.31}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Modified K-means: outlier-distance check on the standardized features.}}{8}{table.caption.41}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Hierarchical (Ward) clustering evaluation on the standardized features.}}{12}{table.caption.52}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {4.1}{\ignorespaces Fuzzy C-means evaluation ($K = 5$, $m = 2.0$).}}{16}{table.caption.62}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces DBSCAN parameter sensitivity (\texttt {min\_samples} = 10).}}{23}{table.caption.73}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Largest DBSCAN clusters and their dominant region (real-world validation).}}{23}{table.caption.74}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {6.1}{\ignorespaces Density-based comparison on the 2023 earthquake catalogue.}}{29}{table.caption.86}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {7.1}{\ignorespaces Self-training compared with the supervised baseline and the fully supervised ceiling.}}{34}{table.caption.97}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {8.1}{\ignorespaces Random Forest Regression on the California Housing sample.}}{41}{table.caption.107}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {9.1}{\ignorespaces Random Forest Classification on Heart Disease (76 test samples).}}{45}{table.caption.117}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {10.1}{\ignorespaces XGBoost classification on Heart Disease (76 test samples).}}{49}{table.caption.127}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {11.1}{\ignorespaces AdaBoost classification on Heart Disease (76 test samples).}}{53}{table.caption.137}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {12.1}{\ignorespaces Ensemble classification comparison on the same Heart Disease split (76 test samples).}}{57}{table.caption.147}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {13.1}{\ignorespaces MLP implementations on the digits test set (270 images).}}{62}{table.caption.157}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {14.1}{\ignorespaces Sequence classification on the synthetic benchmark (200 test sequences).}}{71}{table.caption.168}%
+\contentsline {table}{\numberline {14.2}{\ignorespaces Airline passenger forecasting on the chronological test horizon (27 windows).}}{71}{table.caption.169}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {15.1}{\ignorespaces SOM quality metrics on the Wine data.}}{80}{table.caption.180}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {16.1}{\ignorespaces Gaussian HMM on the DAX index (1,859 trading days, 1991--1998).}}{86}{table.caption.191}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {17.1}{\ignorespaces SVM results on the two real datasets.}}{92}{table.caption.203}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {18.1}{\ignorespaces DistilBERT fine-tuned on the SMS Spam Collection (200 held-out messages).}}{99}{table.caption.215}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {19.1}{\ignorespaces GRNN on the real motorcycle impact data (133 observations).}}{107}{table.caption.225}%
+\contentsline {table}{\numberline {19.2}{\ignorespaces Ensemble and margin-based classifiers on the same split (76 test samples).}}{114}{table.caption.238}%
+\contentsline {table}{\numberline {19.3}{\ignorespaces Ensemble regressors on the same split; lower RMSE/MAE is better.}}{114}{table.caption.240}%
+\contentsline {table}{\numberline {19.4}{\ignorespaces Clustering algorithms on the same two features.}}{114}{table.caption.242}%
+\contentsline {table}{\numberline {19.5}{\ignorespaces Density-based algorithms on the same catalogue (haversine metric).}}{114}{table.caption.244}%
+\contentsline {table}{\numberline {19.6}{\ignorespaces Headline result of each remaining laboratory experiment.}}{115}{table.caption.246}%
+\contentsfinish 

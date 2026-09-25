@@ -3,6 +3,7 @@
 % ===========================================================================
 
 \chapter*{Preface}
+\phantomsection
 \addcontentsline{toc}{chapter}{Preface}
 This manual is designed around the algorithm list supplied for the Machine Learning
 assignment. It turns that list into a structured laboratory sequence emphasizing
@@ -15,6 +16,7 @@ and executed on real, public datasets, with the observed results, discussion and
 complete runnable code included, so each laboratory can be reproduced standalone.
 
 \chapter*{Important Terminology Correction}
+\phantomsection
 \addcontentsline{toc}{chapter}{Important Terminology Correction}
 The supplied list contains ``Random Forest Regression (RFR)'' and ``Random Forest
 Regression (RFC)''. In standard machine-learning terminology, RFC normally means
@@ -22,26 +24,37 @@ Random Forest Classifier. This manual therefore treats \textbf{RFR} as Random Fo
 Regressor and \textbf{RFC} as Random Forest Classifier.
 
 \chapter*{Scope of the Laboratory}
+\phantomsection
 \addcontentsline{toc}{chapter}{Scope of the Laboratory}
-\begin{longtable}{@{}p{0.28\textwidth}p{0.66\textwidth}@{}}
-\toprule
-\textbf{Module} & \textbf{Algorithms / Topics} \\
-\midrule
+\begin{longtable}{|p{0.28\textwidth}|p{0.66\textwidth}|}
+\hline
+\rowcolor{mlblue!8}\textbf{Module} & \textbf{Algorithms / Topics} \\
+\hline
 \endhead
 Clustering & K-means, Modified K-means, Hierarchical Clustering, Fuzzy C-means \\
+\hline
 Density-based learning & DBSCAN, HDBSCAN \\
+\hline
 Semi-supervised learning & Self-training \\
+\hline
 Ensemble learning & Random Forest Regression, Random Forest Classification, XGBoost, AdaBoost, CatBoost \\
+\hline
 Neural networks & MLP, RNN (LSTM) \\
+\hline
 Unsupervised neural learning & SOM \\
+\hline
 Probabilistic sequence model & HMM \\
+\hline
 Margin-based learning & SVM (SVC and SVR) \\
+\hline
 Generative / foundation models & LLM \\
+\hline
 Non-parametric regression & GRNN \\
-\bottomrule
+\hline
 \end{longtable}
 
 \chapter*{General Learning Outcomes}
+\phantomsection
 \addcontentsline{toc}{chapter}{General Learning Outcomes}
 \begin{itemize}
   \item Implement and execute major machine-learning algorithms using Python.
@@ -54,8 +67,9 @@ Non-parametric regression & GRNN \\
 \end{itemize}
 
 \chapter*{Recommended Software Environment}
+\phantomsection
 \addcontentsline{toc}{chapter}{Recommended Software Environment}
-\begin{lstlisting}[style=mlcode,language=bash,caption={Core and specialized libraries used by the manual}]
+\begin{codebox}[title={Core and specialized libraries used by the manual},listing options={language=bash}]
 # Core
 pip install numpy pandas matplotlib seaborn scikit-learn
 # Specialized algorithms
@@ -64,23 +78,28 @@ pip install scikit-fuzzy hdbscan hmmlearn minisom
 pip install xgboost catboost
 # LLM / transformer experiment
 pip install transformers torch
-\end{lstlisting}
+\end{codebox}
 
 \chapter*{Laboratory Guidelines}
+\phantomsection
 \addcontentsline{toc}{chapter}{Laboratory Guidelines}
-\begin{longtable}{@{}p{0.30\textwidth}p{0.34\textwidth}p{0.30\textwidth}@{}}
-\toprule
-\textbf{Before Lab} & \textbf{During Lab} & \textbf{After Lab} \\
-\midrule
+\begin{longtable}{|p{0.30\textwidth}|p{0.34\textwidth}|p{0.30\textwidth}|}
+\hline
+\rowcolor{mlblue!8}\textbf{Before Lab} & \textbf{During Lab} & \textbf{After Lab} \\
+\hline
 \endhead
 Read theory and algorithm steps. & Run the baseline program. & Submit code and results. \\
+\hline
 Know the dataset and target. & Record hyperparameters and seed. & Explain observations. \\
+\hline
 Predict expected behavior. & Perform at least one controlled variation. & Answer viva questions. \\
+\hline
 Prepare key formulas. & Check train/test leakage. & State limitations and improvements. \\
-\bottomrule
+\hline
 \end{longtable}
 
 \chapter*{Minimum Report Format}
+\phantomsection
 \addcontentsline{toc}{chapter}{Minimum Report Format}
 \begin{enumerate}
   \item Experiment title and student information.
@@ -96,16 +115,21 @@ Prepare key formulas. & Check train/test leakage. & State limitations and improv
 \end{enumerate}
 
 \chapter*{Recommended Evaluation Metrics}
+\phantomsection
 \addcontentsline{toc}{chapter}{Recommended Evaluation Metrics}
-\begin{longtable}{@{}p{0.26\textwidth}p{0.68\textwidth}@{}}
-\toprule
-\textbf{Task} & \textbf{Suggested Metrics} \\
-\midrule
+\begin{longtable}{|p{0.26\textwidth}|p{0.68\textwidth}|}
+\hline
+\rowcolor{mlblue!8}\textbf{Task} & \textbf{Suggested Metrics} \\
+\hline
 \endhead
 Classification & Accuracy, Precision, Recall, F1-score, ROC-AUC, confusion matrix \\
+\hline
 Regression & MAE, MSE, RMSE, R\textsuperscript{2} \\
+\hline
 Clustering & Silhouette score, Calinski--Harabasz, Davies--Bouldin; visual inspection \\
+\hline
 Sequence modeling & Negative log-likelihood / log-likelihood, sequence accuracy where appropriate \\
+\hline
 Language generation & Task-specific automatic metrics plus qualitative / error analysis \\
-\bottomrule
+\hline
 \end{longtable}

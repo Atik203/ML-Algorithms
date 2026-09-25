@@ -5,7 +5,9 @@
 \part{Ensemble Learning}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 8: Random Forest Regression (RFR)}\label{exp:08}
+\chapter{Random Forest Regression (RFR)}\label{exp:08}
+
+\runninghead{Experiment 8: Random Forest Regression (RFR)}
 
 \quickfacts
   {Dataset}{California Housing, 5,000-row random sample, 8 features; 80/20 split}
@@ -45,26 +47,29 @@ trees can only help. Out-of-bag (OOB) samples --- the $\approx 37\%$ not drawn i
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={Random Forest Regression with out-of-bag validation}]
+\begin{codebox}[title={Random Forest Regression with out-of-bag validation}]
 rf_reg = RandomForestRegressor(n_estimators=150, max_depth=12,
                                oob_score=True, random_state=42, n_jobs=-1)
 rf_reg.fit(X_train_reg, y_train_reg)
 print(rf_reg.oob_score_, r2_score(y_test_reg, rf_reg.predict(X_test_reg)))
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{Random Forest Regression on the California Housing sample.}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Metric} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Metric} & \textbf{Value} \\
+    \hline
     OOB $R^2$ & 0.7513 \\
+\hline
     Test $R^2$ & 0.7415 \\
+\hline
     Test RMSE & 0.5908 (in \$100k units $\approx$ \$59k) \\
+\hline
     Test MAE & 0.3999 (in \$100k units $\approx$ \$40k) \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -86,11 +91,14 @@ economics.
   and correlated features share or dilute importance arbitrarily.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp08_rfr}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 9: Random Forest Classification (RFC)}\label{exp:09}
+\chapter{Random Forest Classification (RFC)}\label{exp:09}
+
+\runninghead{Experiment 9: Random Forest Classification (RFC)}
 
 \quickfacts
   {Dataset}{Heart Disease (\texttt{data/heart\_disease.csv}, 303 rows, 13 features); stratified 75/25 split}
@@ -127,24 +135,26 @@ class probability, which is used for ROC-AUC.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={Random Forest Classification with stratified evaluation}]
+\begin{codebox}[title={Random Forest Classification with stratified evaluation}]
 rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
 rfc.fit(X_train_clf, y_train_clf)
 y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{Random Forest Classification on Heart Disease (76 test samples).}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Metric} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Metric} & \textbf{Value} \\
+    \hline
     Accuracy & 0.7763 \\
+\hline
     F1-score & 0.8046 \\
+\hline
     ROC-AUC & 0.8704 \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -164,11 +174,14 @@ not perfectly balanced.
   AUC expose the failure.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp09_rfc}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 10: XGBoost}\label{exp:10}
+\chapter{XGBoost}\label{exp:10}
+
+\runninghead{Experiment 10: XGBoost}
 
 \quickfacts
   {Dataset}{Heart Disease (same stratified 75/25 split as RFC)}
@@ -208,26 +221,28 @@ weights, while row/column subsampling adds stochasticity; both control overfitti
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={XGBoost classification on the heart data}]
+\begin{codebox}[title={XGBoost classification on the heart data}]
 xgb_clf = xgb.XGBClassifier(n_estimators=120, learning_rate=0.08, max_depth=4,
                             subsample=0.8, colsample_bytree=0.8,
                             random_state=42, eval_metric='logloss')
 xgb_clf.fit(X_train_clf, y_train_clf)
 y_prob_xgb_c = xgb_clf.predict_proba(X_test_clf)[:, 1]
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{XGBoost classification on Heart Disease (76 test samples).}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Metric} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Metric} & \textbf{Value} \\
+    \hline
     Accuracy & 0.7763 \\
+\hline
     F1-score & 0.8132 \\
+\hline
     ROC-AUC & 0.8509 \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -248,11 +263,14 @@ usual pattern for tabular data.
   early stopping control this.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp10_xgboost}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 11: AdaBoost}\label{exp:11}
+\chapter{AdaBoost}\label{exp:11}
+
+\runninghead{Experiment 11: AdaBoost}
 
 \quickfacts
   {Dataset}{Heart Disease (same stratified 75/25 split)}
@@ -290,24 +308,26 @@ quickly for hard points, AdaBoost is sensitive to label noise and outliers.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={AdaBoost classification}]
+\begin{codebox}[title={AdaBoost classification}]
 ada_clf = AdaBoostClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
 ada_clf.fit(X_train_clf, y_train_clf)
 y_prob_ada_c = ada_clf.predict_proba(X_test_clf)[:, 1]
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{AdaBoost classification on Heart Disease (76 test samples).}
-  \begin{tabular}{@{}lr@{}}
-    \toprule
-    \textbf{Metric} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Metric} & \textbf{Value} \\
+    \hline
     Accuracy & \best{0.7895} \\
+\hline
     F1-score & \best{0.8182} \\
+\hline
     ROC-AUC & \best{0.8714} \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -329,11 +349,14 @@ gradient boosting is more robust.
   noise-sensitive.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp11_adaboost}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 12: CatBoost}\label{exp:12}
+\chapter{CatBoost}\label{exp:12}
+
+\runninghead{Experiment 12: CatBoost}
 
 \quickfacts
   {Dataset}{Heart Disease (raw table with categorical features: sex, cp, fbs, restecg, exang, slope, ca, thal)}
@@ -371,26 +394,29 @@ encoding.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={CatBoost with native categorical features}]
+\begin{codebox}[title={CatBoost with native categorical features}]
 categorical_cols = X_clf_raw.select_dtypes(include=['object', 'category']).columns.tolist()
 cb_clf = cb.CatBoostClassifier(iterations=150, learning_rate=0.08, depth=5,
                                cat_features=categorical_cols, random_seed=42, verbose=False)
 cb_clf.fit(X_tr_cb, y_tr_cb)
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{Ensemble classification comparison on the same Heart Disease split (76 test samples).}
-  \begin{tabular}{@{}lrrr@{}}
-    \toprule
-    \textbf{Model} & \textbf{Accuracy} & \textbf{F1} & \textbf{ROC-AUC} \\
-    \midrule
+  \begin{tabular}{|l|r|r|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Model} & \textbf{Accuracy} & \textbf{F1} & \textbf{ROC-AUC} \\
+    \hline
     Random Forest (RFC) & 0.7763 & 0.8046 & 0.8704 \\
+\hline
     XGBoost & 0.7763 & 0.8132 & 0.8509 \\
+\hline
     AdaBoost & \best{0.7895} & \best{0.8182} & \best{0.8714} \\
+\hline
     CatBoost & 0.7632 & 0.7955 & 0.8551 \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -413,5 +439,6 @@ noise for 76 test samples.
   exploits target--category relationships with leakage control.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp12_catboost}

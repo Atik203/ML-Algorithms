@@ -5,7 +5,9 @@
 \part{Margin-Based Learning: Support Vector Machines}
 
 % ---------------------------------------------------------------------------
-\chapter{Experiment 17: Support Vector Machine (SVM)}\label{exp:17}
+\chapter{Support Vector Machine (SVM)}\label{exp:17}
+
+\runninghead{Experiment 17: Support Vector Machine (SVM)}
 
 \quickfacts
   {Dataset}{Breast Cancer (569 $\times$ 30; 2 features for the kernel view, all 30 for accuracy) and Old Faithful geyser (\texttt{data/geyser.csv}, 272 eruptions)}
@@ -51,26 +53,30 @@ cost nothing and only points outside the tube become support vectors.
 \end{enumerate}
 
 \section{Reference Implementation}
-\begin{lstlisting}[style=mlcode,caption={SVC per kernel and SVR with an epsilon-insensitive tube}]
+\begin{codebox}[title={SVC per kernel and SVR with an epsilon-insensitive tube}]
 clf = SVC(kernel=k_name, C=1.0, gamma='scale', degree=3, random_state=42).fit(X_2d_scaled, y_2d)
 svc_rbf = SVC(kernel='rbf', C=1.0, random_state=42).fit(X_train_c_s, y_train_c)
 svr_model = SVR(kernel='rbf', C=10.0, epsilon=0.3, gamma='scale').fit(X_svr_scaled, y_svr)
-\end{lstlisting}
+\end{codebox}
 
 \section{Evaluation / Expected Output}
 \begin{table}[htbp]
   \centering
   \caption{SVM results on the two real datasets.}
-  \begin{tabular}{@{}llr@{}}
-    \toprule
-    \textbf{Experiment} & \textbf{Metric} & \textbf{Value} \\
-    \midrule
+  \begin{tabular}{|l|l|r|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Experiment} & \textbf{Metric} & \textbf{Value} \\
+    \hline
     SVC (RBF, 30 features) & Test accuracy & \best{0.9790} \\
+\hline
     SVC (RBF, 30 features) & Support vectors & 96 of 426 (22.5\%) \\
+\hline
     SVR (Old Faithful) & $R^2$ & 0.8968 \\
+\hline
     SVR (Old Faithful) & RMSE & 0.366 minutes \\
+\hline
     SVR (Old Faithful) & Support vectors & 103 of 272 (37.9\%) \\
-    \bottomrule
+    \hline
   \end{tabular}
 \end{table}
 
@@ -113,5 +119,6 @@ RBF SVR smoothly bridges the two modes and the tube leaves most residuals unpena
   unscaled features with larger ranges dominate them and degrade the fit.
 \end{description}
 
+\FloatBarrier
 \section{Complete Code Listing}
 \input{code/exp17_svm}

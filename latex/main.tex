@@ -1,12 +1,11 @@
-
 % ===========================================================================
 % Machine Learning Laboratory Manual - Completed Edition
 % Master file. Category-wise parts are \input from chapters/.
 %
-% Build (local TeX Live):      xelatex main.tex   (twice, for the contents)
-% Overleaf:  Menu -> Compiler -> XeLaTeX, then Recompile
+% Build (TeX Live, VS Code LaTeX Workshop default recipe):  latexmk main.tex
+% Overleaf: default compiler (pdfLaTeX), then Recompile.
 % ===========================================================================
-\documentclass[10pt,a4paper]{report}
+\documentclass[11pt,a4paper]{report}
 \input{preamble}
 
 \begin{document}
@@ -14,6 +13,7 @@
 % ---------------------------------------------------------------------------
 % Title page
 % ---------------------------------------------------------------------------
+\pagenumbering{roman}
 \begin{titlepage}
     \centering
     \vspace*{1.2cm}
@@ -42,19 +42,87 @@
 % ---------------------------------------------------------------------------
 % Contents
 % ---------------------------------------------------------------------------
-\renewcommand{\contentsname}{Contents}
+\clearpage
 \setcounter{tocdepth}{0}   % parts + experiment chapters in the index
 \tableofcontents
+
+% ---------------------------------------------------------------------------
+% List of Experiments
+% ---------------------------------------------------------------------------
 \clearpage
+\chapter*{List of Experiments}
+\addcontentsline{toc}{chapter}{List of Experiments}
+\begin{longtable}{|r|p{6.7cm}|p{4.9cm}|r|}
+\hline
+\tablehead{\textbf{No.} & \textbf{Experiment} & \textbf{Part} & \textbf{Page}} \\
+\hline
+\endhead
+1 & K-means Clustering & Clustering & \pageref{exp:01} \\
+\hline
+2 & Modified K-means & Clustering & \pageref{exp:02} \\
+\hline
+3 & Hierarchical Clustering & Clustering & \pageref{exp:03} \\
+\hline
+4 & Fuzzy C-means & Clustering & \pageref{exp:04} \\
+\hline
+5 & DBSCAN & Density-Based Learning & \pageref{exp:05} \\
+\hline
+6 & HDBSCAN & Density-Based Learning & \pageref{exp:06} \\
+\hline
+7 & Self-training for Semi-supervised Learning & Semi-Supervised Learning & \pageref{exp:07} \\
+\hline
+8 & Random Forest Regression (RFR) & Ensemble Learning & \pageref{exp:08} \\
+\hline
+9 & Random Forest Classification (RFC) & Ensemble Learning & \pageref{exp:09} \\
+\hline
+10 & XGBoost & Ensemble Learning & \pageref{exp:10} \\
+\hline
+11 & AdaBoost & Ensemble Learning & \pageref{exp:11} \\
+\hline
+12 & CatBoost & Ensemble Learning & \pageref{exp:12} \\
+\hline
+13 & Multilayer Perceptron (MLP) & Neural Networks & \pageref{exp:13} \\
+\hline
+14 & Recurrent Neural Network (RNN) & Sequence Modeling & \pageref{exp:14} \\
+\hline
+15 & Self-Organizing Map (SOM) & Unsupervised Neural Learning & \pageref{exp:15} \\
+\hline
+16 & Hidden Markov Model (HMM) & Probabilistic Sequence Modeling & \pageref{exp:16} \\
+\hline
+17 & Support Vector Machine (SVM) & Margin-Based Learning & \pageref{exp:17} \\
+\hline
+18 & Large Language Model (LLM) Experiment & Generative / Foundation Models & \pageref{exp:18} \\
+\hline
+19 & Generalized Regression Neural Network (GRNN) & Non-Parametric Regression & \pageref{exp:19} \\
+\hline
+M & Integrated Mini Project: Comparative ML Study & Mini Project & \pageref{exp:mini} \\
+\hline
+\end{longtable}
+
+% ---------------------------------------------------------------------------
+% List of Figures and List of Tables
+% ---------------------------------------------------------------------------
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Tables}
+\listoftables
 
 % ---------------------------------------------------------------------------
 % Front matter (preface, scope, guidelines, report format, metrics)
 % ---------------------------------------------------------------------------
+\clearpage
 \input{chapters/00_frontmatter}
 
 % ---------------------------------------------------------------------------
 % Category parts (one file per category)
 % ---------------------------------------------------------------------------
+\clearpage
+\pagenumbering{arabic}
 \input{chapters/01_clustering}
 \input{chapters/02_density_based}
 \input{chapters/03_semi_supervised}
