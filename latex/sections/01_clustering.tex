@@ -1,0 +1,684 @@
+% ===========================================================================
+% Category: Clustering
+% Generated from ML_Lab_Manual_Completed.md - edit the Markdown and re-run
+% scripts/build_latex_manual.py instead of editing this file by hand.
+% ===========================================================================
+
+\chapter{Experiment 1: K-means
+Clustering}\label{experiment-1-k-means-clustering}
+
+\textbf{Category:} Clustering
+
+\section{1. Objective}\label{objective}
+
+Partition unlabeled observations into K clusters by iteratively
+assigning points to the nearest centroid and updating centroids; select
+K using the elbow and silhouette diagnostics.
+
+\section{2. Dataset Used}\label{dataset-used}
+
+Mall Customers (\passthrough{\lstinline!data/mall\_customers.csv!}), 200
+customers, two features: Annual Income (k\$) and Spending Score (1-100).
+Features are standardized (\passthrough{\lstinline!StandardScaler!}).
+
+\section{3. Required Libraries}\label{required-libraries}
+
+numpy, pandas, matplotlib, scikit-learn
+
+\section{4. Brief Theory}\label{brief-theory}
+
+K-means minimizes the within-cluster sum of squares J = Σ\_k
+Σ\_\{x∈C\_k\} \textbar\textbar x − μ\_k\textbar\textbar². It alternates
+assignment and centroid update until convergence (a local optimum).
+Euclidean distance is scale-sensitive, so features are standardized. K
+is chosen externally, e.g.~by the elbow (inertia) and silhouette
+(cohesion vs separation).
+
+\section{5. Procedure}\label{procedure}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Load the dataset and keep the two numerical features.
+\item
+  Standardize the features.
+\item
+  Try K = 2\ldots10; record inertia (WCSS) and silhouette for each K.
+\item
+  Choose K at the elbow / silhouette peak and fit the final model with
+  \passthrough{\lstinline!init='k-means++'!},
+  \passthrough{\lstinline!n\_init=20!},
+  \passthrough{\lstinline!random\_state=42!}.
+\item
+  Visualize clusters and centroids.
+\item
+  Report silhouette, Davies-Bouldin and Calinski-Harabasz.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation}
+
+\begin{lstlisting}[language=Python]
+for k in range(2, 11):
+    kmeans = KMeans(n_clusters=k, init='k-means++', n_init=10, random_state=42)
+    kmeans.fit(X_mall_scaled)
+    wcss.append(kmeans.inertia_)
+    silhouette_scores.append(silhouette_score(X_mall_scaled, kmeans.labels_))
+## 10. Complete Code Listing
+
+*Full runnable program for this experiment, extracted from `notebooks/01_clustering_algorithms.ipynb` (executed; results above are its actual output).*
+
+**Listing 1.1 — Core numerical and plotting libraries**
+
+```python
+
+
+# Experiment 2: Modified K-means
+
+**Category:** Clustering
+
+## 1. Objective
+Implement the prescribed transparent modification of K-means: K-Means++ initialization plus an explicit outlier-distance check with a documented percentile threshold before final cluster interpretation.
+
+## 2. Dataset Used
+Mall Customers (200 × 2, standardized). The modification is applied on top of the same features.
+
+## 3. Required Libraries
+numpy, matplotlib, scikit-learn
+
+## 4. Brief Theory
+"Modified K-means" is not a single standard algorithm; the manual defines it precisely for reproducibility: initialize with K-Means++, fit K-means, compute each sample's distance to its assigned centroid, take a percentile threshold (97th percentile) and flag more distant samples as candidate outliers. It is an experimental variant that adds outlier awareness, not a replacement for robust clustering.
+
+## 5. Procedure
+1. Fit K-means with `init='k-means++'`, K = 5.
+2. Compute d_i = ||x_i − μ_{c_i}|| for every sample.
+3. Set threshold = 97th percentile of the training distances.
+4. Flag samples with d_i > threshold as candidate outliers.
+5. Plot centroids/clusters with flagged points highlighted.
+6. Compare with the standard labels.
+
+## 6. Reference Implementation
+```python
+km_mod = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
+mod_labels = km_mod.fit_predict(X_mall_scaled)
+dist_to_centroid = np.linalg.norm(X_mall_scaled - km_mod.cluster_centers_[mod_labels], axis=1)
+threshold = np.percentile(dist_to_centroid, 97)
+outlier_flag = dist_to_centroid > threshold
+\end{lstlisting}
+
+\section{7. Results}\label{results}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Item & Value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Distance threshold (97th percentile) & 1.072 (standardized units) \\
+Flagged candidate outliers & 6 of 200 (3\%) \\
+Cluster labels & identical to standard K-means (same partition) \\
+\end{longtable}
+}
+
+The flagged customers are the most weakly attached points of their
+clusters --- typically boundary customers with unusual income/spending
+combinations. The cluster structure itself is unchanged, which is
+expected: the modification adds an outlier interpretation layer.
+
+\section{8. Discussion and Conclusion}\label{discussion-and-conclusion}
+
+The variant is useful when the analyst needs to know which observations
+are poorly represented by any centroid (e.g., unusual customers).
+Because the threshold is a documented percentile, the flag rate is
+controlled and reproducible (3\% here). The limitation is that
+distance-to-centroid is biased for elongated or density-varying
+clusters, and the flagged points are not automatically errors.
+
+\section{9. Answers to Viva Questions}\label{answers-to-viva-questions}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Why is it important to define a modification precisely?}
+  Without a formal definition, ``modified K-means'' is ambiguous; a
+  precise version (init method, threshold rule, percentile) is
+  reproducible and testable.
+\item
+  \textbf{How does K-Means++ differ from random initialization?}
+  K-Means++ selects initial centroids with probability proportional to
+  squared distance to the nearest chosen centroid, spreading seeds out
+  and reducing convergence to poor local optima.
+\item
+  \textbf{Why might distance-to-centroid fail for elongated clusters?}
+  Centroid distance is isotropic; a point can be close to the centroid
+  along the long axis yet far along the short axis, so elongated
+  clusters can flag legitimate points and missing real outliers.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/01\_clustering\_algorithms.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 2.1 --- Core numerical and plotting libraries}
+
+\begin{lstlisting}[language=Python]
+# ---- Core numerical and plotting libraries ----
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# ---- Scikit-Learn clustering models ----
+from sklearn.cluster import KMeans, AgglomerativeClustering
+# ---- Feature scaling + unsupervised evaluation metrics ----
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+# ---- SciPy hierarchical clustering utilities (linkage + dendrogram) ----
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+# Fix the random seed so every run reproduces the same results
+np.random.seed(42)
+print("Libraries successfully imported!")
+\end{lstlisting}
+
+\textbf{Listing 2.2 --- Load the Mall Customers dataset}
+
+\begin{lstlisting}[language=Python]
+# ---- Load the Mall Customers dataset ----
+df_mall = pd.read_csv('../data/mall_customers.csv')
+print("Dataset Shape:", df_mall.shape)
+print(df_mall.head(3))
+
+# ---- Feature selection: two features so the clusters can be shown in 2D ----
+X_mall = df_mall[['Annual Income (k$)', 'Spending Score (1-100)']].values
+
+# ---- Standardize (mean = 0, std = 1): distance-based algorithms are scale-sensitive ----
+scaler = StandardScaler()
+X_mall_scaled = scaler.fit_transform(X_mall)
+\end{lstlisting}
+
+\textbf{Listing 2.3 --- Modified K-Means (manual variant): K-Means++ +
+outlier-distance check}
+
+\begin{lstlisting}[language=Python]
+# ---- Modified K-Means (manual variant): K-Means++ + outlier-distance check ----
+km_mod = KMeans(n_clusters=optimal_k, init='k-means++', n_init=20, random_state=42)
+mod_labels = km_mod.fit_predict(X_mall_scaled)
+
+# Distance of every sample to its assigned centroid
+dist_to_centroid = np.linalg.norm(X_mall_scaled - km_mod.cluster_centers_[mod_labels], axis=1)
+threshold = np.percentile(dist_to_centroid, 97)      # documented percentile
+outlier_flag = dist_to_centroid > threshold
+
+print(f"Distance threshold (97th percentile): {threshold:.3f}")
+print(f"Flagged candidate outliers: {outlier_flag.sum()} of {len(X_mall)}")
+
+# ---- Plot clusters with flagged candidate outliers highlighted ----
+plt.figure(figsize=(9, 6))
+for cluster_id in range(optimal_k):
+    pts = X_mall[mod_labels == cluster_id]
+    plt.scatter(pts[:, 0], pts[:, 1], s=45, edgecolors='k', alpha=0.8)
+plt.scatter(X_mall[outlier_flag, 0], X_mall[outlier_flag, 1], s=180, facecolors='none',
+            edgecolors='red', linewidths=2.5, label=f'Flagged outliers ({outlier_flag.sum()})')
+plt.title("Modified K-Means: K-Means++ with Outlier-Distance Flagging", fontsize=13, fontweight='bold')
+plt.xlabel("Annual Income (k$)", fontsize=12)
+plt.ylabel("Spending Score (1-100)", fontsize=12)
+plt.legend()
+plt.tight_layout()
+plt.show()
+\end{lstlisting}
+
+\chapter{Experiment 3: Hierarchical
+Clustering}\label{experiment-3-hierarchical-clustering}
+
+\textbf{Category:} Clustering
+
+\section{1. Objective}\label{objective-1}
+
+Perform agglomerative hierarchical clustering, interpret the dendrogram,
+and compare Ward linkage with the other algorithms.
+
+\section{2. Dataset Used}\label{dataset-used-1}
+
+Mall Customers (200 × 2, standardized).
+
+\section{3. Required Libraries}\label{required-libraries-1}
+
+scipy, scikit-learn, matplotlib
+
+\section{4. Brief Theory}\label{brief-theory-1}
+
+Agglomerative clustering starts with one cluster per point and
+repeatedly merges the closest pair. Ward linkage merges the pair that
+increases total within-cluster variance the least: ΔW(A,B) = (n\_A
+n\_B)/(n\_A+n\_B) \textbar\textbar μ\_A − μ\_B\textbar\textbar². The
+dendrogram shows all merges; a horizontal cut determines the number of
+clusters.
+
+\section{5. Procedure}\label{procedure-1}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Standardize the features.
+\item
+  Compute the Ward linkage matrix.
+\item
+  Plot the dendrogram (truncated for readability) and choose a cut
+  level.
+\item
+  Fit
+  \passthrough{\lstinline!AgglomerativeClustering(n\_clusters=5, linkage='ward')!}.
+\item
+  Evaluate with silhouette, Davies-Bouldin and Calinski-Harabasz.
+\item
+  Discuss linkage choice.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation-1}
+
+\begin{lstlisting}[language=Python]
+linkage_matrix = linkage(X_mall_scaled, method='ward')
+dendrogram(linkage_matrix, truncate_mode='lastp', p=25, leaf_rotation=45, show_contracted=True)
+agg_model = AgglomerativeClustering(n_clusters=5, metric='euclidean', linkage='ward')
+agg_labels = agg_model.fit_predict(X_mall_scaled)
+\end{lstlisting}
+
+\section{7. Results}\label{results-1}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Metric & Value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Silhouette Score & 0.5538 \\
+Davies-Bouldin Index & 0.5779 \\
+Calinski-Harabasz Score & 244.41 \\
+\end{longtable}
+}
+
+The dendrogram shows a clear large merge gap that supports cutting at
+five clusters. The partition is nearly identical in quality to K-means
+(silhouette difference \textless{} 0.001).
+
+\section{8. Discussion and
+Conclusion}\label{discussion-and-conclusion-1}
+
+Ward linkage produces compact, balanced clusters and requires no
+initialization, at the cost of O(n²) memory and the need to choose a
+cut. Single linkage would chain across the space and complete linkage
+would fragment; Ward is the appropriate default for compact clusters of
+similar size.
+
+\section{9. Answers to Viva
+Questions}\label{answers-to-viva-questions-1}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{What does a dendrogram show?} The full merge hierarchy: leaf
+  order, merge heights (distances) and the structure of nested clusters;
+  cutting at a height yields a flat partition.
+\item
+  \textbf{What is linkage?} The rule that defines the distance between
+  two clusters (single = closest pair, complete = farthest pair, average
+  = mean pair, Ward = variance increase).
+\item
+  \textbf{When is Ward linkage inappropriate?} With
+  non-spherical/elongated clusters, unequal cluster sizes or outliers
+  --- it assumes compact, similar-variance clusters.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing-1}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/01\_clustering\_algorithms.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 3.1 --- Core numerical and plotting libraries}
+
+\begin{lstlisting}[language=Python]
+# ---- Core numerical and plotting libraries ----
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# ---- Scikit-Learn clustering models ----
+from sklearn.cluster import KMeans, AgglomerativeClustering
+# ---- Feature scaling + unsupervised evaluation metrics ----
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+# ---- SciPy hierarchical clustering utilities (linkage + dendrogram) ----
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+# Fix the random seed so every run reproduces the same results
+np.random.seed(42)
+print("Libraries successfully imported!")
+\end{lstlisting}
+
+\textbf{Listing 3.2 --- Load the Mall Customers dataset}
+
+\begin{lstlisting}[language=Python]
+# ---- Load the Mall Customers dataset ----
+df_mall = pd.read_csv('../data/mall_customers.csv')
+print("Dataset Shape:", df_mall.shape)
+print(df_mall.head(3))
+
+# ---- Feature selection: two features so the clusters can be shown in 2D ----
+X_mall = df_mall[['Annual Income (k$)', 'Spending Score (1-100)']].values
+
+# ---- Standardize (mean = 0, std = 1): distance-based algorithms are scale-sensitive ----
+scaler = StandardScaler()
+X_mall_scaled = scaler.fit_transform(X_mall)
+\end{lstlisting}
+
+\textbf{Listing 3.3 --- Build the linkage matrix and draw the
+dendrogram}
+
+\begin{lstlisting}[language=Python]
+# ---- Build the linkage matrix and draw the dendrogram ----
+# 'ward' linkage merges the pair of clusters that increases within-cluster variance the least.
+linkage_matrix = linkage(X_mall_scaled, method='ward')
+
+# The dendrogram shows every merge; we truncate it to the last 25 merges for readability.
+plt.figure(figsize=(12, 5))
+dendrogram(
+    linkage_matrix,
+    truncate_mode='lastp',   # show only the last p merged clusters
+    p=25,
+    leaf_rotation=45,
+    leaf_font_size=10,
+    show_contracted=True     # condensed leaves are shown as counts
+)
+plt.title("Hierarchical Clustering Dendrogram (Ward Linkage)", fontsize=14, fontweight='bold')
+plt.xlabel("Cluster Sample Index / Merged Size", fontsize=12)
+plt.ylabel("Euclidean Distance (Ward Threshold)", fontsize=12)
+plt.axhline(y=10.0, color='r', linestyle='--', label='Cut-off Threshold (K=5)')  # horizontal cut => cluster count
+plt.legend()
+plt.tight_layout()
+plt.show()
+\end{lstlisting}
+
+\textbf{Listing 3.4 --- Fit the final Agglomerative model (Ward linkage,
+K = 5)}
+
+\begin{lstlisting}[language=Python]
+# ---- Fit the final Agglomerative model (Ward linkage, K = 5) ----
+agg_model = AgglomerativeClustering(n_clusters=optimal_k, metric='euclidean', linkage='ward')
+agg_labels = agg_model.fit_predict(X_mall_scaled)
+
+print(f"Hierarchical Silhouette Score: {silhouette_score(X_mall_scaled, agg_labels):.4f}")
+print(f"Hierarchical Davies-Bouldin Index: {davies_bouldin_score(X_mall_scaled, agg_labels):.4f}")
+\end{lstlisting}
+
+\chapter{Experiment 4: Fuzzy C-means}\label{experiment-4-fuzzy-c-means}
+
+\textbf{Category:} Clustering
+
+\section{1. Objective}\label{objective-2}
+
+Cluster data with soft memberships so each observation can belong to
+multiple clusters with different degrees; report the fuzzy partition
+coefficient (FPC).
+
+\section{2. Dataset Used}\label{dataset-used-2}
+
+Mall Customers (200 × 2, standardized), K = 5, fuzzifier m = 2.0.
+
+\section{3. Required Libraries}\label{required-libraries-2}
+
+numpy, pandas, matplotlib (the c-means equations are implemented from
+scratch; \passthrough{\lstinline!scikit-fuzzy!} is an equivalent library
+implementation)
+
+\section{4. Brief Theory}\label{brief-theory-2}
+
+Fuzzy C-means minimizes J\_m = Σ\_i Σ\_k u\_ik\^{}m
+\textbar\textbar x\_i − v\_k\textbar\textbar² with memberships u\_ik ∈
+{[}0,1{]}, Σ\_k u\_ik = 1. It alternates: v\_k = Σ\_i u\_ik\^{}m x\_i /
+Σ\_i u\_ik\^{}m and u\_ik = 1 / Σ\_j (d\_ik/d\_ij)\^{}(2/(m−1)). The
+fuzzifier m controls softness (m → 1 becomes K-means). FPC = (1/N) Σ\_i
+Σ\_k u\_ik² measures fuzziness (1 = hard, 1/K = maximally fuzzy).
+
+\section{5. Procedure}\label{procedure-2}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Standardize the data.
+\item
+  Initialize the membership matrix randomly (rows sum to 1).
+\item
+  Alternate centroid and membership updates until
+  max\textbar ΔU\textbar{} \textless{} 1e-5.
+\item
+  Derive hard labels via argmax membership.
+\item
+  Report metrics and FPC; visualize memberships/hard partition.
+\item
+  Discuss ambiguous samples and m.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation-2}
+
+\begin{lstlisting}[language=Python]
+Um = U ** self.m
+centers = np.dot(Um.T, X) / Um.sum(axis=0)[:, np.newaxis]
+dist = np.linalg.norm(X[:, np.newaxis, :] - centers[np.newaxis, :, :], axis=2) + 1e-10
+U = (1.0 / dist) ** (2.0 / (self.m - 1.0))
+U = U / U.sum(axis=1, keepdims=True)
+labels = np.argmax(U, axis=1)
+\end{lstlisting}
+
+\section{7. Results}\label{results-2}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Metric & Value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Silhouette Score (hard labels) & 0.5547 \\
+Davies-Bouldin Index & 0.5722 \\
+Fuzzy Partition Coefficient (FPC) & 0.6711 \\
+Iterations to convergence & \textless{} 50 \\
+\end{longtable}
+}
+
+FPC = 0.67 (between 1/K = 0.2 and 1.0) shows the partition is mostly
+crisp but retains soft boundary memberships. Customers with membership
+vectors close to (0.5, 0.5, \ldots) sit between clusters and are the
+genuinely ambiguous ones.
+
+\section{8. Discussion and
+Conclusion}\label{discussion-and-conclusion-2}
+
+FCM converges to the same hard partition as K-means here (silhouette
+0.5547) because the Mall Customers clusters are well separated; the
+added value is the membership matrix, which quantifies uncertainty at
+boundaries. Larger m makes memberships softer (lower FPC) without
+changing the hard structure much; smaller m (\textasciitilde1.1)
+approaches K-means.
+
+\section{9. Answers to Viva
+Questions}\label{answers-to-viva-questions-2}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{How is Fuzzy C-means different from K-means?} It assigns
+  membership degrees instead of hard labels, so each point belongs to
+  all clusters with weights that sum to 1; K-means is the limiting hard
+  case.
+\item
+  \textbf{What does m control?} The fuzziness exponent: larger m spreads
+  membership across clusters (softer), m approaching 1 gives crisp
+  K-means-like assignments.
+\item
+  \textbf{What does a membership vector represent?} The degree to which
+  one observation belongs to each cluster; near-uniform values indicate
+  an ambiguous point on a cluster boundary.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing-2}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/01\_clustering\_algorithms.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 4.1 --- Core numerical and plotting libraries}
+
+\begin{lstlisting}[language=Python]
+# ---- Core numerical and plotting libraries ----
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# ---- Scikit-Learn clustering models ----
+from sklearn.cluster import KMeans, AgglomerativeClustering
+# ---- Feature scaling + unsupervised evaluation metrics ----
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+# ---- SciPy hierarchical clustering utilities (linkage + dendrogram) ----
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+# Fix the random seed so every run reproduces the same results
+np.random.seed(42)
+print("Libraries successfully imported!")
+\end{lstlisting}
+
+\textbf{Listing 4.2 --- Load the Mall Customers dataset}
+
+\begin{lstlisting}[language=Python]
+# ---- Load the Mall Customers dataset ----
+df_mall = pd.read_csv('../data/mall_customers.csv')
+print("Dataset Shape:", df_mall.shape)
+print(df_mall.head(3))
+
+# ---- Feature selection: two features so the clusters can be shown in 2D ----
+X_mall = df_mall[['Annual Income (k$)', 'Spending Score (1-100)']].values
+
+# ---- Standardize (mean = 0, std = 1): distance-based algorithms are scale-sensitive ----
+scaler = StandardScaler()
+X_mall_scaled = scaler.fit_transform(X_mall)
+\end{lstlisting}
+
+\textbf{Listing 4.3 --- Fuzzy C-Means class (from scratch)}
+
+\begin{lstlisting}[language=Python]
+class FuzzyCMeans:
+    """
+    Fuzzy C-Means (FCM) clustering - implemented from scratch with NumPy.
+
+    Each sample belongs to every cluster with a membership degree u_ik in [0, 1],
+    and the memberships over the K clusters sum to 1 per sample.
+
+    Parameters
+    ----------
+    n_clusters   : number of fuzzy clusters K
+    m            : fuzzifier exponent (m > 1; larger m => fuzzier memberships)
+    max_iter     : maximum number of alternating-optimization iterations
+    tol          : convergence tolerance on the maximum membership change
+    random_state : seed for reproducible random initialization
+    """
+
+    def __init__(self, n_clusters=5, m=2.0, max_iter=150, tol=1e-5, random_state=42):
+        self.n_clusters = n_clusters
+        self.m = m
+        self.max_iter = max_iter
+        self.tol = tol
+        self.random_state = random_state
+
+    def fit(self, X):
+        rng = np.random.RandomState(self.random_state)
+        n_samples = X.shape[0]
+
+        # Step 1: initialize the membership matrix U randomly and normalize every row to sum to 1
+        U = rng.rand(n_samples, self.n_clusters)
+        U = U / U.sum(axis=1, keepdims=True)
+
+        # Step 2: alternate between centroid and membership updates until convergence
+        for iteration in range(self.max_iter):
+            U_old = U.copy()
+
+            # 2a: centroid update - membership-weighted mean of the data
+            Um = U ** self.m                                        # u_ik^m
+            centers = np.dot(Um.T, X) / Um.sum(axis=0)[:, np.newaxis]
+
+            # 2b: compute the (n_samples x n_clusters) distance matrix to every centroid
+            dist = np.linalg.norm(X[:, np.newaxis, :] - centers[np.newaxis, :, :], axis=2)
+            dist = np.fmax(dist, 1e-10)  # avoid division by zero
+
+            # 2c: membership update - closer points receive higher membership
+            #     u_ik = 1 / sum_j (d_ik / d_ij)^(2/(m-1))
+            inv_dist = 1.0 / dist
+            power = 2.0 / (self.m - 1.0)
+            inv_dist_p = inv_dist ** power
+            U = inv_dist_p / inv_dist_p.sum(axis=1, keepdims=True)
+
+            # 2d: stop when memberships stop changing (convergence)
+            if np.max(np.abs(U - U_old)) < self.tol:
+                break
+
+        # Store results: final centroids, full membership matrix, and hard labels
+        self.cluster_centers_ = centers
+        self.u_ = U
+        self.labels_ = np.argmax(U, axis=1)  # hard assignment = cluster with maximum membership
+        return self
+
+
+# Fit FCM with the same K as the other algorithms (m = 2 is the standard fuzzifier)
+fcm = FuzzyCMeans(n_clusters=optimal_k, m=2.0, random_state=42)
+fcm.fit(X_mall_scaled)
+fcm_labels = fcm.labels_
+fcm_centers = scaler.inverse_transform(fcm.cluster_centers_)
+
+# ---- Evaluation of the hard partition induced by the fuzzy memberships ----
+print(f"FCM Silhouette Score: {silhouette_score(X_mall_scaled, fcm_labels):.4f}")
+print(f"FCM Davies-Bouldin Index: {davies_bouldin_score(X_mall_scaled, fcm_labels):.4f}")
+fpc = np.mean(np.sum(fcm.u_ ** 2, axis=1))   # fuzzy partition coefficient (1/K fuzzy ... 1 hard)
+print(f"FCM Fuzzy Partition Coefficient (FPC): {fpc:.4f}")
+\end{lstlisting}

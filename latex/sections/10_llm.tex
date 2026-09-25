@@ -1,0 +1,368 @@
+% ===========================================================================
+% Category: Large Language Model
+% Generated from ML_Lab_Manual_Completed.md - edit the Markdown and re-run
+% scripts/build_latex_manual.py instead of editing this file by hand.
+% ===========================================================================
+
+\chapter{Experiment 18: Large Language Model (LLM)
+Experiment}\label{experiment-18-large-language-model-llm-experiment}
+
+\textbf{Category:} Generative / foundation models
+
+\section{1. Objective}\label{objective}
+
+Demonstrate a reproducible LLM workflow: tokenization, inference,
+controlled generation, and fine-tuning on a real public classification
+dataset.
+
+\section{2. Dataset Used}\label{dataset-used}
+
+DistilBERT (SST-2) for tokenization/sentiment, DistilGPT2 for
+generation, and the SMS Spam Collection
+(\passthrough{\lstinline!data/sms\_spam.csv!}, 5,572 labeled messages)
+for fine-tuning. A balanced subset (300 ham + 300 spam) is split 400
+train / 200 stratified test.
+
+\section{3. Required Libraries}\label{required-libraries}
+
+transformers, torch (CUDA), pandas
+
+\section{4. Brief Theory}\label{brief-theory}
+
+LLMs process text as subword tokens (BPE/WordPiece) with an attention
+mask; self-attention computes Attention(Q,K,V) = softmax(QKᵀ/√d\_k +
+mask)V. Causal generation predicts one token at a time; temperature
+scales logits and top-p restricts sampling to the nucleus. Fine-tuning
+reuses pretrained weights and replaces the classification head.
+
+\section{5. Procedure}\label{procedure}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Tokenize a sentence; inspect tokens, IDs and attention mask.
+\item
+  Run the sentiment pipeline on fixed test sentences.
+\item
+  Generate text with greedy decoding and with temperature/top-p
+  sampling.
+\item
+  Load SMS Spam; build the balanced subset and stratified split.
+\item
+  Fine-tune DistilBERT (fresh 2-class head, AdamW lr 5e-5, 2 epochs,
+  batch 16).
+\item
+  Evaluate accuracy/F1 on the untouched test messages and inspect
+  examples.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation}
+
+\begin{lstlisting}[language=Python]
+ft_model = AutoModelForSequenceClassification.from_pretrained(model_id, num_labels=2, ignore_mismatched_sizes=True)
+optimizer = torch.optim.AdamW(ft_model.parameters(), lr=5e-5)
+outputs = ft_model(input_ids=ids, attention_mask=mask, labels=labels)
+outputs.loss.backward(); optimizer.step()
+\end{lstlisting}
+
+\section{7. Results}\label{results}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Item
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Value
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Fine-tune loss & 0.705 → 0.079 (2 epochs) \\
+Held-out accuracy & 0.9600 \\
+Held-out F1 (spam) & 0.9592 \\
+Examples & spam 99.4\%, ham 99.5\%, spam 89.7\% confidence (all
+correct) \\
+\end{longtable}
+}
+
+Generation: greedy produced a safe deterministic continuation; nucleus
+sampling (T=0.7, p=0.9) produced a different but coherent sentence.
+Sentiment scores were in the 90-99\% range on clear sentences.
+
+\section{8. Discussion and Conclusion}\label{discussion-and-conclusion}
+
+The experiment shows the complete practical LLM pipeline and that
+fine-tuning a small pretrained model on 400 real messages already gives
+96\% spam detection. Limitations: the balanced subset ignores the
+natural 13\% spam prior; the models are small and can hallucinate;
+fine-tuning data and prompts must be reproducible. No private data is
+used.
+
+\section{9. Answers to Viva Questions}\label{answers-to-viva-questions}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{What is tokenization?} Splitting text into subword units that
+  map to integer vocabulary IDs, letting a fixed vocabulary represent
+  any word; special tokens and attention masks handle sequence
+  framing/padding.
+\item
+  \textbf{Pretraining vs fine-tuning vs prompting?} Pretraining learns
+  general language representation from massive corpora; fine-tuning
+  adapts those weights to a task with labeled data; prompting steers a
+  frozen model through instructions/examples.
+\item
+  \textbf{Why is LLM output not automatically ground truth?} The model
+  generates the most plausible continuation, not verified facts; it can
+  hallucinate, and confidence scores are not calibrated correctness
+  probabilities.
+\item
+  \textbf{How can prompt wording affect results?} Meaning, tone, format
+  and label wording all change the conditional distribution the model
+  samples from; small prompt changes can flip outputs, so prompts must
+  be fixed and reported.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/10\_large\_language\_model.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 18.1 --- Core numerical and plotting libraries}
+
+\begin{lstlisting}[language=Python]
+# ---- Core numerical and plotting libraries ----
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ---- PyTorch: used for the fine-tuning demo ----
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, Dataset
+# ---- Dataset splitting + metrics for the fine-tune evaluation ----
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, f1_score
+# ---- Hugging Face Transformers: tokenizers, models, pipelines, generation configs ----
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
+    AutoModelForCausalLM,
+    GenerationConfig,
+    pipeline
+)
+
+# Styling setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 5)
+plt.rcParams['figure.dpi'] = 110
+
+torch.manual_seed(42)
+torch.cuda.manual_seed_all(42)  # reproducible GPU training
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # GPU if available
+print(f"PyTorch on {device}")
+\end{lstlisting}
+
+\textbf{Listing 18.2 --- Load a pre-trained DistilBERT tokenizer (fast,
+subword/WordPiece based)}
+
+\begin{lstlisting}[language=Python]
+# ---- Load a pre-trained DistilBERT tokenizer (fast, subword/WordPiece based) ----
+model_id = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
+print(f"Loading Tokenizer: {model_id}...")
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+sample_text = "Machine learning and deep neural networks are transforming modern science!"
+# Tokenize with padding/truncation so the output has a fixed shape (here 20 tokens)
+encoded = tokenizer(
+    sample_text,
+    padding="max_length",
+    max_length=20,
+    truncation=True,
+    return_tensors="pt"
+)
+
+# Convert integer IDs back to readable subword tokens
+tokens = tokenizer.convert_ids_to_tokens(encoded['input_ids'][0])
+print(f"Original Text: {sample_text}\n")
+print(f"Subword Tokens ({len(tokens)}):\n", tokens)
+print(f"Input IDs:      \n", encoded['input_ids'][0].tolist())
+print(f"Attention Mask: \n", encoded['attention_mask'][0].tolist())
+\end{lstlisting}
+
+\textbf{Listing 18.3 --- Load a pre-trained sentiment-analysis pipeline
+(DistilBERT SST-2)}
+
+\begin{lstlisting}[language=Python]
+# ---- Load a pre-trained sentiment-analysis pipeline (DistilBERT SST-2) ----
+classifier = pipeline("sentiment-analysis", model=model_id, device=0 if torch.cuda.is_available() else -1)
+
+test_sentences = [
+    "The new neural network model demonstrated extraordinary accuracy and remarkable speed.",
+    "The dataset was poorly labeled, noisy, and the model completely failed to converge.",
+    "The gradient descent algorithm performed reasonably well, meeting standard expectations.",
+    "A catastrophic failure occurred during training due to exploding gradient issues."
+]
+
+# One forward pass per sentence -> label + calibrated confidence score
+predictions = classifier(test_sentences)
+
+# Collect results in a table for display
+results_table = []
+for sent, pred in zip(test_sentences, predictions):
+    results_table.append({
+        "Sentence": sent,
+        "Predicted Label": pred['label'],
+        "Confidence Score": f"{pred['score']*100:.2f}%"
+    })
+
+df_preds = pd.DataFrame(results_table)
+display(df_preds)
+\end{lstlisting}
+
+\textbf{Listing 18.4 --- Load a small causal LM (DistilGPT2) for text
+generation}
+
+\begin{lstlisting}[language=Python]
+# ---- Load a small causal LM (DistilGPT2) for text generation ----
+gen_model_id = "distilbert/distilgpt2"
+print(f"Loading Text Generator: {gen_model_id}...")
+# clean_up_tokenization_spaces=False keeps BPE spacing intact
+generator = pipeline("text-generation", model=gen_model_id,
+                     device=0 if torch.cuda.is_available() else -1, clean_up_tokenization_spaces=False)
+
+prompt = "Artificial Intelligence will fundamentally transform"
+
+# 1. Greedy Search: always pick the most likely next token (deterministic)
+greedy_output = generator(
+    prompt, generation_config=GenerationConfig(max_new_tokens=40, do_sample=False)
+)[0]['generated_text']
+
+# 2. Temperature + Top-p (Nucleus) Sampling: sample from the most likely tokens up to cumulative p
+sampled_output = generator(
+    prompt, generation_config=GenerationConfig(max_new_tokens=40, do_sample=True, temperature=0.7, top_p=0.9)
+)[0]['generated_text']
+
+print(f"PROMPT: '{prompt}'\n")
+print(f"--- 1. GREEDY SEARCH OUTPUT ---\n{greedy_output.strip()}\n")
+print(f"--- 2. NUCLEUS SAMPLING (T=0.7, p=0.9) OUTPUT ---\n{sampled_output.strip()}")
+\end{lstlisting}
+
+\textbf{Listing 18.5 --- Real dataset: SMS Spam Collection (5,572
+labeled messages)}
+
+\begin{lstlisting}[language=Python]
+# ---- Real dataset: SMS Spam Collection (5,572 labeled messages) ----
+sms = pd.read_csv('../data/sms_spam.csv')
+sms['y'] = (sms['label'] == 'spam').astype(int)
+print(f"SMS Spam Collection: {len(sms)} messages | ham {(sms.y == 0).sum()}, spam {(sms.y == 1).sum()}")
+
+# Balanced subset for a fast fine-tune demo: 300 ham + 300 spam
+ham = sms[sms.y == 0].sample(n=300, random_state=42)
+spam = sms[sms.y == 1].sample(n=300, random_state=42)
+subset = pd.concat([ham, spam]).sample(frac=1, random_state=42).reset_index(drop=True)
+
+# Stratified split keeps the ham/spam ratio identical in train and test
+train_df, test_df = train_test_split(subset, test_size=200, random_state=42, stratify=subset.y)
+print(f"Train messages: {len(train_df)} | Test messages: {len(test_df)} | spam share: {subset.y.mean():.1%}")
+
+class SMSDataset(Dataset):
+    """Tokenize SMS texts and expose them as PyTorch samples."""
+    def __init__(self, texts, labels, tokenizer):
+        self.encodings = tokenizer(list(texts), padding=True, truncation=True, max_length=64, return_tensors="pt")
+        self.labels = list(labels)
+
+    def __getitem__(self, idx):
+        item = {key: val[idx] for key, val in self.encodings.items()}
+        item['labels'] = torch.tensor(self.labels[idx], dtype=torch.long)
+        return item
+
+    def __len__(self):
+        return len(self.labels)
+
+train_loader = DataLoader(SMSDataset(train_df.text, train_df.y, tokenizer), batch_size=16, shuffle=True)
+test_loader = DataLoader(SMSDataset(test_df.text, test_df.y, tokenizer), batch_size=32)
+
+# ---- Load the pre-trained classifier with a fresh 2-class head ----
+# ignore_mismatched_sizes allows replacing the original SST-2 head with a new one.
+ft_model = AutoModelForSequenceClassification.from_pretrained(model_id, num_labels=2, ignore_mismatched_sizes=True)
+ft_model.to(device)
+optimizer = torch.optim.AdamW(ft_model.parameters(), lr=5e-5)  # small LR for fine-tuning
+
+print("Pre-trained Transformer loaded for fine-tuning!")
+\end{lstlisting}
+
+\textbf{Listing 18.6 --- Fine-tuning loop (2 epochs on 400 real SMS
+messages)}
+
+\begin{lstlisting}[language=Python]
+# ---- Fine-tuning loop (2 epochs on 400 real SMS messages) ----
+epochs = 2
+ft_model.train()
+epoch_losses = []
+
+for epoch in range(epochs):
+    running_loss = 0.0
+    for batch in train_loader:
+        optimizer.zero_grad()
+
+        # Move the batch to the selected device
+        input_ids = batch['input_ids'].to(device)
+        attention_mask = batch['attention_mask'].to(device)
+        labels = batch['labels'].to(device)
+
+        # Forward pass: the model computes the classification loss internally
+        outputs = ft_model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+        loss = outputs.loss
+        loss.backward()      # backpropagate through the whole transformer
+        optimizer.step()     # update weights
+
+        running_loss += loss.item() * len(input_ids)   # de-average the batch loss
+
+    avg_loss = running_loss / len(train_df)
+    epoch_losses.append(avg_loss)
+    print(f"Epoch [{epoch+1}/{epochs}] Fine-Tuning Loss: {avg_loss:.4f}")
+\end{lstlisting}
+
+\textbf{Listing 18.7 --- Evaluate the fine-tuned model on held-out real
+SMS messages}
+
+\begin{lstlisting}[language=Python]
+# ---- Evaluate the fine-tuned model on held-out real SMS messages ----
+ft_model.eval()
+preds, targets = [], []
+
+with torch.no_grad():
+    for batch in test_loader:
+        # Move the batch to the same device as the fine-tuned model (GPU when available)
+        input_ids = batch['input_ids'].to(device)
+        attention_mask = batch['attention_mask'].to(device)
+        logits = ft_model(input_ids=input_ids, attention_mask=attention_mask).logits
+        preds += logits.argmax(-1).tolist()       # predicted class (0 = ham, 1 = spam)
+        targets += batch['labels'].tolist()
+
+print(f"Held-out test accuracy: {accuracy_score(targets, preds):.4f}")
+print(f"Held-out test F1 (spam): {f1_score(targets, preds):.4f}")
+
+# ---- Show a few individual predictions with confidence ----
+labels_map = {0: "ham", 1: "spam"}
+with torch.no_grad():
+    for i in range(3):
+        message = test_df.text.iloc[i]
+        enc = tokenizer(message, truncation=True, max_length=64, return_tensors="pt").to(device)
+        probs = torch.softmax(ft_model(**enc).logits, dim=1).cpu().numpy()[0]
+        print(f"\nMessage: {message[:75]}...")
+        print(f"True: {labels_map[test_df.y.iloc[i]]} | Predicted: {labels_map[probs.argmax()]} ({probs.max()*100:.1f}%)")
+\end{lstlisting}

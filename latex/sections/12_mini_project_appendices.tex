@@ -1,0 +1,286 @@
+% ===========================================================================
+% Category: Mini Project and Appendices
+% Generated from ML_Lab_Manual_Completed.md - edit the Markdown and re-run
+% scripts/build_latex_manual.py instead of editing this file by hand.
+% ===========================================================================
+
+\chapter{Integrated Mini Project: Comparative Machine Learning
+Study}\label{integrated-mini-project-comparative-machine-learning-study}
+
+\textbf{Problem:} Compare algorithms from different families under
+identical data, splits and seeds, and explain the differences rather
+than picking one score.
+
+\section{Classification comparison --- Heart Disease (same stratified
+75/25 split, seed
+42)}\label{classification-comparison-heart-disease-same-stratified-7525-split-seed-42}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Model
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Key Hyperparameters
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Test Accuracy
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+F1
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+ROC-AUC
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Observation
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Baseline (majority class) & --- & \textasciitilde0.55 & --- & 0.50 &
+naive reference \\
+Random Forest (RFC) & 120 trees, depth 8 & 0.7763 & 0.8046 & 0.8704 &
+robust, minimal tuning \\
+XGBoost & 120 trees, lr 0.08, depth 4 & 0.7763 & 0.8132 & 0.8509 &
+strong F1, needs tuning \\
+AdaBoost & 100 stumps, lr 0.1 & \textbf{0.7895} & \textbf{0.8182} &
+\textbf{0.8714} & best on this small data \\
+CatBoost & 150 iters, depth 5, native cats & 0.7632 & 0.7955 & 0.8551 &
+no manual encoding needed \\
+SVC (RBF) & C=1.0, γ=`scale' & 0.9790 (Breast Cancer) & --- & --- &
+separate 30-feature benchmark \\
+\end{longtable}
+}
+
+\section{Regression comparison --- California Housing (5,000 sample,
+same 80/20
+split)}\label{regression-comparison-california-housing-5000-sample-same-8020-split}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Model
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Test R²
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+RMSE
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+MAE
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Observation
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Random Forest Regressor & 0.7415 & 0.5908 & 0.3999 & OOB 0.7513 ≈ test,
+no overfit \\
+XGBoost Regressor & 0.8025 & 0.5165 & 0.3467 & best trade-off \\
+AdaBoost Regressor & 0.5888 & 0.7452 & 0.5842 & noise-sensitive \\
+CatBoost Regressor & \textbf{0.8029} & \textbf{0.5160} & 0.3535 & ties
+XGBoost \\
+\end{longtable}
+}
+
+\section{Clustering comparison --- Mall Customers (K=5,
+standardized)}\label{clustering-comparison-mall-customers-k5-standardized}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Algorithm
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Silhouette ↑
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Davies-Bouldin ↓
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Calinski-Harabasz ↑
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+K-Means & 0.5547 & 0.5722 & 248.65 \\
+Modified K-Means (97th pct outlier flag) & 0.5547 & 0.5722 & 248.65 (6
+outliers flagged) \\
+Hierarchical (Ward) & 0.5538 & 0.5779 & 244.41 \\
+Fuzzy C-Means & 0.5547 & 0.5722 & 248.65 (FPC 0.6711) \\
+\end{longtable}
+}
+
+\section{Density-based comparison --- 7,638 real earthquakes (M ≥ 4.5,
+2023)}\label{density-based-comparison-7638-real-earthquakes-m-4.5-2023}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Algorithm
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Clusters
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Noise
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Silhouette
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Observation
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+DBSCAN (ε=0.03 rad) & 55 & 13.5\% & 0.326 & needs ε; elongated arc
+clusters \\
+HDBSCAN & 40 & 21.5\% & \textbf{0.631} & adaptive density, no ε \\
+\end{longtable}
+}
+
+\textbf{Conclusions.} (1) On small tabular classification, simple
+boosting (AdaBoost) or bagging (RFC) match heavier models; the
+differences are within noise. (2) On larger regression data, gradient
+boosting clearly wins (R² ≈ 0.80 vs 0.74). (3) Clustering algorithms
+agree on well-separated data; density methods are the only option for
+arbitrary shapes and noise. (4) Fair comparison requires identical
+splits, fixed seeds, untouched test sets, and reporting at least two
+metrics per task.
+
+\textbf{Common mistakes avoided.} Scaling fitted only on training data;
+no repeated test-set peeking; same partitions for all models; F1/AUC
+reported alongside accuracy; cluster labels never treated as ground
+truth; one hyperparameter changed at a time; prompts and model versions
+recorded; no private data sent to external models.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\appendix
+
+\chapter{Appendix A: Quick Reference
+Formulas}\label{appendix-a-quick-reference-formulas}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Concept & Formula / Definition \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Euclidean distance & d(x,y) = sqrt(Σ\_j (x\_j − y\_j)²) \\
+K-means objective & J = Σ\_i \\
+Regression MAE & MAE = (1/n) Σ\_i \textbar y\_i − ŷ\_i\textbar{} \\
+Regression RMSE & RMSE = sqrt{[}(1/n) Σ\_i (y\_i − ŷ\_i)²{]} \\
+R² & R² = 1 − SS\_res / SS\_tot \\
+Precision & TP / (TP + FP) \\
+Recall & TP / (TP + FN) \\
+F1 & 2 × Precision × Recall / (Precision + Recall) \\
+Sigmoid & σ(z) = 1 / (1 + e\^{}(−z)) \\
+SVM margin idea & Maximize margin while penalizing violations via C \\
+GRNN kernel & w\_i(x) = exp(−\textbar\textbar x−x\_i\textbar\textbar² /
+(2σ²)) \\
+\end{longtable}
+}
+
+\chapter{Appendix B: Reproducibility
+Checklist}\label{appendix-b-reproducibility-checklist}
+
+\begin{itemize}
+\tightlist
+\item
+  Python 3.12 (\passthrough{\lstinline!.venv!}) and all package versions
+  recorded (\passthrough{\lstinline!pip list!} in the repository
+  documentation).
+\item
+  Random seeds fixed everywhere
+  (\passthrough{\lstinline!random\_state=42!},
+  \passthrough{\lstinline!random\_seed=42!},
+  \passthrough{\lstinline!torch.manual\_seed(42)!},
+  \passthrough{\lstinline!torch.cuda.manual\_seed\_all(42)!}).
+\item
+  Datasets committed under \passthrough{\lstinline!data/!} with
+  documented sources (USGS, UCI, scikit-learn, Rdatasets, SMS Spam
+  Collection).
+\item
+  Preprocessing recorded: scaling fitted on training data only;
+  haversine radians for geospatial data; MinMax for SOM/RNN.
+\item
+  Train/validation/test protocols recorded (stratified, chronological,
+  early-stopping split, 5-fold CV).
+\item
+  Hyperparameters documented per experiment in the notebooks and this
+  report.
+\item
+  Metrics defined before final testing; no test-set model selection.
+\item
+  Figures and tables saved inside the executed notebooks and the printed
+  PDFs.
+\item
+  Code runs from the committed \passthrough{\lstinline!.venv!} with the
+  listed dependencies; GPU optional (CPU fallback automatic).
+\end{itemize}
+
+\chapter{Appendix C: Suggested Assessment
+Rubric}\label{appendix-c-suggested-assessment-rubric}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Component & Weight \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Pre-lab preparation / algorithm understanding & 10\% \\
+Correct implementation & 25\% \\
+Experimental design and preprocessing & 15\% \\
+Evaluation and visualization & 15\% \\
+Analysis and interpretation & 20\% \\
+Report quality / reproducibility & 10\% \\
+Viva / discussion & 5\% \\
+\end{longtable}
+}
+
+\chapter{Appendix D: Student Experiment
+Record}\label{appendix-d-student-experiment-record}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Field & Student Entry \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Name & \\
+ID & \\
+Section & \\
+Experiment No. & \\
+Date & \\
+Dataset & \\
+Algorithm / Version & \\
+Key Hyperparameters & \\
+Random Seed & \\
+Main Result & \\
+Observation & \\
+Instructor Signature & \\
+\end{longtable}
+}

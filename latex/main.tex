@@ -1,0 +1,86 @@
+% ===========================================================================
+% Machine Learning Laboratory Manual - Completed Edition
+% Main file: typeset with XeLaTeX (TeX Live). Category files live in sections/.
+%
+% Build:
+%   xelatex main.tex      (run twice for the table of contents)
+%   or:  python scripts/build_latex_manual.py
+% ===========================================================================
+\documentclass[10pt,a4paper]{report}
+\input{preamble}
+
+\begin{document}
+
+% ---------------------------------------------------------------------------
+% Title page
+% ---------------------------------------------------------------------------
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+{\Huge\bfseries\color{MLblue} Machine Learning\\[2mm] Laboratory Manual\par}
+\vspace{6mm}
+{\Large Completed Edition with Full Implementations and Results\par}
+\vspace{10mm}
+{\large Practical Guide to Classical, Ensemble, Neural, Probabilistic,\\[1mm]
+Density-Based, Semi-Supervised and Generative ML\par}
+\vfill
+{\large Prepared by\par}
+\vspace{2mm}
+{\Large\bfseries Dr. Ohidujjaman Tuhin\par}
+{\large Associate Professor, Dept. of CSE, UIU\par}
+\vspace{8mm}
+{\large Department of Computer Science \& Engineering\par}
+{\large Machine Learning Lab\par}
+\vfill
+{\large \today\par}
+\end{titlepage}
+
+% ---------------------------------------------------------------------------
+% Table of contents
+% ---------------------------------------------------------------------------
+\renewcommand{\contentsname}{Contents}
+\setcounter{tocdepth}{1}
+\tableofcontents
+\clearpage
+
+% ---------------------------------------------------------------------------
+% Preface
+% ---------------------------------------------------------------------------
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+This manual covers the complete Machine Learning Laboratory sequence: clustering
+(K-means, modified K-means, hierarchical, fuzzy C-means), density-based learning
+(DBSCAN, HDBSCAN), semi-supervised learning (self-training), ensemble learning
+(random forest regression/classification, XGBoost, AdaBoost, CatBoost), neural
+networks (MLP, RNN/LSTM), self-organizing maps, hidden Markov models, support
+vector machines, large language models and generalized regression neural networks.
+
+Every experiment follows the same eight-part report format: Objective; Suggested
+Dataset; Required Libraries; Brief Theory; Procedure; Reference Implementation;
+Evaluation / Expected Output; and Viva / Discussion Questions, extended with the
+complete executed code listing and the observed results. All experiments were run
+on real, public datasets with fixed random seeds; the full programs are included
+so that each experiment can be reproduced standalone.
+
+\vspace{4mm}
+\textbf{Environment.} Python 3.12, NumPy/Pandas, scikit-learn, XGBoost, CatBoost,
+PyTorch (CUDA), Hugging Face \texttt{transformers}, MiniSom and hmmlearn.
+Random seeds are fixed throughout (\texttt{random\_state=42}).
+
+% ---------------------------------------------------------------------------
+% Category chapters (one .tex file per category)
+% ---------------------------------------------------------------------------
+\input{sections/01_clustering}
+\input{sections/02_density_based}
+\input{sections/03_semi_supervised}
+\input{sections/04_ensemble}
+\input{sections/05_mlp}
+\input{sections/06_rnn}
+\input{sections/07_som}
+\input{sections/08_hmm}
+\input{sections/09_svm}
+\input{sections/10_llm}
+\input{sections/11_grnn}
+\input{sections/12_mini_project_appendices}
+
+\end{document}

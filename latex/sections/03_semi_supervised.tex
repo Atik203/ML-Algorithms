@@ -1,0 +1,270 @@
+% ===========================================================================
+% Category: Semi-Supervised Learning
+% Generated from ML_Lab_Manual_Completed.md - edit the Markdown and re-run
+% scripts/build_latex_manual.py instead of editing this file by hand.
+% ===========================================================================
+
+\chapter{Experiment 7: Self-training for Semi-supervised
+Learning}\label{experiment-7-self-training-for-semi-supervised-learning}
+
+\textbf{Category:} Semi-supervised learning
+
+\section{1. Objective}\label{objective}
+
+Train a classifier with a small labeled subset and a larger unlabeled
+subset by iteratively adding high-confidence pseudo-labels; compare with
+a supervised baseline and the fully supervised ceiling.
+
+\section{2. Dataset Used}\label{dataset-used}
+
+Breast Cancer Wisconsin (569 × 30, binary). Stratified 70/30 split: 398
+training / 171 test. Only 15\% of training labels (61 samples) are kept;
+337 samples are masked as unlabeled (−1).
+
+\section{3. Required Libraries}\label{required-libraries}
+
+scikit-learn, numpy
+
+\section{4. Brief Theory}\label{brief-theory}
+
+Self-training fits a base classifier on labeled data, predicts class
+probabilities for the unlabeled pool, converts sufficiently confident
+predictions (max probability ≥ threshold) to pseudo-labels, adds them to
+the labeled set and repeats. Errors can propagate (confirmation bias),
+so the confidence threshold and convergence monitoring matter.
+
+\section{5. Procedure}\label{procedure}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Split the data stratified; scale features (fit on training data only).
+\item
+  Mask 85\% of training labels to −1.
+\item
+  Train a supervised baseline SVC on the labeled 61 samples.
+\item
+  Wrap an RBF SVC in
+  \passthrough{\lstinline!SelfTrainingClassifier(threshold=0.80)!}, fit
+  on labeled + unlabeled, monitor iterations.
+\item
+  Train a fully supervised SVC on all 398 labels as the ceiling.
+\item
+  Compare accuracy/F1 on the untouched test set.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation}
+
+\begin{lstlisting}[language=Python]
+self_training_svc = SelfTrainingClassifier(
+    estimator=SVC(kernel='rbf', probability=True, C=1.0, random_state=42),
+    threshold=0.80, criterion='threshold', max_iter=15, verbose=True)
+self_training_svc.fit(X_train_full_scaled, y_train_semi)   # labels + unlabeled (-1)
+\end{lstlisting}
+
+\section{7. Results}\label{results}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}llll@{}}
+\toprule\noalign{}
+Setting & Accuracy & F1 & Training samples \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Supervised baseline (15\% labeled) & 0.9298 & 0.9469 & 61 \\
+Self-training (semi-supervised) & \textbf{0.9415} & \textbf{0.9554} &
+382 \\
+Fully supervised ceiling (100\%) & 0.9766 & 0.9813 & 398 \\
+\end{longtable}
+}
+
+Pseudo-labels added per iteration: +292, +22, +5, +2, then termination
+\passthrough{\lstinline!no\_change!} (321 new labels total). The
+decaying additions indicate stable convergence rather than runaway error
+accumulation.
+
+\section{8. Discussion and Conclusion}\label{discussion-and-conclusion}
+
+Using no extra human labels, self-training improves accuracy by +1.2
+points over the baseline, closing part of the gap to the fully
+supervised model. The remaining gap is the cost of noisy pseudo-labels.
+Convergence was quick (4 useful iterations) because the threshold 0.80
+admitted mostly correct predictions.
+
+\section{9. Answers to Viva Questions}\label{answers-to-viva-questions}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{What is a pseudo-label?} A predicted label for an unlabeled
+  sample that the model accepts as training target because its
+  confidence exceeds the threshold.
+\item
+  \textbf{What is confirmation bias in self-training?} The model
+  reinforces its own mistakes: wrong confident predictions enter the
+  training set, make the model more confident about similar errors, and
+  can degrade performance. High thresholds and validation monitoring
+  mitigate this.
+\item
+  \textbf{Why must the test labels remain hidden during training?}
+  Otherwise the evaluation is contaminated --- test data would influence
+  the model, and the reported accuracy would no longer estimate
+  generalization.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/03\_semi\_supervised\_learning.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 7.1 --- Suppress a known sklearn deprecation notice for
+SVC(probability=True)}
+
+\begin{lstlisting}[language=Python]
+# ---- Suppress a known sklearn deprecation notice for SVC(probability=True) ----
+import warnings
+# ---- Core numerical and plotting libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ---- Dataset + train/test utilities ----
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+# ---- Semi-supervised self-training wrapper ----
+from sklearn.semi_supervised import SelfTrainingClassifier
+# ---- Base estimators compared inside self-training ----
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+# ---- Evaluation metrics ----
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, classification_report
+
+# Aesthetics setup (consistent look across all notebooks)
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+
+# The installed scikit-learn still supports SVC(probability=True) but warns; silence that specific notice
+warnings.filterwarnings("ignore", message="The `probability` parameter was deprecated", category=FutureWarning)
+np.random.seed(42)
+print("Semi-supervised libraries imported successfully!")
+
+# ---- Load the Breast Cancer Wisconsin dataset ----
+data = load_breast_cancer()
+X_full = data.data            # 30 continuous diagnostic features
+y_full = data.target          # 0 = malignant, 1 = benign
+feature_names = data.feature_names
+target_names = data.target_names
+
+# ---- Train / Test split (stratified to preserve class balance) ----
+X_train_full, X_test, y_train_full, y_test = train_test_split(
+    X_full, y_full, test_size=0.30, random_state=42, stratify=y_full
+)
+
+# ---- Standardize features (fit on train only to avoid test leakage) ----
+scaler = StandardScaler()
+X_train_full_scaled = scaler.fit_transform(X_train_full)
+X_test_scaled = scaler.transform(X_test)
+
+# ---- Simulate the semi-supervised setting: hide 85% of the training labels ----
+unlabeled_ratio = 0.85
+rng = np.random.RandomState(42)
+random_unlabeled_points = rng.rand(len(y_train_full)) < unlabeled_ratio   # True -> mask
+
+y_train_semi = np.copy(y_train_full)
+y_train_semi[random_unlabeled_points] = -1   # -1 is the scikit-learn convention for "unlabeled"
+
+n_labeled = np.sum(y_train_semi != -1)
+n_unlabeled = np.sum(y_train_semi == -1)
+
+print(f"Total Training Samples:   {len(y_train_full)}")
+print(f" - Labeled Samples (15%): {n_labeled}")
+print(f" - Unlabeled Samples (85%): {n_unlabeled}")
+print(f"Holdout Test Samples:     {len(y_test)}")
+\end{lstlisting}
+
+\textbf{Listing 7.2 --- Experiment 1: Self-Training with an RBF-kernel
+SVC}
+
+\begin{lstlisting}[language=Python]
+# ---- Experiment 1: Self-Training with an RBF-kernel SVC ----
+
+# 1. Supervised baseline trained ONLY on the ~60 labeled samples
+mask_labeled = (y_train_semi != -1)                 # boolean mask of the labeled subset
+X_labeled = X_train_full_scaled[mask_labeled]
+y_labeled = y_train_semi[mask_labeled]
+
+base_svc = SVC(kernel='rbf', probability=True, C=1.0, random_state=42)
+base_svc.fit(X_labeled, y_labeled)
+y_pred_baseline_svc = base_svc.predict(X_test_scaled)
+acc_baseline_svc = accuracy_score(y_test, y_pred_baseline_svc)
+f1_baseline_svc = f1_score(y_test, y_pred_baseline_svc)
+
+# 2. Semi-supervised self-training: base SVC + iterative pseudo-labeling above threshold 0.80
+self_training_svc = SelfTrainingClassifier(
+    estimator=SVC(kernel='rbf', probability=True, C=1.0, random_state=42),
+    threshold=0.80,          # only accept pseudo-labels with confidence >= 0.80
+    criterion='threshold',   # use the confidence-threshold selection rule
+    max_iter=15,
+    verbose=True             # print how many labels are added per iteration
+)
+self_training_svc.fit(X_train_full_scaled, y_train_semi)
+y_pred_semi_svc = self_training_svc.predict(X_test_scaled)
+acc_semi_svc = accuracy_score(y_test, y_pred_semi_svc)
+f1_semi_svc = f1_score(y_test, y_pred_semi_svc)
+
+# 3. Fully supervised "ceiling": train on 100% of the ground-truth labels
+full_svc = SVC(kernel='rbf', probability=True, C=1.0, random_state=42)
+full_svc.fit(X_train_full_scaled, y_train_full)
+y_pred_full_svc = full_svc.predict(X_test_scaled)
+acc_full_svc = accuracy_score(y_test, y_pred_full_svc)
+f1_full_svc = f1_score(y_test, y_pred_full_svc)
+
+# ---- Compare the three settings ----
+print(f"\n--- SVC Evaluation Results ---")
+print(f"Supervised Baseline (15% labeled): Accuracy = {acc_baseline_svc:.4f}, F1 = {f1_baseline_svc:.4f}")
+print(f"Self-Training (Semi-supervised):   Accuracy = {acc_semi_svc:.4f}, F1 = {f1_semi_svc:.4f}")
+print(f"Fully Supervised Ceiling (100%):   Accuracy = {acc_full_svc:.4f}, F1 = {f1_full_svc:.4f}")
+\end{lstlisting}
+
+\textbf{Listing 7.3 --- Inspect how self-training converged}
+
+\begin{lstlisting}[language=Python]
+# ---- Inspect how self-training converged ----
+# n_iter_                 : number of self-training iterations performed
+# termination_condition_  : why training stopped (e.g. 'no_change' = no new confident labels)
+# transduction_           : final labels for every training sample (-1 = still unlabeled)
+n_iter = self_training_svc.n_iter_
+termination_condition = self_training_svc.termination_condition_
+labeled_final_mask = (self_training_svc.transduction_ != -1)
+
+print(f"Self-Training Convergence Summary:")
+print(f" - Iterations completed: {n_iter}")
+print(f" - Termination condition: {termination_condition}")
+print(f" - Total samples labeled after self-training: {np.sum(labeled_final_mask)} / {len(y_train_full)}")
+print(f" - Pseudo-labels newly added: {np.sum(labeled_final_mask) - n_labeled}")
+\end{lstlisting}
+
+\textbf{Listing 7.4 --- Compact comparison table (SVC)}
+
+\begin{lstlisting}[language=Python]
+# ---- Compact comparison table (SVC) ----
+summary_data = [
+    {"Model": "SVC (Baseline 15% Labeled)", "Accuracy": acc_baseline_svc, "F1-Score": f1_baseline_svc,
+     "Training Samples": n_labeled},
+    {"Model": "SVC (Self-Training Semi-Supervised)", "Accuracy": acc_semi_svc, "F1-Score": f1_semi_svc,
+     "Training Samples": np.sum(self_training_svc.transduction_ != -1)},
+    {"Model": "SVC (Fully Supervised Ceiling 100%)", "Accuracy": acc_full_svc, "F1-Score": f1_full_svc,
+     "Training Samples": len(y_train_full)},
+]
+summary_df = pd.DataFrame(summary_data).set_index("Model")
+display(summary_df.style.highlight_max(subset=['Accuracy', 'F1-Score'], color='lightgreen'))
+\end{lstlisting}

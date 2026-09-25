@@ -1,0 +1,964 @@
+% ===========================================================================
+% Category: Ensemble Learning
+% Generated from ML_Lab_Manual_Completed.md - edit the Markdown and re-run
+% scripts/build_latex_manual.py instead of editing this file by hand.
+% ===========================================================================
+
+\chapter{Experiment 8: Random Forest Regression
+(RFR)}\label{experiment-8-random-forest-regression-rfr}
+
+\textbf{Category:} Ensemble learning
+
+\section{1. Objective}\label{objective}
+
+Predict a continuous target using an ensemble of randomized decision
+trees; evaluate with MAE, RMSE and R² and inspect out-of-bag validation.
+
+\section{2. Dataset Used}\label{dataset-used}
+
+California Housing
+(\passthrough{\lstinline!fetch\_california\_housing!}), 5,000-row random
+sample, 8 features, target = median house value. 80/20 train/test split
+(4,000/1,000).
+
+\section{3. Required Libraries}\label{required-libraries}
+
+scikit-learn, numpy, pandas
+
+\section{4. Brief Theory}\label{brief-theory}
+
+Random Forest Regression averages predictions of B trees trained on
+bootstrap samples, each split considering a random feature subset.
+Averaging decorrelated trees reduces variance. Out-of-bag samples (not
+drawn in a bootstrap) give a free internal validation estimate.
+
+\section{5. Procedure}\label{procedure}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Load and sample the dataset; split train/test.
+\item
+  Train
+  \passthrough{\lstinline!RandomForestRegressor(n\_estimators=150, max\_depth=12, oob\_score=True)!}.
+\item
+  Predict the test set; compute R², RMSE, MAE.
+\item
+  Report the OOB R² and compare with the test R² to check overfitting.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation}
+
+\begin{lstlisting}[language=Python]
+rf_reg = RandomForestRegressor(n_estimators=150, max_depth=12,
+                               oob_score=True, random_state=42, n_jobs=-1)
+rf_reg.fit(X_train_reg, y_train_reg)
+print(rf_reg.oob_score_, r2_score(y_test_reg, rf_reg.predict(X_test_reg)))
+\end{lstlisting}
+
+\section{7. Results}\label{results}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Metric & Value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+OOB R² & 0.7513 \\
+Test R² & 0.7415 \\
+Test RMSE & 0.5908 (\$100k units ≈ \$59k) \\
+Test MAE & 0.3999 (\$100k units ≈ \$40k) \\
+\end{longtable}
+}
+
+OOB R² (0.7513) is very close to the test R² (0.7415), so the model is
+not overfitting. Feature importances are dominated by median income and
+location (latitude/longitude), consistent with housing economics.
+
+\section{8. Discussion and Conclusion}\label{discussion-and-conclusion}
+
+RFR provides a strong, low-maintenance baseline for tabular regression:
+no feature scaling is required, it captures non-linearities and
+interactions, and OOB gives free validation. Gradient boosting
+(Experiments 10-12) reaches higher R² on the same data at the cost of
+more tuning.
+
+\section{9. Answers to Viva Questions}\label{answers-to-viva-questions}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Why does a forest reduce variance?} Averaging B approximately
+  uncorrelated trees gives Var ≈ ρσ² + (1−ρ)σ²/B; as B grows the second
+  term vanishes, so predictions are more stable than a single tree's.
+\item
+  \textbf{What is bagging?} Bootstrap aggregating: train each model on a
+  bootstrap sample of the data and combine predictions (average for
+  regression, vote for classification).
+\item
+  \textbf{Why can feature importance be misleading?} Impurity-based
+  importance is biased toward high-cardinality/continuous features, is
+  computed on training data (no causality), and correlated features
+  share/dilute importance arbitrarily.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/04\_ensemble\_learning.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 8.1 --- Core libraries}
+
+\begin{lstlisting}[language=Python]
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+\end{lstlisting}
+
+\textbf{Listing 8.2 --- Load the California Housing dataset (real-world
+regression benchmark)}
+
+\begin{lstlisting}[language=Python]
+# ---- Load the California Housing dataset (real-world regression benchmark) ----
+housing = fetch_california_housing(as_frame=True)
+# Sample 5,000 rows so every ensemble trains quickly while remaining representative
+df_reg = housing.frame.sample(n=5000, random_state=42)
+
+X_reg = df_reg[housing.feature_names]   # 8 socio-economic / geographic features
+y_reg = df_reg['MedHouseVal']           # target: median house value
+
+# ---- Train/test split (80% / 20%) ----
+X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(
+    X_reg, y_reg, test_size=0.20, random_state=42
+)
+
+print(f"Regression Training Samples: {X_train_reg.shape[0]}, Test Samples: {X_test_reg.shape[0]}")
+df_reg.head()
+\end{lstlisting}
+
+\textbf{Listing 8.3 --- Random Forest Regression (bagging of decision
+trees)}
+
+\begin{lstlisting}[language=Python]
+# ---- Random Forest Regression (bagging of decision trees) ----
+# n_estimators = number of trees, oob_score = estimate accuracy from out-of-bag samples
+rf_reg = RandomForestRegressor(n_estimators=150, max_depth=12, oob_score=True, random_state=42, n_jobs=-1)
+rf_reg.fit(X_train_reg, y_train_reg)
+
+# ---- Predict and evaluate ----
+y_pred_rf = rf_reg.predict(X_test_reg)
+r2_rf = r2_score(y_test_reg, y_pred_rf)                          # explained variance (1.0 = perfect)
+rmse_rf = root_mean_squared_error(y_test_reg, y_pred_rf)         # error in target units
+mae_rf = mean_absolute_error(y_test_reg, y_pred_rf)              # robust average error
+
+print(f"Random Forest Regressor Results:")
+print(f" - Out-of-Bag (OOB) R² Score: {rf_reg.oob_score_:.4f}")
+print(f" - Test R² Score:              {r2_rf:.4f}")
+print(f" - Test RMSE:                  {rmse_rf:.4f}")
+print(f" - Test MAE:                   {mae_rf:.4f}")
+\end{lstlisting}
+
+\chapter{Experiment 9: Random Forest Classification
+(RFC)}\label{experiment-9-random-forest-classification-rfc}
+
+\textbf{Category:} Ensemble learning
+
+\section{1. Objective}\label{objective-1}
+
+Classify observations with an ensemble of randomized decision trees
+using a stratified split and report accuracy, precision, recall, F1 and
+the confusion matrix.
+
+\section{2. Dataset Used}\label{dataset-used-1}
+
+Heart Disease (\passthrough{\lstinline!data/heart\_disease.csv!}, 303
+rows, 13 features plus target). Categorical variables are one-hot
+encoded for the forest; stratified 75/25 split (227/76).
+
+\section{3. Required Libraries}\label{required-libraries-1}
+
+scikit-learn, numpy, pandas
+
+\section{4. Brief Theory}\label{brief-theory-1}
+
+Random Forest Classification aggregates tree votes: Ĉ(x) = argmax\_k
+Σ\_b I(T\_b(x) = k). Bootstrap sampling plus feature subsampling
+decorrelates trees, reducing variance relative to a single decision
+tree. The class-probability output (fraction of votes) enables ROC-AUC.
+
+\section{5. Procedure}\label{procedure-1}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Load the heart data; one-hot encode categorical features.
+\item
+  Use a stratified 75/25 split to preserve the disease ratio.
+\item
+  Train
+  \passthrough{\lstinline!RandomForestClassifier(n\_estimators=120, max\_depth=8)!}.
+\item
+  Predict labels and probabilities on the test set.
+\item
+  Compute accuracy, F1 and ROC-AUC.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation-1}
+
+\begin{lstlisting}[language=Python]
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+\end{lstlisting}
+
+\section{7. Results}\label{results-1}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Metric
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Value
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Accuracy & 0.7763 \\
+Precision / Recall / F1 & 0.8046 (F1) \\
+ROC-AUC & 0.8704 \\
+Confusion matrix (test, 76 samples) & TN/FP/FN/TP reported in
+notebook \\
+\end{longtable}
+}
+
+ROC-AUC 0.87 indicates good ranking quality on a small dataset; accuracy
+0.776 is typical for heart-disease prediction with these features and
+reflects the problem's noise, not a modelling failure.
+
+\section{8. Discussion and
+Conclusion}\label{discussion-and-conclusion-1}
+
+RFC gives a robust classifier with minimal preprocessing and
+interpretable feature importances. On 227 training rows the
+variance-reduction of bagging is important; class imbalance (about 45\%
+positive here) is mild, but F1 and AUC are safer than accuracy alone.
+
+\section{9. Answers to Viva
+Questions}\label{answers-to-viva-questions-1}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{RFR vs RFC?} Regression averages the trees' numeric outputs;
+  classification takes a majority vote (and averages class probabilities
+  for scoring).
+\item
+  \textbf{What is majority voting?} Each tree votes for one class and
+  the most frequent class becomes the ensemble prediction (soft voting
+  averages probabilities instead).
+\item
+  \textbf{How can class imbalance affect accuracy?} With a rare positive
+  class, a model can predict the majority class everywhere and still
+  show high accuracy; precision/recall/F1 and AUC expose the failure.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing-1}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/04\_ensemble\_learning.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 9.1 --- Core libraries}
+
+\begin{lstlisting}[language=Python]
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+\end{lstlisting}
+
+\textbf{Listing 9.2 --- Load the Heart Disease dataset (real-world
+classification benchmark)}
+
+\begin{lstlisting}[language=Python]
+# ---- Load the Heart Disease dataset (real-world classification benchmark) ----
+df_clf = pd.read_csv('../data/heart_disease.csv')
+print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
+
+# Separate target and features (handle either 'target' or 'Target' as the column name)
+target_col = 'target' if 'target' in df_clf.columns else 'Target'
+y_clf = df_clf[target_col].values
+X_clf_raw = df_clf.drop(columns=[target_col])
+
+# One-hot encode categorical variables for RFC / XGBoost / AdaBoost
+X_clf_encoded = pd.get_dummies(X_clf_raw, drop_first=True)
+
+# Stratified split keeps the disease/no-disease ratio identical in train and test
+X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
+    X_clf_encoded, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+print(f"Classification Training Set: {X_train_clf.shape}, Test Set: {X_test_clf.shape}")
+
+# ---- Random Forest Classification (majority vote of trees) ----
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+
+# Predictions and probability of the positive (disease) class
+y_pred_rfc = rfc.predict(X_test_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+
+# ---- Evaluate: accuracy, F1 and ROC-AUC ----
+acc_rfc = accuracy_score(y_test_clf, y_pred_rfc)
+f1_rfc = f1_score(y_test_clf, y_pred_rfc)
+auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
+
+print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
+\end{lstlisting}
+
+\chapter{Experiment 10: XGBoost}\label{experiment-10-xgboost}
+
+\textbf{Category:} Ensemble learning / Gradient boosting
+
+\section{1. Objective}\label{objective-2}
+
+Train a gradient-boosted tree classifier and analyze the effect of
+boosting hyperparameters.
+
+\section{2. Dataset Used}\label{dataset-used-2}
+
+Heart Disease (\passthrough{\lstinline!data/heart\_disease.csv!}), same
+stratified 75/25 split as RFC for a fair comparison.
+
+\section{3. Required Libraries}\label{required-libraries-2}
+
+xgboost, scikit-learn, numpy, pandas
+
+\section{4. Brief Theory}\label{brief-theory-2}
+
+XGBoost builds trees sequentially, each fitting the 1st/2nd-order
+gradients (g\_i, h\_i) of the loss: L ≈ Σ{[}g\_i f\_t(x\_i) + ½ h\_i
+f\_t²(x\_i){]} + Ω(f\_t), with Ω(f) = γT + ½λΣw\_j². Controls:
+\passthrough{\lstinline!learning\_rate!},
+\passthrough{\lstinline!n\_estimators!},
+\passthrough{\lstinline!max\_depth!},
+\passthrough{\lstinline!subsample!},
+\passthrough{\lstinline!colsample\_bytree!},
+\passthrough{\lstinline!reg\_alpha!},
+\passthrough{\lstinline!reg\_lambda!}.
+
+\section{5. Procedure}\label{procedure-2}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Prepare the one-hot encoded heart data and the same stratified split.
+\item
+  Fit
+  \passthrough{\lstinline!XGBClassifier(n\_estimators=120, learning\_rate=0.08, max\_depth=4, subsample=0.8, colsample\_bytree=0.8, eval\_metric='logloss')!}.
+\item
+  Predict labels and probabilities.
+\item
+  Report accuracy, F1 and ROC-AUC.
+\item
+  Discuss the complexity/generalization trade-off.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation-2}
+
+\begin{lstlisting}[language=Python]
+xgb_clf = xgb.XGBClassifier(n_estimators=120, learning_rate=0.08, max_depth=4,
+                            subsample=0.8, colsample_bytree=0.8,
+                            random_state=42, eval_metric='logloss')
+xgb_clf.fit(X_train_clf, y_train_clf)
+y_prob_xgb_c = xgb_clf.predict_proba(X_test_clf)[:, 1]
+\end{lstlisting}
+
+\section{7. Results}\label{results-2}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Metric & Value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Accuracy & 0.7763 \\
+F1 & 0.8132 \\
+ROC-AUC & 0.8509 \\
+\end{longtable}
+}
+
+XGBoost matches RFC on accuracy with a slightly higher F1 but a slightly
+lower AUC on this small test set (76 samples). Differences of
+\textasciitilde0.01-0.02 are within noise for this dataset size.
+
+\section{8. Discussion and
+Conclusion}\label{discussion-and-conclusion-2}
+
+Gradient boosting is the strongest family for tabular data in general
+(see regression results: XGBoost R² 0.8025 vs RFR 0.7415), but on this
+small heart dataset with fixed hyperparameters it does not clearly beat
+simpler ensembles. Lower learning rates with more trees usually improve
+generalization at higher training cost.
+
+\section{9. Answers to Viva
+Questions}\label{answers-to-viva-questions-2}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Bagging vs boosting?} Bagging trains models in parallel on
+  bootstrap samples and combines them to reduce variance; boosting
+  trains models sequentially so each corrects the previous ensemble's
+  errors, mainly reducing bias.
+\item
+  \textbf{What does learning rate do?} It shrinks each tree's
+  contribution. Smaller values need more trees but usually generalize
+  better; larger values fit faster and can overfit.
+\item
+  \textbf{Why can boosting overfit?} Later trees keep fitting remaining
+  errors, including label noise, and the ensemble can become too
+  complex; regularization (depth, λ, subsample, early stopping) controls
+  this.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing-2}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/04\_ensemble\_learning.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 10.1 --- Core libraries}
+
+\begin{lstlisting}[language=Python]
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+\end{lstlisting}
+
+\textbf{Listing 10.2 --- Load the Heart Disease dataset (real-world
+classification benchmark)}
+
+\begin{lstlisting}[language=Python]
+# ---- Load the Heart Disease dataset (real-world classification benchmark) ----
+df_clf = pd.read_csv('../data/heart_disease.csv')
+print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
+
+# Separate target and features (handle either 'target' or 'Target' as the column name)
+target_col = 'target' if 'target' in df_clf.columns else 'Target'
+y_clf = df_clf[target_col].values
+X_clf_raw = df_clf.drop(columns=[target_col])
+
+# One-hot encode categorical variables for RFC / XGBoost / AdaBoost
+X_clf_encoded = pd.get_dummies(X_clf_raw, drop_first=True)
+
+# Stratified split keeps the disease/no-disease ratio identical in train and test
+X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
+    X_clf_encoded, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+print(f"Classification Training Set: {X_train_clf.shape}, Test Set: {X_test_clf.shape}")
+
+# ---- Random Forest Classification (majority vote of trees) ----
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+
+# Predictions and probability of the positive (disease) class
+y_pred_rfc = rfc.predict(X_test_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+
+# ---- Evaluate: accuracy, F1 and ROC-AUC ----
+acc_rfc = accuracy_score(y_test_clf, y_pred_rfc)
+f1_rfc = f1_score(y_test_clf, y_pred_rfc)
+auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
+
+print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
+\end{lstlisting}
+
+\textbf{Listing 10.3 --- XGBoost classification on the same stratified
+split}
+
+\begin{lstlisting}[language=Python]
+# ---- XGBoost classification on the same stratified split ----
+xgb_clf = xgb.XGBClassifier(
+    n_estimators=120, learning_rate=0.08, max_depth=4,
+    subsample=0.8, colsample_bytree=0.8,
+    random_state=42, eval_metric='logloss'
+)
+xgb_clf.fit(X_train_clf, y_train_clf)
+
+y_pred_xgb_c = xgb_clf.predict(X_test_clf)
+y_prob_xgb_c = xgb_clf.predict_proba(X_test_clf)[:, 1]
+
+acc_xgb_c = accuracy_score(y_test_clf, y_pred_xgb_c)
+f1_xgb_c = f1_score(y_test_clf, y_pred_xgb_c)
+auc_xgb_c = roc_auc_score(y_test_clf, y_prob_xgb_c)
+print(f"XGBoost Classifier:   Accuracy = {acc_xgb_c:.4f}, F1 = {f1_xgb_c:.4f}, ROC-AUC = {auc_xgb_c:.4f}")
+\end{lstlisting}
+
+\chapter{Experiment 11: AdaBoost}\label{experiment-11-adaboost}
+
+\textbf{Category:} Ensemble learning
+
+\section{1. Objective}\label{objective-3}
+
+Build an adaptive boosting classifier and study how weak learners
+combine into a stronger ensemble.
+
+\section{2. Dataset Used}\label{dataset-used-3}
+
+Heart Disease (\passthrough{\lstinline!data/heart\_disease.csv!}), same
+stratified 75/25 split.
+
+\section{3. Required Libraries}\label{required-libraries-3}
+
+scikit-learn, numpy, pandas
+
+\section{4. Brief Theory}\label{brief-theory-3}
+
+AdaBoost trains weak learners sequentially on re-weighted data:
+misclassified samples receive larger weights. At round m the learner
+weight is α\_m = ½ ln((1 − ε\_m)/ε\_m), and sample weights update as
+w\_i ← w\_i exp(−α\_m y\_i h\_m(x\_i)). The final prediction is a
+weighted vote. Exponential loss makes it sensitive to noisy points.
+
+\section{5. Procedure}\label{procedure-3}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Prepare the heart data and stratified split.
+\item
+  Fit
+  \passthrough{\lstinline!AdaBoostClassifier(n\_estimators=100, learning\_rate=0.1)!}
+  (stumps by default).
+\item
+  Predict labels and probabilities on the test set.
+\item
+  Report accuracy, F1 and ROC-AUC; compare with RFC and XGBoost.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation-3}
+
+\begin{lstlisting}[language=Python]
+ada_clf = AdaBoostClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
+ada_clf.fit(X_train_clf, y_train_clf)
+y_prob_ada_c = ada_clf.predict_proba(X_test_clf)[:, 1]
+\end{lstlisting}
+
+\section{7. Results}\label{results-3}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Metric & Value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Accuracy & 0.7895 (best of the four classifiers) \\
+F1 & 0.8182 (best) \\
+ROC-AUC & 0.8714 (best) \\
+\end{longtable}
+}
+
+AdaBoost with shallow stumps slightly outperforms the deeper models on
+this small dataset, which is a common outcome when the signal is mostly
+additive and the sample size is limited.
+
+\section{8. Discussion and
+Conclusion}\label{discussion-and-conclusion-3}
+
+AdaBoost remains a strong, cheap baseline: stump ensembles are fast,
+need little tuning, and here achieve top accuracy/F1/AUC. Its weakness
+is sensitivity to label noise and outliers (weights grow exponentially
+for hard points); gradient boosting with regularization is more robust
+on noisier data.
+
+\section{9. Answers to Viva
+Questions}\label{answers-to-viva-questions-3}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Why use weak learners?} Individually they are simple and
+  low-variance; boosting combines many of them so the ensemble can fit
+  complex boundaries while keeping each step's variance low.
+\item
+  \textbf{How does AdaBoost focus on difficult examples?} After each
+  round, weights of misclassified samples increase, so the next learner
+  optimizes a distribution that emphasizes current errors.
+\item
+  \textbf{What is the effect of noisy labels?} Mislabeled points look
+  ``hard'', receive ever-larger weights, and can dominate training,
+  degrading accuracy --- AdaBoost is known to be noise-sensitive.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing-3}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/04\_ensemble\_learning.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 11.1 --- Core libraries}
+
+\begin{lstlisting}[language=Python]
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+\end{lstlisting}
+
+\textbf{Listing 11.2 --- Load the Heart Disease dataset (real-world
+classification benchmark)}
+
+\begin{lstlisting}[language=Python]
+# ---- Load the Heart Disease dataset (real-world classification benchmark) ----
+df_clf = pd.read_csv('../data/heart_disease.csv')
+print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
+
+# Separate target and features (handle either 'target' or 'Target' as the column name)
+target_col = 'target' if 'target' in df_clf.columns else 'Target'
+y_clf = df_clf[target_col].values
+X_clf_raw = df_clf.drop(columns=[target_col])
+
+# One-hot encode categorical variables for RFC / XGBoost / AdaBoost
+X_clf_encoded = pd.get_dummies(X_clf_raw, drop_first=True)
+
+# Stratified split keeps the disease/no-disease ratio identical in train and test
+X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
+    X_clf_encoded, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+print(f"Classification Training Set: {X_train_clf.shape}, Test Set: {X_test_clf.shape}")
+
+# ---- Random Forest Classification (majority vote of trees) ----
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+
+# Predictions and probability of the positive (disease) class
+y_pred_rfc = rfc.predict(X_test_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+
+# ---- Evaluate: accuracy, F1 and ROC-AUC ----
+acc_rfc = accuracy_score(y_test_clf, y_pred_rfc)
+f1_rfc = f1_score(y_test_clf, y_pred_rfc)
+auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
+
+print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
+\end{lstlisting}
+
+\textbf{Listing 11.3 --- AdaBoost classification}
+
+\begin{lstlisting}[language=Python]
+# ---- AdaBoost classification ----
+ada_clf = AdaBoostClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
+ada_clf.fit(X_train_clf, y_train_clf)
+
+y_pred_ada_c = ada_clf.predict(X_test_clf)
+y_prob_ada_c = ada_clf.predict_proba(X_test_clf)[:, 1]
+
+acc_ada_c = accuracy_score(y_test_clf, y_pred_ada_c)
+f1_ada_c = f1_score(y_test_clf, y_pred_ada_c)
+auc_ada_c = roc_auc_score(y_test_clf, y_prob_ada_c)
+print(f"AdaBoost Classifier:  Accuracy = {acc_ada_c:.4f}, F1 = {f1_ada_c:.4f}, ROC-AUC = {auc_ada_c:.4f}")
+\end{lstlisting}
+
+\chapter{Experiment 12: CatBoost}\label{experiment-12-catboost}
+
+\textbf{Category:} Ensemble learning
+
+\section{1. Objective}\label{objective-4}
+
+Train a gradient-boosted model with native handling of categorical
+features and inspect correct categorical declaration.
+
+\section{2. Dataset Used}\label{dataset-used-4}
+
+Heart Disease (\passthrough{\lstinline!data/heart\_disease.csv!}):
+continuous features (age, trestbps, chol, thalach, oldpeak) plus
+categorical features (sex, cp, fbs, restecg, exang, slope, ca, thal).
+The raw (unencoded) table is used for CatBoost.
+
+\section{3. Required Libraries}\label{required-libraries-4}
+
+catboost, pandas, scikit-learn
+
+\section{4. Brief Theory}\label{brief-theory-4}
+
+CatBoost uses ordered boosting (leaf values computed on random
+permutations) to avoid target leakage/prediction shift, and builds
+oblivious (symmetric) trees. Categorical features are encoded internally
+with ordered target statistics, so
+\passthrough{\lstinline!cat\_features!} must be declared correctly and
+the data split must not leak the target.
+
+\section{5. Procedure}\label{procedure-4}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Identify categorical columns in the raw heart table and cast them to
+  string.
+\item
+  Use the same stratified 75/25 split on the raw features.
+\item
+  Fit
+  \passthrough{\lstinline!CatBoostClassifier(iterations=150, depth=5, cat\_features=categorical\_cols)!}.
+\item
+  Predict labels/probabilities; report accuracy, F1, ROC-AUC.
+\item
+  Explain why target-statistic encoding can beat one-hot encoding.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation-4}
+
+\begin{lstlisting}[language=Python]
+categorical_cols = X_clf_raw.select_dtypes(include=['object', 'category']).columns.tolist()
+cb_clf = cb.CatBoostClassifier(iterations=150, learning_rate=0.08, depth=5,
+                               cat_features=categorical_cols, random_seed=42, verbose=False)
+cb_clf.fit(X_tr_cb, y_tr_cb)
+\end{lstlisting}
+
+\section{7. Results}\label{results-4}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Metric & Value \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Accuracy & 0.7632 \\
+F1 & 0.7955 \\
+ROC-AUC & 0.8551 \\
+\end{longtable}
+}
+
+CatBoost performs at a similar level to the other ensembles without any
+manual one-hot encoding --- its native categorical handling did the
+encoding internally. On this tiny dataset, the advanced target
+statistics cannot show their full advantage (they matter most with
+high-cardinality categories, e.g.~thousands of city/user IDs).
+
+\section{8. Discussion and
+Conclusion}\label{discussion-and-conclusion-4}
+
+CatBoost is the ensemble of choice when tables mix numeric and
+categorical columns: it removes manual encoding, reduces target leakage,
+and remains strong out-of-the-box. Here its metrics sit within noise of
+RFC/XGBoost/AdaBoost because the categorical cardinalities are small
+(2-4 values).
+
+\section{9. Answers to Viva
+Questions}\label{answers-to-viva-questions-4}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{How does CatBoost treat categorical features?} It computes
+  ordered target statistics (mean target per category on random
+  permutations with prior smoothing) rather than one-hot vectors.
+\item
+  \textbf{Why should categories not be encoded using target leakage?}
+  Plain target encoding uses each row's own target when encoding that
+  row, which leaks label information and inflates training performance;
+  ordered statistics avoid this.
+\item
+  \textbf{CatBoost vs ordinary one-hot encoding?} One-hot explodes
+  dimensionality for high-cardinality features and loses category
+  statistics; CatBoost encodes compactly and exploits target-category
+  relationships with leakage control.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing-4}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/04\_ensemble\_learning.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 12.1 --- Core libraries}
+
+\begin{lstlisting}[language=Python]
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+\end{lstlisting}
+
+\textbf{Listing 12.2 --- Load the Heart Disease dataset (real-world
+classification benchmark)}
+
+\begin{lstlisting}[language=Python]
+# ---- Load the Heart Disease dataset (real-world classification benchmark) ----
+df_clf = pd.read_csv('../data/heart_disease.csv')
+print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
+
+# Separate target and features (handle either 'target' or 'Target' as the column name)
+target_col = 'target' if 'target' in df_clf.columns else 'Target'
+y_clf = df_clf[target_col].values
+X_clf_raw = df_clf.drop(columns=[target_col])
+
+# One-hot encode categorical variables for RFC / XGBoost / AdaBoost
+X_clf_encoded = pd.get_dummies(X_clf_raw, drop_first=True)
+
+# Stratified split keeps the disease/no-disease ratio identical in train and test
+X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
+    X_clf_encoded, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+print(f"Classification Training Set: {X_train_clf.shape}, Test Set: {X_test_clf.shape}")
+
+# ---- Random Forest Classification (majority vote of trees) ----
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+
+# Predictions and probability of the positive (disease) class
+y_pred_rfc = rfc.predict(X_test_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+
+# ---- Evaluate: accuracy, F1 and ROC-AUC ----
+acc_rfc = accuracy_score(y_test_clf, y_pred_rfc)
+f1_rfc = f1_score(y_test_clf, y_pred_rfc)
+auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
+
+print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
+\end{lstlisting}
+
+\textbf{Listing 12.3 --- CatBoost classification with native categorical
+features}
+
+\begin{lstlisting}[language=Python]
+# ---- CatBoost classification with native categorical features ----
+# Identify categorical columns in the raw (unencoded) heart data
+categorical_cols = X_clf_raw.select_dtypes(include=['object', 'category']).columns.tolist()
+X_raw_cb = X_clf_raw.copy()
+for col in categorical_cols:
+    X_raw_cb[col] = X_raw_cb[col].astype(str)
+
+# Same stratified split on the raw feature table
+X_tr_cb, X_te_cb, y_tr_cb, y_te_cb = train_test_split(
+    X_raw_cb, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+cb_clf = cb.CatBoostClassifier(
+    iterations=150, learning_rate=0.08, depth=5,
+    cat_features=categorical_cols, random_seed=42, verbose=False
+)
+cb_clf.fit(X_tr_cb, y_tr_cb)
+
+y_pred_cb_c = cb_clf.predict(X_te_cb)
+y_prob_cb_c = cb_clf.predict_proba(X_te_cb)[:, 1]
+
+acc_cb_c = accuracy_score(y_te_cb, y_pred_cb_c)
+f1_cb_c = f1_score(y_te_cb, y_pred_cb_c)
+auc_cb_c = roc_auc_score(y_te_cb, y_prob_cb_c)
+print(f"CatBoost Classifier:  Accuracy = {acc_cb_c:.4f}, F1 = {f1_cb_c:.4f}, ROC-AUC = {auc_cb_c:.4f}")
+\end{lstlisting}

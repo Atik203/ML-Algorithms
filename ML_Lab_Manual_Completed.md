@@ -49,6 +49,33 @@ for k in range(2, 11):
     kmeans.fit(X_mall_scaled)
     wcss.append(kmeans.inertia_)
     silhouette_scores.append(silhouette_score(X_mall_scaled, kmeans.labels_))
+# final model
+kmeans_model = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
+kmeans_labels = kmeans_model.fit_predict(X_mall_scaled)
+```
+
+## 7. Results
+| Metric | Value |
+|---|---|
+| Selected K (elbow + silhouette peak) | 5 |
+| Silhouette Score | 0.5547 |
+| Davies-Bouldin Index | 0.5722 |
+| Calinski-Harabasz Score | 248.65 |
+
+The elbow curve flattens after K = 5 and the silhouette curve peaks at K = 5, so K = 5 is selected. Silhouette ≈ 0.55 indicates compact, reasonably separated clusters on real data.
+
+## 8. Discussion and Conclusion
+K-means recovers a clear 5-segment customer structure. The result is stable because K-Means++ initialization avoids poor local minima and `n_init=20` keeps the best run. Standardization matters: without it, income (0-137) dominates spending (1-99). K-means assumes roughly spherical clusters of similar size — a limitation addressed by the density-based and fuzzy methods later.
+
+## 9. Answers to Viva Questions
+- **Why does K-means depend on feature scaling?** It minimizes Euclidean distance; unscaled features with larger ranges dominate the distance and therefore the assignments.
+- **What is inertia?** The within-cluster sum of squared distances to centroids (WCSS); lower is tighter, but it always decreases with K, so it is not a standalone quality score.
+- **Why can a high silhouette score still be misleading?** A high score can come from a simple/trivial partition (e.g., one big dense cluster), and silhouette favors compact convex clusters — it can misjudge elongated or density-varying structures.
+- **What happens when clusters are non-spherical?** K-means splits them with straight Voronoi boundaries and merges elongated clusters incorrectly (demonstrated with real seismic data in Experiment 5).
+
+---
+
+
 ## 10. Complete Code Listing
 
 *Full runnable program for this experiment, extracted from `notebooks/01_clustering_algorithms.ipynb` (executed; results above are its actual output).*
@@ -151,32 +178,6 @@ print(f"K-Means Silhouette Score: {silhouette_score(X_mall_scaled, kmeans_labels
 print(f"K-Means Davies-Bouldin Index: {davies_bouldin_score(X_mall_scaled, kmeans_labels):.4f}")
 ```
 
-# final model
-kmeans_model = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
-kmeans_labels = kmeans_model.fit_predict(X_mall_scaled)
-```
-
-## 7. Results
-| Metric | Value |
-|---|---|
-| Selected K (elbow + silhouette peak) | 5 |
-| Silhouette Score | 0.5547 |
-| Davies-Bouldin Index | 0.5722 |
-| Calinski-Harabasz Score | 248.65 |
-
-The elbow curve flattens after K = 5 and the silhouette curve peaks at K = 5, so K = 5 is selected. Silhouette ≈ 0.55 indicates compact, reasonably separated clusters on real data.
-
-## 8. Discussion and Conclusion
-K-means recovers a clear 5-segment customer structure. The result is stable because K-Means++ initialization avoids poor local minima and `n_init=20` keeps the best run. Standardization matters: without it, income (0-137) dominates spending (1-99). K-means assumes roughly spherical clusters of similar size — a limitation addressed by the density-based and fuzzy methods later.
-
-## 9. Answers to Viva Questions
-- **Why does K-means depend on feature scaling?** It minimizes Euclidean distance; unscaled features with larger ranges dominate the distance and therefore the assignments.
-- **What is inertia?** The within-cluster sum of squared distances to centroids (WCSS); lower is tighter, but it always decreases with K, so it is not a standalone quality score.
-- **Why can a high silhouette score still be misleading?** A high score can come from a simple/trivial partition (e.g., one big dense cluster), and silhouette favors compact convex clusters — it can misjudge elongated or density-varying structures.
-- **What happens when clusters are non-spherical?** K-means splits them with straight Voronoi boundaries and merges elongated clusters incorrectly (demonstrated with real seismic data in Experiment 5).
-
----
-
 # Experiment 2: Modified K-means
 
 **Category:** Clustering
@@ -228,6 +229,7 @@ The variant is useful when the analyst needs to know which observations are poor
 - **Why might distance-to-centroid fail for elongated clusters?** Centroid distance is isotropic; a point can be close to the centroid along the long axis yet far along the short axis, so elongated clusters can flag legitimate points and missing real outliers.
 
 ---
+
 
 ## 10. Complete Code Listing
 
@@ -359,6 +361,7 @@ Ward linkage produces compact, balanced clusters and requires no initialization,
 - **When is Ward linkage inappropriate?** With non-spherical/elongated clusters, unequal cluster sizes or outliers — it assumes compact, similar-variance clusters.
 
 ---
+
 
 ## 10. Complete Code Listing
 
@@ -502,6 +505,7 @@ FCM converges to the same hard partition as K-means here (silhouette 0.5547) bec
 - **What does a membership vector represent?** The degree to which one observation belongs to each cluster; near-uniform values indicate an ambiguous point on a cluster boundary.
 
 ---
+
 
 ## 10. Complete Code Listing
 
@@ -684,6 +688,7 @@ DBSCAN recovers the global seismic structure without labels: dense chains along 
 
 ---
 
+
 ## 10. Complete Code Listing
 
 *Full runnable program for this experiment, extracted from `notebooks/02_density_based_learning.ipynb` (executed; results above are its actual output).*
@@ -852,6 +857,7 @@ HDBSCAN needs no ε and handles the varying density along plate boundaries bette
 
 ---
 
+
 ## 10. Complete Code Listing
 
 *Full runnable program for this experiment, extracted from `notebooks/02_density_based_learning.ipynb` (executed; results above are its actual output).*
@@ -981,6 +987,7 @@ Using no extra human labels, self-training improves accuracy by +1.2 points over
 - **Why must the test labels remain hidden during training?** Otherwise the evaluation is contaminated — test data would influence the model, and the reported accuracy would no longer estimate generalization.
 
 ---
+
 
 ## 10. Complete Code Listing
 
@@ -1181,6 +1188,7 @@ RFR provides a strong, low-maintenance baseline for tabular regression: no featu
 
 ---
 
+
 ## 10. Complete Code Listing
 
 *Full runnable program for this experiment, extracted from `notebooks/04_ensemble_learning.ipynb` (executed; results above are its actual output).*
@@ -1301,6 +1309,7 @@ RFC gives a robust classifier with minimal preprocessing and interpretable featu
 
 ---
 
+
 ## 10. Complete Code Listing
 
 *Full runnable program for this experiment, extracted from `notebooks/04_ensemble_learning.ipynb` (executed; results above are its actual output).*
@@ -1418,6 +1427,7 @@ Gradient boosting is the strongest family for tabular data in general (see regre
 - **Why can boosting overfit?** Later trees keep fitting remaining errors, including label noise, and the ensemble can become too complex; regularization (depth, λ, subsample, early stopping) controls this.
 
 ---
+
 
 ## 10. Complete Code Listing
 
@@ -1554,6 +1564,7 @@ AdaBoost remains a strong, cheap baseline: stump ensembles are fast, need little
 
 ---
 
+
 ## 10. Complete Code Listing
 
 *Full runnable program for this experiment, extracted from `notebooks/04_ensemble_learning.ipynb` (executed; results above are its actual output).*
@@ -1687,6 +1698,7 @@ CatBoost is the ensemble of choice when tables mix numeric and categorical colum
 
 ---
 
+
 ## 10. Complete Code Listing
 
 *Full runnable program for this experiment, extracted from `notebooks/04_ensemble_learning.ipynb` (executed; results above are its actual output).*
@@ -1812,6 +1824,32 @@ An MLP stacks affine transformations with non-linear activations: a⁽ˡ⁾ = σ
 mlp_sklearn = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam',
                             alpha=0.001, batch_size=64, learning_rate_init=0.005,
                             max_iter=150, early_stopping=True, validation_fraction=0.15)
+# PyTorch
+self.net = nn.Sequential(
+    nn.Linear(64, 128), nn.BatchNorm1d(128), nn.ReLU(), nn.Dropout(0.25),
+    nn.Linear(128, 64), nn.BatchNorm1d(64),  nn.ReLU(), nn.Dropout(0.20),
+    nn.Linear(64, 10))
+```
+
+## 7. Results
+| Model | Test accuracy | Notes |
+|---|---|---|
+| Scikit-Learn MLP (128-64) | 0.9630 | early stopping after 15 iterations |
+| PyTorch Deep MLP | **0.9815** | GPU (CUDA), 50 epochs, val acc 0.9889 |
+
+Training loss fell from 1.20 to ~0.02 while validation loss tracked it closely (no severe overfitting). Per-class precision/recall are near 1.00 for almost all digits.
+
+## 8. Discussion and Conclusion
+The custom PyTorch model beats the sklearn baseline by ~2 points thanks to BatchNorm, Dropout and scheduled training over more epochs. With only 1,797 images, regularization is the key; a CNN would be the natural next step because MLPs ignore spatial structure.
+
+## 9. Answers to Viva Questions
+- **Why is scaling important for MLP?** Gradient descent converges poorly when input features have very different scales; standardization equalizes their influence and stabilizes the loss surface.
+- **What is backpropagation?** Reverse-mode application of the chain rule that computes the gradient of the loss with respect to every weight, layer by layer.
+- **What causes vanishing/exploding gradients?** Repeated multiplication of small (or large) Jacobians through many layers; ReLU, BatchNorm, careful initialization and residual connections mitigate it.
+
+---
+
+
 ## 10. Complete Code Listing
 
 *Full runnable program for this experiment, extracted from `notebooks/05_multilayer_perceptron.ipynb` (executed; results above are its actual output).*
@@ -2049,31 +2087,6 @@ print("Detailed Classification Report:")
 print(classification_report(test_targets, test_preds, digits=4))
 ```
 
-# PyTorch
-self.net = nn.Sequential(
-    nn.Linear(64, 128), nn.BatchNorm1d(128), nn.ReLU(), nn.Dropout(0.25),
-    nn.Linear(128, 64), nn.BatchNorm1d(64),  nn.ReLU(), nn.Dropout(0.20),
-    nn.Linear(64, 10))
-```
-
-## 7. Results
-| Model | Test accuracy | Notes |
-|---|---|---|
-| Scikit-Learn MLP (128-64) | 0.9630 | early stopping after 15 iterations |
-| PyTorch Deep MLP | **0.9815** | GPU (CUDA), 50 epochs, val acc 0.9889 |
-
-Training loss fell from 1.20 to ~0.02 while validation loss tracked it closely (no severe overfitting). Per-class precision/recall are near 1.00 for almost all digits.
-
-## 8. Discussion and Conclusion
-The custom PyTorch model beats the sklearn baseline by ~2 points thanks to BatchNorm, Dropout and scheduled training over more epochs. With only 1,797 images, regularization is the key; a CNN would be the natural next step because MLPs ignore spatial structure.
-
-## 9. Answers to Viva Questions
-- **Why is scaling important for MLP?** Gradient descent converges poorly when input features have very different scales; standardization equalizes their influence and stabilizes the loss surface.
-- **What is backpropagation?** Reverse-mode application of the chain rule that computes the gradient of the loss with respect to every weight, layer by layer.
-- **What causes vanishing/exploding gradients?** Repeated multiplication of small (or large) Jacobians through many layers; ReLU, BatchNorm, careful initialization and residual connections mitigate it.
-
----
-
 # Experiment 14: Recurrent Neural Network (RNN)
 
 **Category:** Sequence modeling
@@ -2100,6 +2113,39 @@ An RNN maintains a hidden state h_t = tanh(W x_t + U h_{t−1} + b) so the outpu
 
 ## 6. Reference Implementation
 ```python
+# classification
+self.rnn = nn.RNN(1, hidden, batch_first=True) if cell == 'rnn' else nn.LSTM(1, hidden, batch_first=True)
+self.fc = nn.Linear(hidden, 1)
+# forecasting
+self.lstm = nn.LSTM(input_size=1, hidden_size=64, num_layers=2, batch_first=True)
+```
+
+## 7. Results
+**(a) Sequence classification (synthetic, manual experiment):**
+
+| Model | Test accuracy |
+|---|---|
+| Vanilla RNN | 0.9300 |
+| LSTM | **0.9450** |
+
+**(b) Airline passenger forecasting:**
+
+| Model | RMSE (passengers) | MAE |
+|---|---|---|
+| Vanilla RNN | 69.93 | 62.36 |
+| LSTM | **44.12** | **36.78** |
+
+## 8. Discussion and Conclusion
+The LSTM outperforms the vanilla RNN on both tasks: +1.5 accuracy points on classification and ~37% lower RMSE on forecasting. The gap is larger on forecasting because the task needs 12-step seasonal memory, exactly where gating prevents vanishing gradients. On the easy synthetic benchmark both models do well because the decision rule (sum > 0) is nearly linear.
+
+## 9. Answers to Viva Questions
+- **Why does an RNN have memory?** Its hidden state is carried across time steps, so each output depends on previous inputs, not only the current one.
+- **What is a hidden state?** The internal vector summarizing the sequence seen so far; it is updated at every step and used to produce outputs.
+- **Why are LSTM/GRU often preferred for long dependencies?** Their gates control what is stored/forgotten and the additive cell state lets gradients flow across many steps, avoiding the exponential decay of vanilla RNN gradients.
+
+---
+
+
 ## 10. Complete Code Listing
 
 *Full runnable program for this experiment, extracted from `notebooks/06_recurrent_neural_network.ipynb` (executed; results above are its actual output).*
@@ -2355,38 +2401,6 @@ acc_lstm_cls = train_classifier(RNNClassifier('lstm'))
 print(f"Sequence classification test accuracy: Vanilla RNN {acc_rnn_cls:.4f} | LSTM {acc_lstm_cls:.4f}")
 ```
 
-# classification
-self.rnn = nn.RNN(1, hidden, batch_first=True) if cell == 'rnn' else nn.LSTM(1, hidden, batch_first=True)
-self.fc = nn.Linear(hidden, 1)
-# forecasting
-self.lstm = nn.LSTM(input_size=1, hidden_size=64, num_layers=2, batch_first=True)
-```
-
-## 7. Results
-**(a) Sequence classification (synthetic, manual experiment):**
-
-| Model | Test accuracy |
-|---|---|
-| Vanilla RNN | 0.9300 |
-| LSTM | **0.9450** |
-
-**(b) Airline passenger forecasting:**
-
-| Model | RMSE (passengers) | MAE |
-|---|---|---|
-| Vanilla RNN | 69.93 | 62.36 |
-| LSTM | **44.12** | **36.78** |
-
-## 8. Discussion and Conclusion
-The LSTM outperforms the vanilla RNN on both tasks: +1.5 accuracy points on classification and ~37% lower RMSE on forecasting. The gap is larger on forecasting because the task needs 12-step seasonal memory, exactly where gating prevents vanishing gradients. On the easy synthetic benchmark both models do well because the decision rule (sum > 0) is nearly linear.
-
-## 9. Answers to Viva Questions
-- **Why does an RNN have memory?** Its hidden state is carried across time steps, so each output depends on previous inputs, not only the current one.
-- **What is a hidden state?** The internal vector summarizing the sequence seen so far; it is updated at every step and used to produce outputs.
-- **Why are LSTM/GRU often preferred for long dependencies?** Their gates control what is stored/forgotten and the additive cell state lets gradients flow across many steps, avoiding the exponential decay of vanilla RNN gradients.
-
----
-
 # Experiment 15: Self-Organizing Map (SOM)
 
 **Category:** Unsupervised neural learning
@@ -2438,6 +2452,7 @@ The map halved its quantization error during training and preserves topology wel
 - **Why is SOM called a topology-preserving map?** Because the update neighborhood ensures nearby grid positions end up with similar weight vectors, so high-dimensional neighborhoods are approximately preserved in 2D.
 
 ---
+
 
 ## 10. Complete Code Listing
 
@@ -2601,6 +2616,7 @@ The 3-state Gaussian HMM extracts interpretable, persistent market regimes from 
 - **What is the Markov assumption?** The future state depends on the past only through the present state: P(z_t | z_{1:t−1}) = P(z_t | z_{t−1}).
 
 ---
+
 
 ## 10. Complete Code Listing
 
@@ -2766,6 +2782,7 @@ SVMs give accurate, sparse solutions: 77% of the cancer training points could be
 - **Why does SVM require careful scaling?** Margins and kernels use Euclidean distances; unscaled features with larger ranges dominate them and degrade the fit.
 
 ---
+
 
 ## 10. Complete Code Listing
 
@@ -2976,6 +2993,7 @@ The experiment shows the complete practical LLM pipeline and that fine-tuning a 
 - **How can prompt wording affect results?** Meaning, tone, format and label wording all change the conditional distribution the model samples from; small prompt changes can flip outputs, so prompts must be fixed and reported.
 
 ---
+
 
 ## 10. Complete Code Listing
 
@@ -3255,6 +3273,7 @@ GRNN is instant to train and needs only one hyperparameter. On the smooth 1D sin
 - **How is GRNN related to kernel regression?** It is exactly the Nadaraya-Watson Gaussian kernel regression estimator of E[y | x], with one kernel per training observation.
 
 ---
+
 
 ## 10. Complete Code Listing
 

@@ -1,0 +1,240 @@
+% ===========================================================================
+% Category: Hidden Markov Model
+% Generated from ML_Lab_Manual_Completed.md - edit the Markdown and re-run
+% scripts/build_latex_manual.py instead of editing this file by hand.
+% ===========================================================================
+
+\chapter{Experiment 16: Hidden Markov Model
+(HMM)}\label{experiment-16-hidden-markov-model-hmm}
+
+\textbf{Category:} Probabilistic sequence modeling
+
+\section{1. Objective}\label{objective}
+
+Model a sequence with hidden states, transition probabilities and
+emission distributions; decode the most likely hidden-state path with
+Viterbi.
+
+\section{2. Dataset Used}\label{dataset-used}
+
+Real DAX stock index daily closes 1991-1998
+(\passthrough{\lstinline!data/stock\_index.csv!}, R
+\passthrough{\lstinline!EuStockMarkets!}), 1,859 trading days. The
+observation sequence is the daily return; the close price is used only
+for plotting. This is a realistic alternative to a toy discrete
+sequence.
+
+\section{3. Required Libraries}\label{required-libraries}
+
+hmmlearn, numpy, pandas, matplotlib
+
+\section{4. Brief Theory}\label{brief-theory}
+
+An HMM assumes a hidden Markov state sequence z\_t (P(z\_t \textbar{}
+z\_\{t−1\})) that emits observations x\_t \textbar{} z\_t = s\_k
+\textasciitilde{} N(μ\_k, σ\_k²). The transition matrix A\_ij =
+P(z\_\{t+1\}=j \textbar{} z\_t=i). Baum-Welch (EM) learns parameters
+(forward-backward E-step, re-estimation M-step); Viterbi decoding finds
+the most likely state path by dynamic programming; the forward algorithm
+gives the log-likelihood.
+
+\section{5. Procedure}\label{procedure}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Load the DAX series; build the daily-return observation vector.
+\item
+  Fit
+  \passthrough{\lstinline!GaussianHMM(n\_components=3, covariance\_type="full", n\_iter=200, random\_state=42)!}.
+\item
+  Check convergence and log-likelihood.
+\item
+  Decode the state path with Viterbi.
+\item
+  Sort states by volatility so they map to Bull/Sideways/Bear; reorder
+  the transition matrix.
+\item
+  Plot the transition heatmap and the price colored by regime.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation}
+
+\begin{lstlisting}[language=Python]
+hmm_model = GaussianHMM(n_components=3, covariance_type="full", n_iter=200, random_state=42)
+hmm_model.fit(returns)
+hidden_states = hmm_model.predict(returns)                 # Viterbi
+state_order = np.argsort([np.sqrt(hmm_model.covars_[i][0][0]) for i in range(3)])
+\end{lstlisting}
+
+\section{7. Results}\label{results}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Item
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Value
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+EM converged & True \\
+Model log-likelihood & 6019.79 (1,859 days) \\
+Regimes & Bull (low vol), Sideways (medium), Bear (high vol) after
+sorting \\
+\end{longtable}
+}
+
+The colored DAX chart shows the model tracking real episodes: the 1990s
+bull phases, corrections such as 1994, and the high-volatility cluster
+around the 1998 crisis. The transition-matrix diagonal is dominant,
+confirming regime persistence.
+
+\section{8. Discussion and Conclusion}\label{discussion-and-conclusion}
+
+The 3-state Gaussian HMM extracts interpretable, persistent market
+regimes from real data without labels. Its main assumptions are the
+Markov property (next state depends only on the current one) and
+Gaussian emissions; return fat tails and regime duration dependence
+motivate extensions (t-emissions, semi-Markov models).
+
+\section{9. Answers to Viva Questions}\label{answers-to-viva-questions}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{What is hidden in an HMM?} The state sequence: we observe
+  emissions (returns) but not the underlying regime that generated them.
+\item
+  \textbf{Viterbi vs forward algorithm?} Viterbi returns the single most
+  likely state path (max over paths); the forward algorithm computes the
+  total probability P(X \textbar{} λ) by summing over all paths.
+\item
+  \textbf{What is the Markov assumption?} The future state depends on
+  the past only through the present state: P(z\_t \textbar{}
+  z\_\{1:t−1\}) = P(z\_t \textbar{} z\_\{t−1\}).
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{10. Complete Code Listing}\label{complete-code-listing}
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/08\_hidden\_markov\_model.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 16.1 --- Core libraries}
+
+\begin{lstlisting}[language=Python]
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from hmmlearn.hmm import GaussianHMM
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+
+# ---- Load the real DAX stock index (daily closes 1991-1998) ----
+df_market = pd.read_csv('../data/stock_index.csv')
+dates = pd.to_datetime(df_market['Date'])
+print(f"Trading days: {len(df_market)} | {dates.iloc[0].date()} to {dates.iloc[-1].date()}")
+print(df_market.head(3).to_string(index=False))
+
+returns = df_market['Daily_Return'].values.reshape(-1, 1)   # HMM observations
+prices = df_market['Close'].values                          # only used for visualization
+\end{lstlisting}
+
+\textbf{Listing 16.2 --- Fit a 3-state Gaussian HMM with the Baum-Welch
+(EM) algorithm}
+
+\begin{lstlisting}[language=Python]
+# ---- Fit a 3-state Gaussian HMM with the Baum-Welch (EM) algorithm ----
+n_components = 3
+hmm_model = GaussianHMM(
+    n_components=n_components,        # Bull / Sideways / Bear regimes
+    covariance_type="full",           # each state has its own full covariance Gaussian emission
+    n_iter=200,                       # EM iterations
+    random_state=42,
+    verbose=False
+)
+
+hmm_model.fit(returns)
+print("EM Training Converged:", hmm_model.monitor_.converged)
+print(f"Model Log-Likelihood: {hmm_model.score(returns):.2f}")
+
+# ---- Decode the most likely hidden state sequence with the Viterbi algorithm ----
+hidden_states = hmm_model.predict(returns)
+
+# ---- Sort regimes by volatility so labels have a consistent economic meaning ----
+# Regime 0: Low Volatility (Bull) | Regime 1: Moderate (Sideways) | Regime 2: High (Bear/Crisis)
+volatilities = [np.sqrt(hmm_model.covars_[i][0][0]) for i in range(n_components)]
+state_order = np.argsort(volatilities)                                           # ascending volatility
+state_mapping = {old_state: new_state for new_state, old_state in enumerate(state_order)}
+
+sorted_hidden_states = np.array([state_mapping[s] for s in hidden_states])       # relabel sequence
+sorted_means = [hmm_model.means_[old][0] for old in state_order]                 # reordered means
+sorted_stds  = [np.sqrt(hmm_model.covars_[old][0][0]) for old in state_order]    # reordered std devs
+
+# ---- Reorder the transition matrix to match the sorted regimes ----
+sorted_transmat = np.zeros((n_components, n_components))
+for i in range(n_components):
+    for j in range(n_components):
+        sorted_transmat[i, j] = hmm_model.transmat_[state_order[i], state_order[j]]
+
+regime_names = ["Bull (Low Vol)", "Sideways (Med Vol)", "Bear (High Vol)"]
+\end{lstlisting}
+
+\textbf{Listing 16.3 --- Transition probability matrix}
+
+\begin{lstlisting}[language=Python]
+# ---- Transition probability matrix ----
+fig, ax = plt.subplots(figsize=(6, 4.5))
+sns.heatmap(sorted_transmat, annot=True, fmt='.3f', cmap='Blues', ax=ax,
+            xticklabels=regime_names, yticklabels=regime_names, cbar=False)
+ax.set_title("HMM Transition Probability Matrix ($A_{ij}$)", fontweight='bold')
+ax.set_xlabel("Transition To Regime")
+ax.set_ylabel("Current Regime")
+plt.tight_layout()
+plt.show()
+
+# ---- Viterbi-decoded regimes over the price series ----
+colors = ['forestgreen', 'royalblue', 'crimson']
+x = np.arange(len(prices))
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(13, 7), sharex=True, gridspec_kw={'height_ratios': [3, 1]})
+
+# Top: color every consecutive price segment by its decoded regime
+for i in range(len(prices) - 1):
+    ax1.plot([x[i], x[i + 1]], [prices[i], prices[i + 1]], color=colors[sorted_hidden_states[i]], lw=1.2)
+for i, name in enumerate(regime_names):
+    ax1.plot([], [], color=colors[i], label=name, lw=2.5)
+ax1.set_title("DAX Index 1991-1998 Colored by Decoded HMM Regime (Viterbi Path)", fontsize=13, fontweight='bold')
+ax1.set_ylabel("Index Level")
+ax1.legend(loc='upper left')
+
+# Bottom: raw sequence of decoded states over time
+ax2.scatter(x, sorted_hidden_states, c=[colors[s] for s in sorted_hidden_states], s=8, marker='|')
+ax2.set_yticks(range(n_components))
+ax2.set_yticklabels(regime_names)
+ax2.set_xlabel("Trading Day Index")
+
+# Label the x-axis with years (real dates)
+year_pos = np.where(dates.dt.year.diff().fillna(0).values != 0)[0]
+ax2.set_xticks(year_pos)
+ax2.set_xticklabels(dates.dt.year.iloc[year_pos].astype(str))
+
+plt.tight_layout()
+plt.show()
+\end{lstlisting}

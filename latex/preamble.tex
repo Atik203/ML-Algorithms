@@ -1,0 +1,101 @@
+% ---------------------------------------------------------------------------
+% Machine Learning Laboratory Manual - shared preamble (XeLaTeX)
+% ---------------------------------------------------------------------------
+\usepackage[a4paper,top=2.2cm,bottom=2.2cm,left=2.1cm,right=2.1cm]{geometry}
+
+% --- Fonts (XeLaTeX, Unicode-capable) --------------------------------------
+\usepackage{fontspec}
+\setmainfont{DejaVu Serif}
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}[Scale=0.86]
+
+% --- Colors ----------------------------------------------------------------
+\usepackage{xcolor}
+\definecolor{MLblue}{HTML}{1F4E79}
+\definecolor{MLgray}{HTML}{F5F5F5}
+\definecolor{MLrule}{HTML}{B0B0B0}
+\definecolor{MLkw}{HTML}{204A87}
+\definecolor{MLcm}{HTML}{5C7A29}
+\definecolor{MLstr}{HTML}{A33A3A}
+\definecolor{MLnum}{HTML}{4E5BA6}
+
+% --- Code listings ----------------------------------------------------------
+\usepackage{listings}
+\lstdefinestyle{python}{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{MLkw}\bfseries,
+  commentstyle=\color{MLcm}\itshape,
+  stringstyle=\color{MLstr},
+  numberstyle=\tiny\color{gray},
+  backgroundcolor=\color{MLgray},
+  frame=single,
+  rulecolor=\color{MLrule},
+  framesep=4pt,
+  xleftmargin=4pt,
+  xrightmargin=2pt,
+  breaklines=true,
+  breakatwhitespace=false,
+  breakindent=8pt,
+  postbreak=\mbox{\textcolor{gray}{$\hookrightarrow$}\space},
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  upquote=true,
+  tabsize=4,
+  aboveskip=6pt,
+  belowskip=6pt,
+}
+\lstset{style=python}
+\renewcommand{\lstlistingname}{Listing}
+
+% --- Tables -----------------------------------------------------------------
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtable}{\small}
+\AtBeginEnvironment{tabular}{\small}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+
+% --- Headers / footers ------------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{MLblue}Machine Learning Laboratory Manual}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{14pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% --- Section styling --------------------------------------------------------
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\Large\bfseries\color{MLblue}}{}{0pt}{\Large}
+\titleformat{\section}{\large\bfseries\color{MLblue}}{}{0em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\titlespacing*{\chapter}{0pt}{-10pt}{14pt}
+\titlespacing*{\section}{0pt}{10pt}{5pt}
+\titlespacing*{\subsection}{0pt}{8pt}{3pt}
+
+% Keep the manual's own numbering: chapters/sections are unnumbered
+\setcounter{secnumdepth}{-1}
+
+% --- Lists / spacing --------------------------------------------------------
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=3pt}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+
+% --- Links ------------------------------------------------------------------
+\usepackage[hidelinks]{hyperref}
+\hypersetup{bookmarksnumbered=false,
+            pdftitle={Machine Learning Laboratory Manual - Completed Edition},
+            pdfauthor={Dr. Ohidujjaman Tuhin}}
+
+% --- Pandoc fragment macros -------------------------------------------------
+\providecommand{\passthrough}[1]{#1}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\LTcaptype}{table}

@@ -1,0 +1,67 @@
+% ===========================================================================
+% Category: Multilayer Perceptron
+% Generated from ML_Lab_Manual_Completed.md - edit the Markdown and re-run
+% scripts/build_latex_manual.py instead of editing this file by hand.
+% ===========================================================================
+
+\chapter{Experiment 13: Multilayer Perceptron
+(MLP)}\label{experiment-13-multilayer-perceptron-mlp}
+
+\textbf{Category:} Neural networks
+
+\section{1. Objective}\label{objective}
+
+Implement feed-forward neural networks for handwritten-digit
+classification and study architecture and regularization.
+
+\section{2. Dataset Used}\label{dataset-used}
+
+Digits (scikit-learn): 1,797 samples, 8×8 grayscale images (64
+features), 10 classes. Stratified 70/15/15 train/validation/test split;
+standardized (scaler fit on train only).
+
+\section{3. Required Libraries}\label{required-libraries}
+
+scikit-learn, numpy, pandas, matplotlib, PyTorch (torch)
+
+\section{4. Brief Theory}\label{brief-theory}
+
+An MLP stacks affine transformations with non-linear activations: a⁽ˡ⁾ =
+σ(W⁽ˡ⁾a⁽ˡ⁻¹⁾ + b⁽ˡ⁾), trained by backpropagation to minimize
+cross-entropy. BatchNorm stabilizes activations, Dropout regularizes,
+and an LR scheduler adapts the step size.
+
+\section{5. Procedure}\label{procedure}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Load digits; split 70/15/15; standardize.
+\item
+  Train
+  \passthrough{\lstinline!MLPClassifier(hidden\_layer\_sizes=(128,64), ReLU, Adam, alpha=0.001, early\_stopping=True)!}.
+\item
+  Build a custom PyTorch MLP: 64→128→64→10 with BatchNorm +
+  Dropout(0.25/0.20), CrossEntropyLoss, Adam (lr 0.003, weight decay
+  1e-4), 50 epochs, batch 32, ReduceLROnPlateau.
+\item
+  Train with the validation loop; plot the loss curve.
+\item
+  Evaluate the test set; report the classification report.
+\end{enumerate}
+
+\section{6. Reference Implementation}\label{reference-implementation}
+
+```python mlp\_sklearn = MLPClassifier(hidden\_layer\_sizes=(128, 64),
+activation=`relu', solver=`adam', alpha=0.001, batch\_size=64,
+learning\_rate\_init=0.005, max\_iter=150, early\_stopping=True,
+validation\_fraction=0.15) \#\# 10. Complete Code Listing
+
+\emph{Full runnable program for this experiment, extracted from
+\passthrough{\lstinline!notebooks/05\_multilayer\_perceptron.ipynb!}
+(executed; results above are its actual output).}
+
+\textbf{Listing 13.1 --- Core numerical and plotting libraries}
+
+```python

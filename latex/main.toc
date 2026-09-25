@@ -1,0 +1,200 @@
+\contentsline {chapter}{Preface}{6}{chapter*.2}%
+\contentsline {chapter}{Experiment 1: K-means Clustering}{7}{chapter*.3}%
+\contentsline {section}{1. Objective}{7}{section*.4}%
+\contentsline {section}{2. Dataset Used}{7}{section*.5}%
+\contentsline {section}{3. Required Libraries}{7}{section*.6}%
+\contentsline {section}{4. Brief Theory}{7}{section*.7}%
+\contentsline {section}{5. Procedure}{7}{section*.8}%
+\contentsline {section}{6. Reference Implementation}{7}{section*.9}%
+\contentsline {section}{7. Results}{8}{section*.10}%
+\contentsline {section}{8. Discussion and Conclusion}{8}{section*.11}%
+\contentsline {section}{9. Answers to Viva Questions}{8}{section*.12}%
+\contentsline {section}{10. Complete Code Listing}{9}{section*.13}%
+\contentsline {chapter}{Experiment 3: Hierarchical Clustering}{11}{chapter*.14}%
+\contentsline {section}{1. Objective}{11}{section*.15}%
+\contentsline {section}{2. Dataset Used}{11}{section*.16}%
+\contentsline {section}{3. Required Libraries}{11}{section*.17}%
+\contentsline {section}{4. Brief Theory}{11}{section*.18}%
+\contentsline {section}{5. Procedure}{11}{section*.19}%
+\contentsline {section}{6. Reference Implementation}{11}{section*.20}%
+\contentsline {section}{7. Results}{11}{section*.21}%
+\contentsline {section}{8. Discussion and Conclusion}{11}{section*.22}%
+\contentsline {section}{9. Answers to Viva Questions}{12}{section*.23}%
+\contentsline {section}{10. Complete Code Listing}{12}{section*.24}%
+\contentsline {chapter}{Experiment 4: Fuzzy C-means}{14}{chapter*.25}%
+\contentsline {section}{1. Objective}{14}{section*.26}%
+\contentsline {section}{2. Dataset Used}{14}{section*.27}%
+\contentsline {section}{3. Required Libraries}{14}{section*.28}%
+\contentsline {section}{4. Brief Theory}{14}{section*.29}%
+\contentsline {section}{5. Procedure}{14}{section*.30}%
+\contentsline {section}{6. Reference Implementation}{14}{section*.31}%
+\contentsline {section}{7. Results}{14}{section*.32}%
+\contentsline {section}{8. Discussion and Conclusion}{15}{section*.33}%
+\contentsline {section}{9. Answers to Viva Questions}{15}{section*.34}%
+\contentsline {section}{10. Complete Code Listing}{15}{section*.35}%
+\contentsline {chapter}{Experiment 5: DBSCAN}{18}{chapter*.36}%
+\contentsline {section}{1. Objective}{18}{section*.37}%
+\contentsline {section}{2. Dataset Used}{18}{section*.38}%
+\contentsline {section}{3. Required Libraries}{18}{section*.39}%
+\contentsline {section}{4. Brief Theory}{18}{section*.40}%
+\contentsline {section}{5. Procedure}{18}{section*.41}%
+\contentsline {section}{6. Reference Implementation}{18}{section*.42}%
+\contentsline {section}{7. Results}{18}{section*.43}%
+\contentsline {section}{8. Discussion and Conclusion}{19}{section*.44}%
+\contentsline {section}{9. Answers to Viva Questions}{19}{section*.45}%
+\contentsline {section}{10. Complete Code Listing}{19}{section*.46}%
+\contentsline {chapter}{Experiment 6: HDBSCAN}{22}{chapter*.47}%
+\contentsline {section}{1. Objective}{22}{section*.48}%
+\contentsline {section}{2. Dataset Used}{22}{section*.49}%
+\contentsline {section}{3. Required Libraries}{22}{section*.50}%
+\contentsline {section}{4. Brief Theory}{22}{section*.51}%
+\contentsline {section}{5. Procedure}{22}{section*.52}%
+\contentsline {section}{6. Reference Implementation}{22}{section*.53}%
+\contentsline {section}{7. Results}{22}{section*.54}%
+\contentsline {section}{8. Discussion and Conclusion}{23}{section*.55}%
+\contentsline {section}{9. Answers to Viva Questions}{23}{section*.56}%
+\contentsline {section}{10. Complete Code Listing}{23}{section*.57}%
+\contentsline {chapter}{Experiment 7: Self-training for Semi-supervised Learning}{25}{chapter*.58}%
+\contentsline {section}{1. Objective}{25}{section*.59}%
+\contentsline {section}{2. Dataset Used}{25}{section*.60}%
+\contentsline {section}{3. Required Libraries}{25}{section*.61}%
+\contentsline {section}{4. Brief Theory}{25}{section*.62}%
+\contentsline {section}{5. Procedure}{25}{section*.63}%
+\contentsline {section}{6. Reference Implementation}{25}{section*.64}%
+\contentsline {section}{7. Results}{25}{section*.65}%
+\contentsline {section}{8. Discussion and Conclusion}{26}{section*.66}%
+\contentsline {section}{9. Answers to Viva Questions}{26}{section*.67}%
+\contentsline {section}{10. Complete Code Listing}{26}{section*.68}%
+\contentsline {chapter}{Experiment 8: Random Forest Regression (RFR)}{29}{chapter*.69}%
+\contentsline {section}{1. Objective}{29}{section*.70}%
+\contentsline {section}{2. Dataset Used}{29}{section*.71}%
+\contentsline {section}{3. Required Libraries}{29}{section*.72}%
+\contentsline {section}{4. Brief Theory}{29}{section*.73}%
+\contentsline {section}{5. Procedure}{29}{section*.74}%
+\contentsline {section}{6. Reference Implementation}{29}{section*.75}%
+\contentsline {section}{7. Results}{29}{section*.76}%
+\contentsline {section}{8. Discussion and Conclusion}{29}{section*.77}%
+\contentsline {section}{9. Answers to Viva Questions}{30}{section*.78}%
+\contentsline {section}{10. Complete Code Listing}{30}{section*.79}%
+\contentsline {chapter}{Experiment 9: Random Forest Classification (RFC)}{32}{chapter*.80}%
+\contentsline {section}{1. Objective}{32}{section*.81}%
+\contentsline {section}{2. Dataset Used}{32}{section*.82}%
+\contentsline {section}{3. Required Libraries}{32}{section*.83}%
+\contentsline {section}{4. Brief Theory}{32}{section*.84}%
+\contentsline {section}{5. Procedure}{32}{section*.85}%
+\contentsline {section}{6. Reference Implementation}{32}{section*.86}%
+\contentsline {section}{7. Results}{32}{section*.87}%
+\contentsline {section}{8. Discussion and Conclusion}{33}{section*.88}%
+\contentsline {section}{9. Answers to Viva Questions}{33}{section*.89}%
+\contentsline {section}{10. Complete Code Listing}{33}{section*.90}%
+\contentsline {chapter}{Experiment 10: XGBoost}{35}{chapter*.91}%
+\contentsline {section}{1. Objective}{35}{section*.92}%
+\contentsline {section}{2. Dataset Used}{35}{section*.93}%
+\contentsline {section}{3. Required Libraries}{35}{section*.94}%
+\contentsline {section}{4. Brief Theory}{35}{section*.95}%
+\contentsline {section}{5. Procedure}{35}{section*.96}%
+\contentsline {section}{6. Reference Implementation}{35}{section*.97}%
+\contentsline {section}{7. Results}{35}{section*.98}%
+\contentsline {section}{8. Discussion and Conclusion}{35}{section*.99}%
+\contentsline {section}{9. Answers to Viva Questions}{36}{section*.100}%
+\contentsline {section}{10. Complete Code Listing}{36}{section*.101}%
+\contentsline {chapter}{Experiment 11: AdaBoost}{38}{chapter*.102}%
+\contentsline {section}{1. Objective}{38}{section*.103}%
+\contentsline {section}{2. Dataset Used}{38}{section*.104}%
+\contentsline {section}{3. Required Libraries}{38}{section*.105}%
+\contentsline {section}{4. Brief Theory}{38}{section*.106}%
+\contentsline {section}{5. Procedure}{38}{section*.107}%
+\contentsline {section}{6. Reference Implementation}{38}{section*.108}%
+\contentsline {section}{7. Results}{38}{section*.109}%
+\contentsline {section}{8. Discussion and Conclusion}{38}{section*.110}%
+\contentsline {section}{9. Answers to Viva Questions}{39}{section*.111}%
+\contentsline {section}{10. Complete Code Listing}{39}{section*.112}%
+\contentsline {chapter}{Experiment 12: CatBoost}{41}{chapter*.113}%
+\contentsline {section}{1. Objective}{41}{section*.114}%
+\contentsline {section}{2. Dataset Used}{41}{section*.115}%
+\contentsline {section}{3. Required Libraries}{41}{section*.116}%
+\contentsline {section}{4. Brief Theory}{41}{section*.117}%
+\contentsline {section}{5. Procedure}{41}{section*.118}%
+\contentsline {section}{6. Reference Implementation}{41}{section*.119}%
+\contentsline {section}{7. Results}{41}{section*.120}%
+\contentsline {section}{8. Discussion and Conclusion}{42}{section*.121}%
+\contentsline {section}{9. Answers to Viva Questions}{42}{section*.122}%
+\contentsline {section}{10. Complete Code Listing}{42}{section*.123}%
+\contentsline {chapter}{Experiment 13: Multilayer Perceptron (MLP)}{44}{chapter*.124}%
+\contentsline {section}{1. Objective}{44}{section*.125}%
+\contentsline {section}{2. Dataset Used}{44}{section*.126}%
+\contentsline {section}{3. Required Libraries}{44}{section*.127}%
+\contentsline {section}{4. Brief Theory}{44}{section*.128}%
+\contentsline {section}{5. Procedure}{44}{section*.129}%
+\contentsline {section}{6. Reference Implementation}{44}{section*.130}%
+\contentsline {chapter}{Experiment 14: Recurrent Neural Network (RNN)}{45}{chapter*.131}%
+\contentsline {section}{1. Objective}{45}{section*.132}%
+\contentsline {section}{2. Datasets Used}{45}{section*.133}%
+\contentsline {section}{3. Required Libraries}{45}{section*.134}%
+\contentsline {section}{4. Brief Theory}{45}{section*.135}%
+\contentsline {section}{5. Procedure}{45}{section*.136}%
+\contentsline {section}{6. Reference Implementation}{45}{section*.137}%
+\contentsline {chapter}{Experiment 15: Self-Organizing Map (SOM)}{46}{chapter*.138}%
+\contentsline {section}{1. Objective}{46}{section*.139}%
+\contentsline {section}{2. Dataset Used}{46}{section*.140}%
+\contentsline {section}{3. Required Libraries}{46}{section*.141}%
+\contentsline {section}{4. Brief Theory}{46}{section*.142}%
+\contentsline {section}{5. Procedure}{46}{section*.143}%
+\contentsline {section}{6. Reference Implementation}{46}{section*.144}%
+\contentsline {section}{7. Results}{46}{section*.145}%
+\contentsline {section}{8. Discussion and Conclusion}{47}{section*.146}%
+\contentsline {section}{9. Answers to Viva Questions}{47}{section*.147}%
+\contentsline {section}{10. Complete Code Listing}{47}{section*.148}%
+\contentsline {chapter}{Experiment 16: Hidden Markov Model (HMM)}{49}{chapter*.149}%
+\contentsline {section}{1. Objective}{49}{section*.150}%
+\contentsline {section}{2. Dataset Used}{49}{section*.151}%
+\contentsline {section}{3. Required Libraries}{49}{section*.152}%
+\contentsline {section}{4. Brief Theory}{49}{section*.153}%
+\contentsline {section}{5. Procedure}{49}{section*.154}%
+\contentsline {section}{6. Reference Implementation}{49}{section*.155}%
+\contentsline {section}{7. Results}{49}{section*.156}%
+\contentsline {section}{8. Discussion and Conclusion}{50}{section*.157}%
+\contentsline {section}{9. Answers to Viva Questions}{50}{section*.158}%
+\contentsline {section}{10. Complete Code Listing}{50}{section*.159}%
+\contentsline {chapter}{Experiment 17: Support Vector Machine (SVM)}{53}{chapter*.160}%
+\contentsline {section}{1. Objective}{53}{section*.161}%
+\contentsline {section}{2. Datasets Used}{53}{section*.162}%
+\contentsline {section}{3. Required Libraries}{53}{section*.163}%
+\contentsline {section}{4. Brief Theory}{53}{section*.164}%
+\contentsline {section}{5. Procedure}{53}{section*.165}%
+\contentsline {section}{6. Reference Implementation}{53}{section*.166}%
+\contentsline {section}{7. Results}{53}{section*.167}%
+\contentsline {section}{8. Discussion and Conclusion}{54}{section*.168}%
+\contentsline {section}{9. Answers to Viva Questions}{54}{section*.169}%
+\contentsline {section}{10. Complete Code Listing}{54}{section*.170}%
+\contentsline {chapter}{Experiment 18: Large Language Model (LLM) Experiment}{57}{chapter*.171}%
+\contentsline {section}{1. Objective}{57}{section*.172}%
+\contentsline {section}{2. Dataset Used}{57}{section*.173}%
+\contentsline {section}{3. Required Libraries}{57}{section*.174}%
+\contentsline {section}{4. Brief Theory}{57}{section*.175}%
+\contentsline {section}{5. Procedure}{57}{section*.176}%
+\contentsline {section}{6. Reference Implementation}{57}{section*.177}%
+\contentsline {section}{7. Results}{57}{section*.178}%
+\contentsline {section}{8. Discussion and Conclusion}{58}{section*.179}%
+\contentsline {section}{9. Answers to Viva Questions}{58}{section*.180}%
+\contentsline {section}{10. Complete Code Listing}{59}{section*.181}%
+\contentsline {chapter}{Experiment 19: Generalized Regression Neural Network (GRNN)}{63}{chapter*.182}%
+\contentsline {section}{1. Objective}{63}{section*.183}%
+\contentsline {section}{2. Dataset Used}{63}{section*.184}%
+\contentsline {section}{3. Required Libraries}{63}{section*.185}%
+\contentsline {section}{4. Brief Theory}{63}{section*.186}%
+\contentsline {section}{5. Procedure}{63}{section*.187}%
+\contentsline {section}{6. Reference Implementation}{63}{section*.188}%
+\contentsline {section}{7. Results}{63}{section*.189}%
+\contentsline {section}{8. Discussion and Conclusion}{64}{section*.190}%
+\contentsline {section}{9. Answers to Viva Questions}{64}{section*.191}%
+\contentsline {section}{10. Complete Code Listing}{64}{section*.192}%
+\contentsline {chapter}{Integrated Mini Project: Comparative Machine Learning Study}{67}{chapter*.193}%
+\contentsline {section}{Classification comparison --- Heart Disease (same stratified 75/25 split, seed 42)}{67}{section*.194}%
+\contentsline {section}{Regression comparison --- California Housing (5,000 sample, same 80/20 split)}{68}{section*.195}%
+\contentsline {section}{Clustering comparison --- Mall Customers (K=5, standardized)}{68}{section*.196}%
+\contentsline {section}{Density-based comparison --- 7,638 real earthquakes (M ≥ 4.5, 2023)}{69}{section*.197}%
+\contentsline {chapter}{Appendix A: Quick Reference Formulas}{71}{appendix*.198}%
+\contentsline {chapter}{Appendix B: Reproducibility Checklist}{72}{appendix*.199}%
+\contentsline {chapter}{Appendix C: Suggested Assessment Rubric}{73}{appendix*.200}%
+\contentsline {chapter}{Appendix D: Student Experiment Record}{74}{appendix*.201}%
