@@ -3,22 +3,9 @@ catboost_info/
 pdf/html/
 __pycache__/
 
-# LaTeX build outputs (rebuild with: cd latex && latexmk main.tex)
-latex/*.pdf
-latex/*.aux
-latex/*.log
-latex/*.out
-latex/*.toc
-latex/*.lof
-latex/*.lot
-latex/*.fls
-latex/*.fdb_latexmk
-latex/*.synctex.gz
-latex/*.synctex(busy)
-latex/*.listing
-latex/*.ptc
-latex/*.xdv
-latex/out/
+# LaTeX manual source and build outputs (kept local only, not pushed;
+# rebuild with: cd latex && latexmk main.tex)
+latex/
 
 # Notebook PDFs (rebuild with: scripts/export_pdf.py)
 pdf/*.pdf
