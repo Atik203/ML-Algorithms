@@ -1,0 +1,390 @@
+% ===========================================================================
+% Part I - Clustering (Experiments 1-4)
+% ===========================================================================
+
+\part{Clustering}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 1: K-means Clustering}\label{exp:01}
+
+\quickfacts
+  {Dataset}{Mall Customers (\texttt{data/mall\_customers.csv}); 200 customers, 2 features (Annual Income, Spending Score)}
+  {Key parameters}{K = 5, K-Means++ initialization, \texttt{n\_init} = 20, StandardScaler}
+  {Headline result}{Silhouette 0.5547; Davies--Bouldin 0.5722; Calinski--Harabasz 248.65}
+
+\section{Objective}
+Partition unlabeled observations into $K$ clusters by iteratively assigning points to the
+nearest centroid and updating centroids; choose $K$ with the elbow and silhouette diagnostics.
+
+\section{Suggested Dataset}
+Mall Customers (\texttt{data/mall\_customers.csv}), using Annual Income and Spending Score
+as a two-dimensional, visualizable feature space. Features are standardized
+(\texttt{StandardScaler}).
+
+\section{Required Libraries}
+numpy, pandas, matplotlib, scikit-learn.
+
+\section{Brief Theory}
+K-means minimizes the within-cluster sum of squared distances
+\[
+J = \sum_{k=1}^{K}\ \sum_{x_i \in C_k} \lVert x_i - \mu_k \rVert^2 ,
+\]
+by alternating two steps: assign every point to the nearest centroid, then set each
+centroid to the mean of its assigned points. Each iteration never increases $J$, so the
+algorithm converges --- but only to a \emph{local} optimum, which is why initialization
+matters. \textbf{K-Means++} spreads the initial centroids by sampling them with probability
+proportional to the squared distance to the nearest chosen centroid, giving lower and more
+consistent inertia. Because Euclidean distance is scale-sensitive, numerical features should
+be standardized. $K$ itself must be chosen externally: the \emph{elbow} (inertia) and the
+\emph{silhouette} (cohesion vs.\ separation) are the standard diagnostics.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Load the dataset and retain the two numerical features.
+  \item Standardize the features.
+  \item Try $K = 2 \ldots 10$; record inertia (WCSS) and silhouette for each $K$.
+  \item Choose $K$ at the elbow / silhouette peak and fit the final model with
+        K-Means++ initialization, 20 restarts and a fixed random seed (see the code listing).
+  \item Visualize the clusters and centroids.
+  \item Report silhouette, Davies--Bouldin and Calinski--Harabasz.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={Selecting K, then fitting the final K-means model}]
+for k in range(2, 11):
+    kmeans = KMeans(n_clusters=k, init='k-means++', n_init=10, random_state=42)
+    kmeans.fit(X_mall_scaled)
+    wcss.append(kmeans.inertia_)
+    silhouette_scores.append(silhouette_score(X_mall_scaled, kmeans.labels_))
+
+kmeans_model = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
+kmeans_labels = kmeans_model.fit_predict(X_mall_scaled)
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+Both the elbow curve and the silhouette curve indicate $K = 5$ (Figure~\ref{fig:exp01-elbow}).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/exp01_elbow_silhouette.png}
+  \caption{Elbow (inertia) and silhouette curves for $K = 2 \ldots 10$; the elbow and the
+  silhouette peak both occur at $K = 5$.}
+  \label{fig:exp01-elbow}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \caption{K-means evaluation on the standardized Mall Customers features.}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Selected $K$ (elbow + silhouette peak) & 5 \\
+    Silhouette score & \best{0.5547} \\
+    Davies--Bouldin index & 0.5722 \\
+    Calinski--Harabasz score & 248.65 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Silhouette $\approx 0.55$ indicates compact, reasonably separated clusters on real data;
+Davies--Bouldin $< 1$ confirms good separation.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[Why does K-means depend on feature scaling?] It minimizes Euclidean distance;
+  unscaled features with larger ranges dominate the distance and therefore the assignments.
+  \item[What is inertia?] The within-cluster sum of squared distances to the centroids
+  (WCSS); lower is tighter, but it always decreases with $K$, so it is not a standalone
+  quality score.
+  \item[Why can a high silhouette score still be misleading?] It favors compact convex
+  clusters and can be high for a trivial partition; it misjudges elongated or
+  density-varying structures.
+  \item[What happens when clusters are non-spherical?] K-means splits them with straight
+  Voronoi boundaries and merges elongated clusters incorrectly (see Experiment 5).
+  \item[Why is K-Means++ preferred over random initialization?] It spreads the initial
+  centroids out, reducing convergence to poor local optima and giving more stable inertia.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp01_kmeans}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 2: Modified K-means}\label{exp:02}
+
+\quickfacts
+  {Dataset}{Mall Customers (200 $\times$ 2, standardized)}
+  {Key parameters}{K-Means++ initialization; outlier threshold = 97th percentile of centroid distances}
+  {Headline result}{Distance threshold 1.072; 6 of 200 observations flagged as candidate outliers}
+
+\section{Objective}
+Implement a transparent modification of K-means that uses K-Means++ initialization and an
+explicit outlier-distance check before final cluster interpretation.
+
+\section{Suggested Dataset}
+Mall Customers (200 $\times$ 2, standardized). The modification is applied on top of the same
+features.
+
+\section{Required Libraries}
+numpy, matplotlib, scikit-learn.
+
+\section{Brief Theory}
+There is no single universally accepted algorithm named ``modified K-means''; variants
+differ by application. In this lab the modification is intentionally defined so that it can
+be reproduced exactly:
+\begin{enumerate}
+  \item initialize the centroids with \textbf{K-Means++} (spread-out seeds);
+  \item fit standard K-means and obtain the hard labels;
+  \item compute each sample's distance to its \emph{assigned} centroid,
+        $d_i = \lVert x_i - \mu_{c_i} \rVert$;
+  \item set a threshold from a documented percentile of the training distances
+        (97th percentile here);
+  \item flag samples with $d_i$ beyond the threshold as \textbf{candidate outliers}.
+\end{enumerate}
+This is an experimental variant that adds outlier awareness to the standard algorithm; it
+is not a standard replacement for robust clustering methods.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Fit K-means with K-Means++ initialization, $K = 5$.
+  \item Compute $d_i = \lVert x_i - \mu_{c_i} \rVert$ for every sample.
+  \item Set the threshold to the 97th percentile of the training distances.
+  \item Flag samples with $d_i > \text{threshold}$ as candidate outliers.
+  \item Plot the clusters with the flagged points highlighted.
+  \item Compare the modified interpretation with the standard labels.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={K-Means++ followed by the outlier-distance check}]
+km_mod = KMeans(n_clusters=5, init='k-means++', n_init=20, random_state=42)
+mod_labels = km_mod.fit_predict(X_mall_scaled)
+
+dist_to_centroid = np.linalg.norm(X_mall_scaled - km_mod.cluster_centers_[mod_labels], axis=1)
+threshold = np.percentile(dist_to_centroid, 97)
+outlier_flag = dist_to_centroid > threshold
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{Modified K-means: outlier-distance check on the standardized features.}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    \textbf{Item} & \textbf{Value} \\
+    \midrule
+    Distance threshold (97th percentile) & 1.072 (standardized units) \\
+    Flagged candidate outliers & \best{6 of 200 (3\%)} \\
+    Cluster labels & identical to standard K-means \\
+    Silhouette / Davies--Bouldin (same partition) & 0.5547 / 0.5722 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The flagged customers are the most weakly attached points of their clusters --- typically
+boundary customers with unusual income/spending combinations. The cluster structure itself
+is unchanged, which is expected: the modification adds an outlier interpretation layer.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[Why is it important to define a modification precisely?] Without a formal definition
+  ``modified K-means'' is ambiguous; fixing the initialization, the distance measure and the
+  percentile rule makes the experiment reproducible and testable.
+  \item[How does K-Means++ differ from random initialization?] K-Means++ selects initial
+  centroids with probability proportional to the squared distance to the nearest chosen
+  centroid, spreading the seeds out and avoiding poor local optima.
+  \item[Why might distance-to-centroid fail for elongated clusters?] Centroid distance is
+  isotropic; a point can be close to the centroid along the long axis yet far along the short
+  axis, so elongated clusters can flag legitimate points and hide real outliers.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp02_modified_kmeans}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 3: Hierarchical Clustering}\label{exp:03}
+
+\quickfacts
+  {Dataset}{Mall Customers (200 $\times$ 2, standardized)}
+  {Key parameters}{Ward linkage; cut at $K = 5$; truncated dendrogram (last 25 merges)}
+  {Headline result}{Silhouette 0.5538; Davies--Bouldin 0.5779; Calinski--Harabasz 244.41}
+
+\section{Objective}
+Perform agglomerative hierarchical clustering and interpret the resulting dendrogram and
+cluster labels.
+
+\section{Suggested Dataset}
+Mall Customers (200 $\times$ 2, standardized).
+
+\section{Required Libraries}
+scipy, scikit-learn, matplotlib.
+
+\section{Brief Theory}
+Agglomerative clustering starts with one cluster per point and repeatedly merges the closest
+pair of clusters. With \textbf{Ward linkage} the merge cost is the increase in total
+within-cluster variance,
+\[
+\Delta W(A, B) = \frac{n_A n_B}{n_A + n_B}\,\lVert \mu_A - \mu_B \rVert^2 ,
+\]
+so the algorithm always merges the pair whose combination loses the least compactness. The
+dendrogram records every merge and its height (distance); cutting it at a chosen height
+yields a flat partition with the desired number of clusters.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Standardize the features.
+  \item Compute the Ward linkage matrix.
+  \item Plot the dendrogram (truncated for readability) and choose a cut level.
+  \item Fit \texttt{AgglomerativeClustering} with $K = 5$ and Ward linkage.
+  \item Evaluate with silhouette, Davies--Bouldin and Calinski--Harabasz.
+  \item Discuss the choice of linkage.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={Ward linkage, dendrogram and the final agglomerative model}]
+linkage_matrix = linkage(X_mall_scaled, method='ward')
+dendrogram(linkage_matrix, truncate_mode='lastp', p=25, show_contracted=True)
+
+agg_model = AgglomerativeClustering(n_clusters=5, metric='euclidean', linkage='ward')
+agg_labels = agg_model.fit_predict(X_mall_scaled)
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+The dendrogram (Figure~\ref{fig:exp03-dendro}) shows a clear large merge gap that supports
+cutting at five clusters.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{figures/exp03_dendrogram.png}
+  \caption{Hierarchical clustering dendrogram (Ward linkage, truncated to the last 25
+  merges); the dashed line marks the cut that yields $K = 5$.}
+  \label{fig:exp03-dendro}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Hierarchical (Ward) clustering evaluation on the standardized features.}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Silhouette score & 0.5538 \\
+    Davies--Bouldin index & 0.5779 \\
+    Calinski--Harabasz score & 244.41 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The partition is nearly identical in quality to K-means (silhouette difference below 0.001),
+but requires no initialization and exposes the full merge hierarchy.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[What does a dendrogram show?] The complete merge hierarchy: leaf order, merge heights
+  (distances) and the nested cluster structure; cutting at a height produces a flat partition.
+  \item[What is linkage?] The rule that defines the distance between two clusters:
+  single (closest pair), complete (farthest pair), average (mean pair) or Ward (variance
+  increase).
+  \item[When is Ward linkage inappropriate?] With strongly non-spherical/elongated clusters,
+  very unequal cluster sizes or heavy outliers --- it assumes compact clusters of similar
+  variance.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp03_hierarchical}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 4: Fuzzy C-means}\label{exp:04}
+
+\quickfacts
+  {Dataset}{Mall Customers (200 $\times$ 2, standardized); $K = 5$}
+  {Key parameters}{Fuzzifier $m = 2.0$; tolerance $10^{-5}$; maximum 150 iterations}
+  {Headline result}{Silhouette 0.5547; Fuzzy Partition Coefficient (FPC) 0.6711}
+
+\section{Objective}
+Cluster data using fuzzy memberships so that each observation can belong to multiple
+clusters with different degrees of membership.
+
+\section{Suggested Dataset}
+Mall Customers (200 $\times$ 2, standardized), $K = 5$, fuzzifier $m = 2.0$.
+
+\section{Required Libraries}
+numpy, pandas, matplotlib (the c-means equations are implemented from scratch;
+\texttt{scikit-fuzzy} is an equivalent library implementation).
+
+\section{Brief Theory}
+Unlike hard K-means, Fuzzy C-means assigns every sample $x_i$ a membership degree
+$u_{ik} \in [0,1]$ in every cluster, with $\sum_{k=1}^{K} u_{ik} = 1$. It minimizes
+\[
+J_m = \sum_{i=1}^{N}\sum_{k=1}^{K} u_{ik}^{m}\,\lVert x_i - v_k \rVert^2 , \qquad m > 1 ,
+\]
+by alternating two updates until convergence:
+\[
+v_k = \frac{\sum_i u_{ik}^{m} x_i}{\sum_i u_{ik}^{m}},
+\qquad
+u_{ik} = \frac{1}{\sum_{j=1}^{K}\left(\frac{d_{ik}}{d_{ij}}\right)^{2/(m-1)}} .
+\]
+The fuzzifier $m$ controls how soft the memberships are ($m \to 1$ approaches K-means). The
+\textbf{Fuzzy Partition Coefficient} $\mathrm{FPC} = \frac{1}{N}\sum_i \sum_k u_{ik}^2$
+measures the fuzziness of the result ($1$ = completely hard, $1/K$ = maximally fuzzy).
+
+\section{Procedure}
+\begin{enumerate}
+  \item Standardize the data.
+  \item Initialize the membership matrix randomly, with each row summing to 1.
+  \item Alternate the centroid and membership updates until $\max|\Delta U| < 10^{-5}$.
+  \item Derive hard labels with $\arg\max_k u_{ik}$.
+  \item Report the clustering metrics and the FPC; visualize the hard partition.
+  \item Identify ambiguous samples with near-uniform membership vectors.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={Core alternating updates of Fuzzy C-means}]
+Um = U ** self.m
+centers = np.dot(Um.T, X) / Um.sum(axis=0)[:, np.newaxis]
+dist = np.linalg.norm(X[:, np.newaxis, :] - centers[np.newaxis, :, :], axis=2) + 1e-10
+U = (1.0 / dist) ** (2.0 / (self.m - 1.0))
+U = U / U.sum(axis=1, keepdims=True)
+labels = np.argmax(U, axis=1)
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{Fuzzy C-means evaluation ($K = 5$, $m = 2.0$).}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Silhouette score (hard labels) & 0.5547 \\
+    Davies--Bouldin index & 0.5722 \\
+    Fuzzy Partition Coefficient (FPC) & \best{0.6711} \\
+    Iterations to convergence & fewer than 50 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+FPC $= 0.67$ (between $1/K = 0.2$ and $1.0$) shows that the partition is mostly crisp but
+retains soft boundary memberships. Figure~\ref{fig:exp01-grid} compares the four clustering
+partitions obtained in this part of the manual.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/exp01_2x2_grid.png}
+  \caption{Clustering partitions on the Mall Customers data: K-means, modified K-means
+  (outlier flagging), hierarchical Ward and Fuzzy C-means.}
+  \label{fig:exp01-grid}
+\end{figure}
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[How is Fuzzy C-means different from K-means?] It assigns membership degrees instead
+  of hard labels, so each point belongs to all clusters with weights that sum to 1; K-means
+  is the limiting hard case.
+  \item[What does $m$ control?] The fuzziness exponent: larger $m$ spreads membership across
+  clusters (softer, lower FPC), while $m \to 1$ gives crisp K-means-like assignments.
+  \item[What does a membership vector represent?] The degree to which one observation
+  belongs to each cluster; near-uniform values indicate an ambiguous point on a boundary.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp04_fuzzy_cmeans}

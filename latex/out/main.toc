@@ -138,85 +138,85 @@
 \contentsline {section}{Brief Theory}{56}{section*.153}%
 \contentsline {section}{Procedure}{56}{section*.154}%
 \contentsline {section}{Reference Implementation}{56}{section*.155}%
-\contentsline {section}{Evaluation / Expected Output}{56}{section*.156}%
-\contentsline {section}{Viva / Discussion Questions}{56}{section*.157}%
-\contentsline {section}{Complete Code Listing}{56}{section*.158}%
-\contentsline {part}{VI\hspace {1em}Sequence Modeling: Recurrent Neural Networks}{57}{part.6}%
-\contentsline {chapter}{Experiment 14: Recurrent Neural Network (RNN)}{58}{chapter*.159}%
-\contentsline {section}{Objective}{58}{section*.160}%
-\contentsline {section}{Suggested Dataset}{58}{section*.161}%
-\contentsline {section}{Required Libraries}{58}{section*.162}%
-\contentsline {section}{Brief Theory}{58}{section*.163}%
-\contentsline {section}{Procedure}{58}{section*.164}%
-\contentsline {section}{Reference Implementation}{58}{section*.165}%
-\contentsline {section}{Evaluation / Expected Output}{58}{section*.166}%
-\contentsline {section}{Viva / Discussion Questions}{58}{section*.167}%
-\contentsline {section}{Complete Code Listing}{58}{section*.168}%
-\contentsline {part}{VII\hspace {1em}Unsupervised Neural Learning: Self-Organizing Maps}{59}{part.7}%
-\contentsline {chapter}{Experiment 15: Self-Organizing Map (SOM)}{60}{chapter*.169}%
-\contentsline {section}{Objective}{60}{section*.170}%
-\contentsline {section}{Suggested Dataset}{60}{section*.171}%
-\contentsline {section}{Required Libraries}{60}{section*.172}%
-\contentsline {section}{Brief Theory}{60}{section*.173}%
-\contentsline {section}{Procedure}{60}{section*.174}%
-\contentsline {section}{Reference Implementation}{60}{section*.175}%
-\contentsline {section}{Evaluation / Expected Output}{60}{section*.176}%
-\contentsline {section}{Viva / Discussion Questions}{60}{section*.177}%
-\contentsline {section}{Complete Code Listing}{60}{section*.178}%
-\contentsline {part}{VIII\hspace {1em}Probabilistic Sequence Modeling: Hidden Markov Models}{61}{part.8}%
-\contentsline {chapter}{Experiment 16: Hidden Markov Model (HMM)}{62}{chapter*.179}%
-\contentsline {section}{Objective}{62}{section*.180}%
-\contentsline {section}{Suggested Dataset}{62}{section*.181}%
-\contentsline {section}{Required Libraries}{62}{section*.182}%
-\contentsline {section}{Brief Theory}{62}{section*.183}%
-\contentsline {section}{Procedure}{62}{section*.184}%
-\contentsline {section}{Reference Implementation}{62}{section*.185}%
-\contentsline {section}{Evaluation / Expected Output}{62}{section*.186}%
-\contentsline {section}{Viva / Discussion Questions}{62}{section*.187}%
-\contentsline {section}{Complete Code Listing}{62}{section*.188}%
-\contentsline {part}{IX\hspace {1em}Margin-Based Learning: Support Vector Machines}{63}{part.9}%
-\contentsline {chapter}{Experiment 17: Support Vector Machine (SVM)}{64}{chapter*.189}%
-\contentsline {section}{Objective}{64}{section*.190}%
-\contentsline {section}{Suggested Dataset}{64}{section*.191}%
-\contentsline {section}{Required Libraries}{64}{section*.192}%
-\contentsline {section}{Brief Theory}{64}{section*.193}%
-\contentsline {section}{Procedure}{64}{section*.194}%
-\contentsline {section}{Reference Implementation}{64}{section*.195}%
-\contentsline {section}{Evaluation / Expected Output}{64}{section*.196}%
-\contentsline {section}{Viva / Discussion Questions}{64}{section*.197}%
-\contentsline {section}{Complete Code Listing}{64}{section*.198}%
-\contentsline {part}{X\hspace {1em}Generative / Foundation Models: Large Language Models}{65}{part.10}%
-\contentsline {chapter}{Experiment 18: Large Language Model (LLM) Experiment}{66}{chapter*.199}%
-\contentsline {section}{Objective}{66}{section*.200}%
-\contentsline {section}{Suggested Dataset}{66}{section*.201}%
-\contentsline {section}{Required Libraries}{66}{section*.202}%
-\contentsline {section}{Brief Theory}{66}{section*.203}%
-\contentsline {section}{Procedure}{66}{section*.204}%
-\contentsline {section}{Reference Implementation}{66}{section*.205}%
-\contentsline {section}{Evaluation / Expected Output}{66}{section*.206}%
-\contentsline {section}{Viva / Discussion Questions}{66}{section*.207}%
-\contentsline {section}{Complete Code Listing}{66}{section*.208}%
-\contentsline {part}{XI\hspace {1em}Non-Parametric Regression: Generalized Regression Neural Network}{67}{part.11}%
-\contentsline {chapter}{Experiment 19: Generalized Regression Neural Network (GRNN)}{68}{chapter*.209}%
-\contentsline {section}{Objective}{68}{section*.210}%
-\contentsline {section}{Suggested Dataset}{68}{section*.211}%
-\contentsline {section}{Required Libraries}{68}{section*.212}%
-\contentsline {section}{Brief Theory}{68}{section*.213}%
-\contentsline {section}{Procedure}{68}{section*.214}%
-\contentsline {section}{Reference Implementation}{68}{section*.215}%
-\contentsline {section}{Evaluation / Expected Output}{68}{section*.216}%
-\contentsline {section}{Viva / Discussion Questions}{68}{section*.217}%
-\contentsline {section}{Complete Code Listing}{68}{section*.218}%
-\contentsline {part}{XII\hspace {1em}Integrated Mini Project and Appendices}{69}{part.12}%
-\contentsline {chapter}{Integrated Mini Project: Comparative Machine Learning Study}{70}{chapter*.219}%
-\contentsline {section}{Objective}{70}{section*.220}%
-\contentsline {section}{Suggested Dataset}{70}{section*.221}%
-\contentsline {section}{Required Libraries}{70}{section*.222}%
-\contentsline {section}{Workflow}{70}{section*.223}%
-\contentsline {section}{Comparative Results}{70}{section*.224}%
-\contentsline {section}{Discussion and Conclusions}{70}{section*.225}%
-\contentsline {section}{Viva / Discussion Questions}{70}{section*.226}%
-\contentsline {chapter}{Appendix A: Quick Reference Formulas}{71}{chapter*.227}%
-\contentsline {chapter}{Appendix B: Reproducibility Checklist}{72}{chapter*.228}%
-\contentsline {chapter}{Appendix C: Suggested Assessment Rubric}{73}{chapter*.229}%
-\contentsline {chapter}{Appendix D: Student Experiment Record}{74}{chapter*.230}%
+\contentsline {section}{Evaluation / Expected Output}{57}{section*.156}%
+\contentsline {section}{Viva / Discussion Questions}{57}{section*.159}%
+\contentsline {section}{Complete Code Listing}{57}{section*.160}%
+\contentsline {part}{VI\hspace {1em}Sequence Modeling: Recurrent Neural Networks}{61}{part.6}%
+\contentsline {chapter}{Experiment 14: Recurrent Neural Network (RNN)}{62}{chapter*.161}%
+\contentsline {section}{Objective}{62}{section*.162}%
+\contentsline {section}{Suggested Dataset}{62}{section*.163}%
+\contentsline {section}{Required Libraries}{62}{section*.164}%
+\contentsline {section}{Brief Theory}{62}{section*.165}%
+\contentsline {section}{Procedure}{62}{section*.166}%
+\contentsline {section}{Reference Implementation}{62}{section*.167}%
+\contentsline {section}{Evaluation / Expected Output}{64}{section*.168}%
+\contentsline {section}{Viva / Discussion Questions}{64}{section*.172}%
+\contentsline {section}{Complete Code Listing}{64}{section*.173}%
+\contentsline {part}{VII\hspace {1em}Unsupervised Neural Learning: Self-Organizing Maps}{68}{part.7}%
+\contentsline {chapter}{Experiment 15: Self-Organizing Map (SOM)}{69}{chapter*.174}%
+\contentsline {section}{Objective}{69}{section*.175}%
+\contentsline {section}{Suggested Dataset}{69}{section*.176}%
+\contentsline {section}{Required Libraries}{69}{section*.177}%
+\contentsline {section}{Brief Theory}{69}{section*.178}%
+\contentsline {section}{Procedure}{69}{section*.179}%
+\contentsline {section}{Reference Implementation}{69}{section*.180}%
+\contentsline {section}{Evaluation / Expected Output}{70}{section*.181}%
+\contentsline {section}{Viva / Discussion Questions}{70}{section*.184}%
+\contentsline {section}{Complete Code Listing}{70}{section*.185}%
+\contentsline {part}{VIII\hspace {1em}Probabilistic Sequence Modeling: Hidden Markov Models}{73}{part.8}%
+\contentsline {chapter}{Experiment 16: Hidden Markov Model (HMM)}{74}{chapter*.186}%
+\contentsline {section}{Objective}{74}{section*.187}%
+\contentsline {section}{Suggested Dataset}{74}{section*.188}%
+\contentsline {section}{Required Libraries}{74}{section*.189}%
+\contentsline {section}{Brief Theory}{74}{section*.190}%
+\contentsline {section}{Procedure}{74}{section*.191}%
+\contentsline {section}{Reference Implementation}{74}{section*.192}%
+\contentsline {section}{Evaluation / Expected Output}{74}{section*.193}%
+\contentsline {section}{Viva / Discussion Questions}{76}{section*.197}%
+\contentsline {section}{Complete Code Listing}{76}{section*.198}%
+\contentsline {part}{IX\hspace {1em}Margin-Based Learning: Support Vector Machines}{78}{part.9}%
+\contentsline {chapter}{Experiment 17: Support Vector Machine (SVM)}{79}{chapter*.199}%
+\contentsline {section}{Objective}{79}{section*.200}%
+\contentsline {section}{Suggested Dataset}{79}{section*.201}%
+\contentsline {section}{Required Libraries}{79}{section*.202}%
+\contentsline {section}{Brief Theory}{79}{section*.203}%
+\contentsline {section}{Procedure}{79}{section*.204}%
+\contentsline {section}{Reference Implementation}{79}{section*.205}%
+\contentsline {section}{Evaluation / Expected Output}{81}{section*.206}%
+\contentsline {section}{Viva / Discussion Questions}{81}{section*.210}%
+\contentsline {section}{Complete Code Listing}{81}{section*.211}%
+\contentsline {part}{X\hspace {1em}Generative / Foundation Models: Large Language Models}{84}{part.10}%
+\contentsline {chapter}{Experiment 18: Large Language Model (LLM) Experiment}{85}{chapter*.212}%
+\contentsline {section}{Objective}{85}{section*.213}%
+\contentsline {section}{Suggested Dataset}{85}{section*.214}%
+\contentsline {section}{Required Libraries}{85}{section*.215}%
+\contentsline {section}{Brief Theory}{85}{section*.216}%
+\contentsline {section}{Procedure}{85}{section*.217}%
+\contentsline {section}{Reference Implementation}{85}{section*.218}%
+\contentsline {section}{Evaluation / Expected Output}{86}{section*.219}%
+\contentsline {section}{Viva / Discussion Questions}{86}{section*.221}%
+\contentsline {section}{Complete Code Listing}{86}{section*.222}%
+\contentsline {part}{XI\hspace {1em}Non-Parametric Regression: Generalized Regression Neural Network}{90}{part.11}%
+\contentsline {chapter}{Experiment 19: Generalized Regression Neural Network (GRNN)}{91}{chapter*.223}%
+\contentsline {section}{Objective}{91}{section*.224}%
+\contentsline {section}{Suggested Dataset}{91}{section*.225}%
+\contentsline {section}{Required Libraries}{91}{section*.226}%
+\contentsline {section}{Brief Theory}{91}{section*.227}%
+\contentsline {section}{Procedure}{91}{section*.228}%
+\contentsline {section}{Reference Implementation}{91}{section*.229}%
+\contentsline {section}{Evaluation / Expected Output}{91}{section*.230}%
+\contentsline {section}{Viva / Discussion Questions}{91}{section*.231}%
+\contentsline {section}{Complete Code Listing}{91}{section*.232}%
+\contentsline {part}{XII\hspace {1em}Integrated Mini Project and Appendices}{92}{part.12}%
+\contentsline {chapter}{Integrated Mini Project: Comparative Machine Learning Study}{93}{chapter*.233}%
+\contentsline {section}{Objective}{93}{section*.234}%
+\contentsline {section}{Suggested Dataset}{93}{section*.235}%
+\contentsline {section}{Required Libraries}{93}{section*.236}%
+\contentsline {section}{Workflow}{93}{section*.237}%
+\contentsline {section}{Comparative Results}{93}{section*.238}%
+\contentsline {section}{Discussion and Conclusions}{93}{section*.239}%
+\contentsline {section}{Viva / Discussion Questions}{93}{section*.240}%
+\contentsline {chapter}{Appendix A: Quick Reference Formulas}{94}{chapter*.241}%
+\contentsline {chapter}{Appendix B: Reproducibility Checklist}{95}{chapter*.242}%
+\contentsline {chapter}{Appendix C: Suggested Assessment Rubric}{96}{chapter*.243}%
+\contentsline {chapter}{Appendix D: Student Experiment Record}{97}{chapter*.244}%

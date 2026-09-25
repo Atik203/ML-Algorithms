@@ -1,0 +1,118 @@
+% ===========================================================================
+% Part XI - Non-Parametric Regression: GRNN (Experiment 19)
+% ===========================================================================
+
+\part{Non-Parametric Regression: Generalized Regression Neural Network}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 19: Generalized Regression Neural Network (GRNN)}\label{exp:19}
+
+\quickfacts
+  {Dataset}{Real motorcycle impact data (\texttt{data/motorcycle.csv}, R \texttt{MASS::mcycle}); 133 observations, time vs head acceleration}
+  {Key parameters}{GRNN from scratch (NumPy); smoothing spread $\sigma$ selected by 5-fold cross-validation over 0.02--1.0}
+  {Headline result}{$\sigma$ = 0.08 (CV RMSE 25.00 g); held-out $R^2$ 0.7255, RMSE 22.78 g}
+
+\section{Objective}
+Implement GRNN-style kernel regression from scratch and study the effect of the smoothing
+parameter $\sigma$ with cross-validation.
+
+\section{Suggested Dataset}
+Real motorcycle impact data (\texttt{data/motorcycle.csv}, R \texttt{MASS::mcycle}):
+133 observations of time after impact (ms) versus head acceleration (g). Time is
+standardized before computing kernel distances.
+
+\section{Required Libraries}
+numpy, pandas, matplotlib, scikit-learn (base classes, KFold, metrics).
+
+\section{Brief Theory}
+A GRNN has four layers: input, pattern, summation and output. With $N$ training points, each
+pattern unit computes a Gaussian activation
+\[
+p_i(x) = \exp\!\left(-\frac{\lVert x - x_i \rVert^2}{2\sigma^2}\right),
+\]
+the summation layer accumulates $S(x) = \sum_i y_i\,p_i(x)$ and $D(x) = \sum_i p_i(x)$, and the
+output layer returns the Nadaraya--Watson conditional mean
+\[
+\hat{y}(x) = \frac{S(x)}{D(x)}
+           = \frac{\sum_i y_i \exp\!\left(-\lVert x-x_i\rVert^2 / 2\sigma^2\right)}
+                  {\sum_i \exp\!\left(-\lVert x-x_i\rVert^2 / 2\sigma^2\right)} .
+\]
+Training is one-pass --- the model simply stores the data; prediction costs $O(N)$ per query.
+The only hyperparameter is the smoothing spread $\sigma$: small values memorize noise (high
+variance), large values over-smooth (high bias).
+
+\section{Procedure}
+\begin{enumerate}
+  \item Load the motorcycle data and standardize the time feature.
+  \item Implement the GRNN class (\texttt{fit} stores the data; \texttt{predict} computes the
+        kernel weights).
+  \item Visualize $\sigma = 0.05$, $0.25$ and $1.0$ (under- and over-smoothing).
+  \item Select $\sigma$ by 5-fold cross-validation over $0.02 \ldots 1.0$.
+  \item Refit on a 75\% split and evaluate the 25\% held-out set ($R^2$, RMSE).
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={GRNN prediction: pattern, summation and output layers}]
+kernels = np.exp(-dist_sq / (2.0 * self.sigma ** 2))   # pattern layer
+D = np.sum(kernels, axis=1)                            # denominator
+S = np.dot(kernels, self.y_train_)                     # numerator
+return S / np.where(D < 1e-12, 1e-12, D)               # output layer
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{GRNN on the real motorcycle impact data (133 observations).}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    \textbf{Item} & \textbf{Value} \\
+    \midrule
+    CV-selected $\sigma$ & 0.080 (CV RMSE 25.00 g) \\
+    Train $R^2$ & 0.8073 \\
+    Test $R^2$ & \best{0.7255} \\
+    Test RMSE & 22.78 g (acceleration range $-134 \ldots +75$ g) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figures/exp19_sigma_sweep.png}
+  \caption{GRNN under different smoothing spreads on the motorcycle data: small $\sigma$
+  follows noise, large $\sigma$ flattens the impact peak.}
+  \label{fig:exp19-sigma}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{figures/exp19_cv_curve.png}
+  \caption{Five-fold cross-validation error versus $\sigma$; the clear minimum selects
+  $\sigma = 0.08$.}
+  \label{fig:exp19-cv}
+\end{figure}
+
+$\sigma = 0.05$ shows local wiggles (variance), while $\sigma = 0.25$--$1.0$ underfits the
+sharp deceleration peak. On the smooth synthetic benchmark a GRNN reaches $R^2 \approx 0.95$;
+on this real dataset the held-out $R^2$ is 0.73 because a single global $\sigma$ cannot be
+simultaneously small at the impact discontinuity and large elsewhere. This is the classic
+bias--variance limitation of global-bandwidth kernel regression; adaptive bandwidths or local
+polynomial regression would improve it.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[Why is GRNN called non-parametric?] It does not learn a fixed set of parameters; the
+  training data itself forms the model (memory-based kernel regression).
+  \item[What does $\sigma$ control?] The smoothing bandwidth: small $\sigma$ fits noise (high
+  variance), large $\sigma$ over-smooths (high bias).
+  \item[How is GRNN related to kernel regression?] It is exactly the Nadaraya--Watson Gaussian
+  kernel regression estimator of $\mathbb{E}[y \mid x]$, with one kernel per training
+  observation.
+  \item[Why is the test $R^2$ lower than on synthetic data?] The motorcycle data contains a
+  near-discontinuity and an uneven measurement design, which a single global bandwidth cannot
+  capture.
+  \item[How would you improve the fit?] Use an adaptive or per-location bandwidth, local
+  polynomial (LOESS) regression, or feature scaling plus anisotropic kernels.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp19_grnn}

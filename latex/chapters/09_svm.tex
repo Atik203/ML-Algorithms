@@ -1,0 +1,117 @@
+% ===========================================================================
+% Part IX - Margin-Based Learning: Support Vector Machines (Experiment 17)
+% ===========================================================================
+
+\part{Margin-Based Learning: Support Vector Machines}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 17: Support Vector Machine (SVM)}\label{exp:17}
+
+\quickfacts
+  {Dataset}{Breast Cancer (569 $\times$ 30; 2 features for the kernel view, all 30 for accuracy) and Old Faithful geyser (\texttt{data/geyser.csv}, 272 eruptions)}
+  {Key parameters}{SVC: RBF kernel, C = 1.0, gamma = `scale'; SVR: RBF, C = 10, $\varepsilon$ = 0.3}
+  {Headline result}{SVC accuracy 0.9790 (96/426 support vectors); SVR $R^2$ 0.8968 (103/272 support vectors)}
+
+\section{Objective}
+Train SVM classifiers and investigate the effects of kernel, $C$ and $\gamma$; demonstrate
+Support Vector Regression with an $\varepsilon$-insensitive tube.
+
+\section{Suggested Dataset}
+(a) Breast Cancer (569 $\times$ 30): two features (mean radius, mean texture) for the 2D
+kernel view and all 30 features for the accuracy benchmark. (b) Old Faithful geyser
+(\texttt{data/geyser.csv}, 272 eruptions) for SVR.
+
+\section{Required Libraries}
+scikit-learn, numpy, pandas, matplotlib.
+
+\section{Brief Theory}
+\textbf{SVC (soft margin)} solves
+\[
+\min_{w,b,\xi}\ \tfrac{1}{2}\lVert w\rVert^2 + C\sum_i \xi_i
+\quad\text{s.t.}\quad y_i\bigl(w^T\phi(x_i)+b\bigr) \ge 1-\xi_i,\ \ \xi_i \ge 0 .
+\]
+The dual problem depends only on inner products $K(x_i, x_j)$, which enables the
+\textbf{kernel trick}: compute similarities in a high-dimensional feature space without mapping
+the data there explicitly. The solution is sparse --- only points with $\alpha_i > 0$
+(\textbf{support vectors}) define the boundary. Kernels used here: linear $x^Tz$, polynomial
+$(\gamma x^Tz + r)^d$ and RBF $\exp(-\gamma\lVert x-z\rVert^2)$. $C$ penalizes margin
+violations; $\gamma$ controls the RBF width. \textbf{SVR} applies the same machinery to
+regression with an \textbf{$\varepsilon$-insensitive tube}: residuals within $\pm\varepsilon$
+cost nothing and only points outside the tube become support vectors.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Scale the features.
+  \item Train SVC with linear, polynomial and RBF kernels on two breast-cancer features; plot
+        the boundaries, margins and support vectors.
+  \item Train the RBF SVC on all 30 features; report accuracy and the support-vector count.
+  \item Fit SVR (RBF, $C = 10$, $\varepsilon = 0.3$) to the Old Faithful data (waiting time
+        $\rightarrow$ eruption duration); plot the fitted curve and the tube.
+  \item Report $R^2$, RMSE and the support-vector share.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={SVC per kernel and SVR with an epsilon-insensitive tube}]
+clf = SVC(kernel=k_name, C=1.0, gamma='scale', degree=3, random_state=42).fit(X_2d_scaled, y_2d)
+svc_rbf = SVC(kernel='rbf', C=1.0, random_state=42).fit(X_train_c_s, y_train_c)
+svr_model = SVR(kernel='rbf', C=10.0, epsilon=0.3, gamma='scale').fit(X_svr_scaled, y_svr)
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{SVM results on the two real datasets.}
+  \begin{tabular}{@{}llr@{}}
+    \toprule
+    \textbf{Experiment} & \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    SVC (RBF, 30 features) & Test accuracy & \best{0.9790} \\
+    SVC (RBF, 30 features) & Support vectors & 96 of 426 (22.5\%) \\
+    SVR (Old Faithful) & $R^2$ & 0.8968 \\
+    SVR (Old Faithful) & RMSE & 0.366 minutes \\
+    SVR (Old Faithful) & Support vectors & 103 of 272 (37.9\%) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.98\textwidth]{figures/exp17_svc_kernels.png}
+  \caption{SVC decision boundaries, margins and support vectors on two real breast-cancer
+  features for the linear, polynomial and RBF kernels.}
+  \label{fig:exp17-kernels}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/exp17_svr_tube.png}
+  \caption{Support Vector Regression on the Old Faithful geyser with the $\varepsilon = 0.3$
+  tube; highlighted points are support vectors.}
+  \label{fig:exp17-svr}
+\end{figure}
+
+The 2D kernel figure shows the linear kernel underfitting the real diagnostic data while the
+polynomial and RBF kernels produce curved boundaries. The RBF SVC reaches 0.9790 accuracy with
+only 96 of 426 training points as support vectors --- about 77\% of the data could be discarded
+without changing the classifier. The geyser scatter is bimodal (short and long eruptions); the
+RBF SVR smoothly bridges the two modes and the tube leaves most residuals unpenalized.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[What is a support vector?] A training point on or inside the margin ($\alpha > 0$) that
+  alone defines the decision boundary.
+  \item[Effect of $C$?] Large $C$ penalizes violations strongly (narrow margin, possible
+  overfitting); small $C$ allows a wider margin and more violations.
+  \item[Effect of $\gamma$?] Large $\gamma$ makes each point's influence local (wiggly
+  boundary); small $\gamma$ makes the RBF smoother, approaching a linear model.
+  \item[What is the kernel trick?] Computing inner products in a high-dimensional feature
+  space without explicitly mapping the points there.
+  \item[What is the $\varepsilon$-tube in SVR?] The zero-loss zone around the fitted function;
+  only points outside it become support vectors. A wider tube (0.3 vs.\ 0.1) reduced the
+  support-vector count with the same $R^2$.
+  \item[Why does SVM require careful scaling?] Margins and kernels use Euclidean distances;
+  unscaled features with larger ranges dominate them and degrade the fit.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp17_svm}

@@ -1,0 +1,107 @@
+% ===========================================================================
+% Part V - Neural Networks: Multilayer Perceptron (Experiment 13)
+% ===========================================================================
+
+\part{Neural Networks: Multilayer Perceptron}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 13: Multilayer Perceptron (MLP)}\label{exp:13}
+
+\quickfacts
+  {Dataset}{Digits (scikit-learn): 1,797 samples, 8$\times$8 images (64 features), 10 classes; 70/15/15 split}
+  {Key parameters}{scikit-learn (128, 64) ReLU + Adam + early stopping; PyTorch 64--128--64--10 with BatchNorm and Dropout}
+  {Headline result}{scikit-learn 0.9630; PyTorch 0.9815 test accuracy (GPU)}
+
+\section{Objective}
+Implement feed-forward neural networks for handwritten-digit classification and study
+hidden-layer size and regularization.
+
+\section{Suggested Dataset}
+Digits (scikit-learn): 1,797 samples, 8$\times$8 grayscale images (64 features), 10 classes;
+stratified 70/15/15 train/validation/test split, standardized on the training data only.
+
+\section{Required Libraries}
+scikit-learn, PyTorch, numpy, pandas, matplotlib.
+
+\section{Brief Theory}
+An MLP stacks affine transformations with non-linear activations,
+\[
+a^{(l)} = \sigma\bigl(W^{(l)} a^{(l-1)} + b^{(l)}\bigr), \qquad
+\hat{y} = \mathrm{softmax}\bigl(W^{(L+1)} a^{(L)} + b^{(L+1)}\bigr),
+\]
+and is trained by backpropagation to minimize the categorical cross-entropy
+\[
+\mathcal{L} = -\sum_{i=1}^{N}\sum_{k=1}^{K} y_{ik}\ln \hat{y}_{ik}
+              + \frac{\alpha}{2}\sum_{l}\lVert W^{(l)}\rVert_F^2 .
+\]
+\textbf{Batch normalization} stabilizes layer inputs and speeds training, \textbf{dropout}
+randomly zeroes neurons to regularize, and \textbf{early stopping} / learning-rate scheduling
+stop training when validation performance stalls.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Load the digits, split 70/15/15 and standardize (fit on training data only).
+  \item Train a scikit-learn \texttt{MLPClassifier} with hidden layers (128, 64), ReLU, Adam,
+        $L_2$ regularization and early stopping.
+  \item Build a custom PyTorch MLP: 64--128--64--10 with BatchNorm and Dropout, cross-entropy
+        loss, Adam with weight decay, 50 epochs and a plateau scheduler.
+  \item Train with the validation loop and plot the loss curve.
+  \item Evaluate the test set and report the per-class classification report.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={The two MLP architectures}]
+mlp_sklearn = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam',
+                            alpha=0.001, batch_size=64, learning_rate_init=0.005,
+                            max_iter=150, early_stopping=True, validation_fraction=0.15)
+
+self.net = nn.Sequential(
+    nn.Linear(64, 128), nn.BatchNorm1d(128), nn.ReLU(), nn.Dropout(0.25),
+    nn.Linear(128, 64), nn.BatchNorm1d(64),  nn.ReLU(), nn.Dropout(0.20),
+    nn.Linear(64, 10))
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{MLP implementations on the digits test set (270 images).}
+  \begin{tabular}{@{}lrl@{}}
+    \toprule
+    \textbf{Model} & \textbf{Test accuracy} & \textbf{Notes} \\
+    \midrule
+    Scikit-learn MLP (128--64) & 0.9630 & early stopping after 15 iterations \\
+    PyTorch deep MLP & \best{0.9815} & GPU (CUDA), 50 epochs, validation accuracy 0.9889 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.75\textwidth]{figures/exp13_sklearn_loss.png}
+  \caption{Training loss curve of the scikit-learn MLP; early stopping halted training after
+  15 iterations.}
+  \label{fig:exp13-loss}
+\end{figure}
+
+Training loss fell from 1.20 to about 0.02 while the validation loss tracked it closely, so
+there is no severe overfitting. Per-class precision and recall are near 1.00 for almost all
+digits; the residual errors are visually similar digits. The custom PyTorch model beats the
+scikit-learn baseline by about two points thanks to BatchNorm, Dropout and scheduled training
+over more epochs.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[Why is scaling important for MLP?] Gradient descent converges poorly when input
+  features have very different scales; standardization equalizes their influence and stabilizes
+  the loss surface.
+  \item[What is backpropagation?] Reverse-mode application of the chain rule that computes the
+  gradient of the loss with respect to every weight, layer by layer.
+  \item[What causes vanishing/exploding gradients?] Repeated multiplication of small (or
+  large) Jacobians through many layers; ReLU, BatchNorm, careful initialization and residual
+  connections mitigate it.
+  \item[Why is the PyTorch model better here?] BatchNorm and Dropout plus a longer, scheduled
+  training; the scikit-learn model stops early at iteration 15.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp13_mlp}

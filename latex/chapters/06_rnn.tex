@@ -1,0 +1,115 @@
+% ===========================================================================
+% Part VI - Sequence Modeling: Recurrent Neural Networks (Experiment 14)
+% ===========================================================================
+
+\part{Sequence Modeling: Recurrent Neural Networks}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 14: Recurrent Neural Network (RNN)}\label{exp:14}
+
+\quickfacts
+  {Dataset}{Synthetic 20-step sequences (1,200; label = positive sum) and Monthly Airline Passengers (12-month windows)}
+  {Key parameters}{Vanilla RNN vs LSTM; 2 layers, hidden 64 (forecasting) / 32 (classification); Adam; MSE / BCE loss}
+  {Headline result}{Forecasting: LSTM RMSE 44.12 vs RNN 69.93 passengers; Classification: LSTM 0.9450 vs RNN 0.9300}
+
+\section{Objective}
+Build recurrent networks for sequential data --- sequence classification and time-series
+forecasting --- and compare a vanilla RNN with an LSTM.
+
+\section{Suggested Dataset}
+(a) Synthetic sequence benchmark: 1,200 sequences of length 20, label = 1 if the sum is
+positive (1,000 train / 200 test). (b) Monthly Airline Passengers
+(\texttt{data/airline\_passengers.csv}): 144 months, 12-month sliding windows, chronological
+80/20 split.
+
+\section{Required Libraries}
+PyTorch, numpy, pandas, matplotlib (the manual's TensorFlow/Keras example is implemented
+equivalently in PyTorch, the framework installed in this environment).
+
+\section{Brief Theory}
+A recurrent network processes a sequence one step at a time while maintaining a hidden state,
+\[
+h_t = \tanh\bigl(W_{ih} x_t + b_{ih} + W_{hh} h_{t-1} + b_{hh}\bigr), \qquad
+\hat{y} = W_{ho} h_T + b_o .
+\]
+Training uses backpropagation through time (BPTT). Repeated multiplication by $W_{hh}$ makes
+gradients vanish (or explode) over long sequences. The \textbf{LSTM} solves this with gates ---
+forget $f_t$, input $i_t$ and output $o_t$ --- and an additive cell state
+$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$, which lets gradients flow across many steps.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Generate 1,200 labeled 20-step sequences (label = 1 if the sum is positive) and split
+        1,000/200.
+  \item Build vanilla RNN and LSTM classifiers (hidden 32, linear sigmoid output); train
+        10 epochs with Adam and binary cross-entropy; report test accuracy.
+  \item For forecasting, normalize the passenger series and build 12-month sliding windows with
+        a chronological 80/20 split.
+  \item Train RNN and LSTM forecasters (2 layers, hidden 64, MSE, Adam, 120 epochs).
+  \item Report RMSE/MAE and plot the forecast trajectories.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={Recurrent model definitions (classification and forecasting)}]
+self.rnn = nn.RNN(1, hidden, batch_first=True) if cell == 'rnn' else nn.LSTM(1, hidden, batch_first=True)
+self.fc = nn.Linear(hidden, 1)          # classification output
+
+self.lstm = nn.LSTM(input_size=1, hidden_size=64, num_layers=2, batch_first=True)
+self.fc = nn.Linear(64, 1)              # forecasting output
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{Sequence classification on the synthetic benchmark (200 test sequences).}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    \textbf{Model} & \textbf{Test accuracy} \\
+    \midrule
+    Vanilla RNN & 0.9300 \\
+    LSTM & \best{0.9450} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Airline passenger forecasting on the chronological test horizon (27 windows).}
+  \begin{tabular}{@{}lrr@{}}
+    \toprule
+    \textbf{Model} & \textbf{RMSE (passengers)} & \textbf{MAE} \\
+    \midrule
+    Vanilla RNN & 69.93 & 62.36 \\
+    LSTM & \best{44.12} & \best{36.78} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/exp14_forecast.png}
+  \caption{Airline passenger forecasting: ground truth versus the RNN and LSTM forecasts on
+  the test horizon.}
+  \label{fig:exp14-forecast}
+\end{figure}
+
+The LSTM outperforms the vanilla RNN on both tasks: $+1.5$ accuracy points on classification
+and about $37\%$ lower RMSE on forecasting. The gap is larger on forecasting because that task
+needs 12-step seasonal memory, exactly where gating prevents vanishing gradients. On the easy
+synthetic benchmark both models do well because the decision rule (sum $> 0$) is nearly linear.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[Why does an RNN have memory?] Its hidden state is carried across time steps, so each
+  output depends on previous inputs, not only the current one.
+  \item[What is a hidden state?] The internal vector summarizing the sequence seen so far; it
+  is updated at every step and used to produce outputs.
+  \item[Why are LSTM/GRU often preferred for long dependencies?] Their gates control what is
+  stored or forgotten and the additive cell state lets gradients flow across many steps,
+  avoiding the exponential decay of vanilla RNN gradients.
+  \item[Why is the train/test split chronological?] Shuffling sequences would leak future
+  values into training and produce an optimistic, invalid evaluation.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp14_rnn}

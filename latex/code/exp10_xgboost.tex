@@ -1,0 +1,81 @@
+% ===========================================================================
+% exp10_xgboost.tex - complete code listings for Experiment 10
+% Source: notebooks/04_ensemble_learning.ipynb (executed)
+% ===========================================================================
+
+\begin{lstlisting}[style=mlcode,caption={Core libraries}]
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+\end{lstlisting}
+
+\begin{lstlisting}[style=mlcode,caption={Load the Heart Disease dataset (real-world classification benchmark)}]
+# ---- Load the Heart Disease dataset (real-world classification benchmark) ----
+df_clf = pd.read_csv('../data/heart_disease.csv')
+print(f"Heart Disease dataset: {df_clf.shape[0]} rows x {df_clf.shape[1]} columns")
+
+# Separate target and features (handle either 'target' or 'Target' as the column name)
+target_col = 'target' if 'target' in df_clf.columns else 'Target'
+y_clf = df_clf[target_col].values
+X_clf_raw = df_clf.drop(columns=[target_col])
+
+# One-hot encode categorical variables for RFC / XGBoost / AdaBoost
+X_clf_encoded = pd.get_dummies(X_clf_raw, drop_first=True)
+
+# Stratified split keeps the disease/no-disease ratio identical in train and test
+X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
+    X_clf_encoded, y_clf, test_size=0.25, random_state=42, stratify=y_clf
+)
+
+print(f"Classification Training Set: {X_train_clf.shape}, Test Set: {X_test_clf.shape}")
+
+# ---- Random Forest Classification (majority vote of trees) ----
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+
+# Predictions and probability of the positive (disease) class
+y_pred_rfc = rfc.predict(X_test_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+
+# ---- Evaluate: accuracy, F1 and ROC-AUC ----
+acc_rfc = accuracy_score(y_test_clf, y_pred_rfc)
+f1_rfc = f1_score(y_test_clf, y_pred_rfc)
+auc_rfc = roc_auc_score(y_test_clf, y_prob_rfc)
+
+print(f"Random Forest Classifier: Accuracy = {acc_rfc:.4f}, F1 = {f1_rfc:.4f}, ROC-AUC = {auc_rfc:.4f}")
+\end{lstlisting}
+
+\begin{lstlisting}[style=mlcode,caption={XGBoost classification on the same stratified split}]
+# ---- XGBoost classification on the same stratified split ----
+xgb_clf = xgb.XGBClassifier(
+    n_estimators=120, learning_rate=0.08, max_depth=4,
+    subsample=0.8, colsample_bytree=0.8,
+    random_state=42, eval_metric='logloss'
+)
+xgb_clf.fit(X_train_clf, y_train_clf)
+
+y_pred_xgb_c = xgb_clf.predict(X_test_clf)
+y_prob_xgb_c = xgb_clf.predict_proba(X_test_clf)[:, 1]
+
+acc_xgb_c = accuracy_score(y_test_clf, y_pred_xgb_c)
+f1_xgb_c = f1_score(y_test_clf, y_pred_xgb_c)
+auc_xgb_c = roc_auc_score(y_test_clf, y_prob_xgb_c)
+print(f"XGBoost Classifier:   Accuracy = {acc_xgb_c:.4f}, F1 = {f1_xgb_c:.4f}, ROC-AUC = {auc_xgb_c:.4f}")
+\end{lstlisting}

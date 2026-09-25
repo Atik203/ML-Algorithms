@@ -1,0 +1,417 @@
+% ===========================================================================
+% Part IV - Ensemble Learning (Experiments 8-12)
+% ===========================================================================
+
+\part{Ensemble Learning}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 8: Random Forest Regression (RFR)}\label{exp:08}
+
+\quickfacts
+  {Dataset}{California Housing, 5,000-row random sample, 8 features; 80/20 split}
+  {Key parameters}{150 trees, max\_depth = 12, out-of-bag scoring enabled}
+  {Headline result}{Test $R^2$ 0.7415 (OOB 0.7513); RMSE 0.5908; MAE 0.3999}
+
+\section{Objective}
+Predict a continuous target using an ensemble of randomized decision trees; evaluate with
+MAE, RMSE and $R^2$ and inspect out-of-bag validation.
+
+\section{Suggested Dataset}
+California Housing (scikit-learn), 5,000-row random sample, target = median house value.
+
+\section{Required Libraries}
+scikit-learn, numpy, pandas.
+
+\section{Brief Theory}
+Random Forest Regression trains $B$ decision trees on bootstrap samples of the training data;
+at each split only a random subset of features is considered, which decorrelates the trees.
+The ensemble prediction is the average of the tree outputs,
+\[
+\hat{f}_{\mathrm{RF}}(x) = \frac{1}{B}\sum_{b=1}^{B} T_b(x) .
+\]
+Averaging approximately uncorrelated trees reduces variance: for pairwise correlation $\rho$,
+$\mathrm{Var}(\hat{f}_{\mathrm{RF}}) = \rho\sigma^2 + \frac{1-\rho}{B}\sigma^2$, so adding
+trees can only help. Out-of-bag (OOB) samples --- the $\approx 37\%$ not drawn in a bootstrap
+--- provide a free internal validation estimate.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Load and sample the dataset; split into training and test sets.
+  \item Train \texttt{RandomForestRegressor} with 150 trees, \texttt{max\_depth} = 12 and
+        OOB scoring enabled.
+  \item Predict the test set and compute $R^2$, RMSE and MAE.
+  \item Report the OOB $R^2$ and compare it with the test $R^2$ to check overfitting.
+  \item Inspect feature importances.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={Random Forest Regression with out-of-bag validation}]
+rf_reg = RandomForestRegressor(n_estimators=150, max_depth=12,
+                               oob_score=True, random_state=42, n_jobs=-1)
+rf_reg.fit(X_train_reg, y_train_reg)
+print(rf_reg.oob_score_, r2_score(y_test_reg, rf_reg.predict(X_test_reg)))
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{Random Forest Regression on the California Housing sample.}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    OOB $R^2$ & 0.7513 \\
+    Test $R^2$ & 0.7415 \\
+    Test RMSE & 0.5908 (in \$100k units $\approx$ \$59k) \\
+    Test MAE & 0.3999 (in \$100k units $\approx$ \$40k) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The OOB $R^2$ (0.7513) is very close to the test $R^2$ (0.7415), so the model is not
+overfitting and the OOB estimate is a reliable free validation. Feature importances are
+dominated by median income and location (latitude/longitude), consistent with housing
+economics.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[Why does a forest reduce variance?] Averaging $B$ approximately uncorrelated trees
+  gives $\rho\sigma^2 + (1-\rho)\sigma^2/B$; as $B$ grows the second term vanishes, so
+  predictions are more stable than a single tree's.
+  \item[What is bagging?] Bootstrap aggregating: each model is trained on a bootstrap sample
+  of the data and the predictions are combined (average for regression, vote for
+  classification).
+  \item[Why can feature importance be misleading?] Impurity-based importance is biased toward
+  high-cardinality/continuous features, is computed on training data (it implies no causality),
+  and correlated features share or dilute importance arbitrarily.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp08_rfr}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 9: Random Forest Classification (RFC)}\label{exp:09}
+
+\quickfacts
+  {Dataset}{Heart Disease (\texttt{data/heart\_disease.csv}, 303 rows, 13 features); stratified 75/25 split}
+  {Key parameters}{120 trees, max\_depth = 8; one-hot encoded categorical features}
+  {Headline result}{Accuracy 0.7763; F1 0.8046; ROC-AUC 0.8704}
+
+\section{Objective}
+Classify observations using an ensemble of randomized decision trees, with a stratified
+split and classification metrics.
+
+\section{Suggested Dataset}
+Heart Disease (\texttt{data/heart\_disease.csv}), 303 rows, 13 features plus the binary target.
+
+\section{Required Libraries}
+scikit-learn, numpy, pandas.
+
+\section{Brief Theory}
+Random Forest Classification aggregates tree votes. Each tree votes for one class and the
+ensemble predicts the most frequent class,
+\[
+\hat{C}_{\mathrm{RF}}(x) = \arg\max_k \sum_{b=1}^{B} \mathbb{I}\bigl(T_b(x) = k\bigr) .
+\]
+Bootstrap sampling plus feature subsampling decorrelates the trees, reducing variance relative
+to a single decision tree. The fraction of trees voting for the positive class also provides a
+class probability, which is used for ROC-AUC.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Load the heart data; one-hot encode the categorical features.
+  \item Use a stratified 75/25 split to preserve the disease ratio.
+  \item Train \texttt{RandomForestClassifier} with 120 trees and \texttt{max\_depth} = 8.
+  \item Predict labels and probabilities on the test set.
+  \item Compute accuracy, F1 and ROC-AUC.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={Random Forest Classification with stratified evaluation}]
+rfc = RandomForestClassifier(n_estimators=120, max_depth=8, random_state=42, n_jobs=-1)
+rfc.fit(X_train_clf, y_train_clf)
+y_prob_rfc = rfc.predict_proba(X_test_clf)[:, 1]
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{Random Forest Classification on Heart Disease (76 test samples).}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Accuracy & 0.7763 \\
+    F1-score & 0.8046 \\
+    ROC-AUC & 0.8704 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+ROC-AUC 0.87 indicates good ranking quality on a small dataset; accuracy 0.776 is typical for
+heart-disease prediction with these features and reflects the problem's noise rather than a
+modelling failure. F1 and AUC are safer summaries than accuracy alone because the classes are
+not perfectly balanced.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[RFR vs RFC?] Regression averages the trees' numeric outputs; classification takes a
+  majority vote (and averages class probabilities for scoring).
+  \item[What is majority voting?] Each tree votes for one class and the most frequent class
+  becomes the ensemble prediction; soft voting averages the probabilities instead.
+  \item[How can class imbalance affect accuracy?] With a rare positive class, a model can
+  predict the majority class everywhere and still show high accuracy; precision, recall, F1 and
+  AUC expose the failure.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp09_rfc}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 10: XGBoost}\label{exp:10}
+
+\quickfacts
+  {Dataset}{Heart Disease (same stratified 75/25 split as RFC)}
+  {Key parameters}{120 trees, learning rate 0.08, max\_depth = 4, subsample / colsample = 0.8}
+  {Headline result}{Accuracy 0.7763; F1 0.8132; ROC-AUC 0.8509}
+
+\section{Objective}
+Train a gradient-boosted tree classifier and analyze the effect of boosting
+hyperparameters.
+
+\section{Suggested Dataset}
+Heart Disease (\texttt{data/heart\_disease.csv}), the same stratified split used for the
+other ensembles.
+
+\section{Required Libraries}
+xgboost, scikit-learn, numpy, pandas.
+
+\section{Brief Theory}
+XGBoost builds trees sequentially, each fitting a second-order Taylor expansion of the loss:
+\[
+\mathcal{L}^{(t)} \approx \sum_{i=1}^{n}\Bigl[g_i f_t(x_i) + \tfrac{1}{2} h_i f_t^2(x_i)\Bigr] + \Omega(f_t),
+\qquad
+\Omega(f) = \gamma T + \tfrac{1}{2}\lambda \sum_{j=1}^{T} w_j^2 ,
+\]
+where $g_i$ and $h_i$ are the first and second derivatives of the loss with respect to the
+current prediction. The regularization term $\Omega$ penalizes tree complexity and leaf
+weights, while row/column subsampling adds stochasticity; both control overfitting.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Prepare the one-hot encoded heart data and the same stratified split.
+  \item Fit \texttt{XGBClassifier} with 120 trees, learning rate 0.08, depth 4, subsample and
+        column sample 0.8, and the logistic-loss objective.
+  \item Predict labels and probabilities on the test set.
+  \item Report accuracy, F1 and ROC-AUC.
+  \item Discuss the complexity/generalization trade-off.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={XGBoost classification on the heart data}]
+xgb_clf = xgb.XGBClassifier(n_estimators=120, learning_rate=0.08, max_depth=4,
+                            subsample=0.8, colsample_bytree=0.8,
+                            random_state=42, eval_metric='logloss')
+xgb_clf.fit(X_train_clf, y_train_clf)
+y_prob_xgb_c = xgb_clf.predict_proba(X_test_clf)[:, 1]
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{XGBoost classification on Heart Disease (76 test samples).}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Accuracy & 0.7763 \\
+    F1-score & 0.8132 \\
+    ROC-AUC & 0.8509 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+XGBoost matches RFC on accuracy with a slightly higher F1 but a slightly lower AUC on this
+small test set; differences of 0.01--0.02 are within noise for 76 samples. On the larger
+regression benchmark, gradient boosting clearly leads (Experiment 8 comparison), which is the
+usual pattern for tabular data.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[Bagging vs boosting?] Bagging trains models in parallel on bootstrap samples and
+  combines them to reduce variance; boosting trains models sequentially so each corrects the
+  previous ensemble's errors, mainly reducing bias.
+  \item[What does the learning rate do?] It shrinks each tree's contribution; smaller values
+  need more trees but usually generalize better, larger values fit faster and can overfit.
+  \item[Why can boosting overfit?] Later trees keep fitting remaining errors, including label
+  noise, so the ensemble can become too complex; depth limits, regularization, subsampling and
+  early stopping control this.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp10_xgboost}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 11: AdaBoost}\label{exp:11}
+
+\quickfacts
+  {Dataset}{Heart Disease (same stratified 75/25 split)}
+  {Key parameters}{100 decision stumps, learning rate 0.1}
+  {Headline result}{Accuracy 0.7895; F1 0.8182; ROC-AUC 0.8714 (best of the four ensembles)}
+
+\section{Objective}
+Build an adaptive boosting classifier and study how weak learners combine into a stronger
+ensemble.
+
+\section{Suggested Dataset}
+Heart Disease (\texttt{data/heart\_disease.csv}), same split as the other ensembles.
+
+\section{Required Libraries}
+scikit-learn, numpy, pandas.
+
+\section{Brief Theory}
+AdaBoost trains weak learners (decision stumps) sequentially on re-weighted data.
+Misclassified samples receive larger weights, so each new learner focuses on the current
+errors. At round $m$ the weighted error $\epsilon_m$ determines the learner weight
+\[
+\alpha_m = \tfrac{1}{2}\ln\!\left(\frac{1-\epsilon_m}{\epsilon_m}\right),
+\]
+and the sample weights are updated as
+$w_i^{(m+1)} = w_i^{(m)} \exp\!\bigl(-\alpha_m y_i h_m(x_i)\bigr)$.
+The final prediction is a weighted vote of all stumps. Because the exponential loss grows
+quickly for hard points, AdaBoost is sensitive to label noise and outliers.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Prepare the heart data and the stratified split.
+  \item Fit \texttt{AdaBoostClassifier} with 100 stumps and learning rate 0.1.
+  \item Predict labels and probabilities on the test set.
+  \item Report accuracy, F1 and ROC-AUC; compare with RFC and XGBoost.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={AdaBoost classification}]
+ada_clf = AdaBoostClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
+ada_clf.fit(X_train_clf, y_train_clf)
+y_prob_ada_c = ada_clf.predict_proba(X_test_clf)[:, 1]
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{AdaBoost classification on Heart Disease (76 test samples).}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Accuracy & \best{0.7895} \\
+    F1-score & \best{0.8182} \\
+    ROC-AUC & \best{0.8714} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+AdaBoost with shallow stumps slightly outperforms the deeper models on this small dataset ---
+a common outcome when the signal is mostly additive and the sample size is limited. It remains
+a cheap, strong baseline; its weakness is sensitivity to label noise, where regularized
+gradient boosting is more robust.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[Why use weak learners?] Individually they are simple and low-variance; boosting
+  combines many of them so the ensemble can fit complex boundaries while each step stays
+  simple.
+  \item[How does AdaBoost focus on difficult examples?] After each round, weights of
+  misclassified samples increase, so the next learner optimizes a distribution that emphasizes
+  current errors.
+  \item[What is the effect of noisy labels?] Mislabeled points look ``hard'', receive
+  ever-larger weights and can dominate training, degrading accuracy --- AdaBoost is known to be
+  noise-sensitive.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp11_adaboost}
+
+% ---------------------------------------------------------------------------
+\chapter{Experiment 12: CatBoost}\label{exp:12}
+
+\quickfacts
+  {Dataset}{Heart Disease (raw table with categorical features: sex, cp, fbs, restecg, exang, slope, ca, thal)}
+  {Key parameters}{150 iterations, depth 5, learning rate 0.08, native \texttt{cat\_features}}
+  {Headline result}{Accuracy 0.7632; F1 0.7955; ROC-AUC 0.8551}
+
+\section{Objective}
+Train a gradient-boosted decision-tree model with native handling of categorical
+variables.
+
+\section{Suggested Dataset}
+Heart Disease (\texttt{data/heart\_disease.csv}) using the raw (unencoded) table so CatBoost
+can process categorical columns directly.
+
+\section{Required Libraries}
+catboost, pandas, scikit-learn.
+
+\section{Brief Theory}
+CatBoost is a gradient-boosting library designed for tables that mix numerical and categorical
+features. It uses \textbf{ordered boosting} --- leaf values are computed on random permutations
+of the data --- to avoid target leakage and prediction shift, and builds \textbf{oblivious
+(symmetric) trees}, where the same split condition is used at every node of a depth level.
+Categorical features are encoded internally with ordered target statistics, so the categorical
+columns must be declared through \texttt{cat\_features} and the target must never leak into the
+encoding.
+
+\section{Procedure}
+\begin{enumerate}
+  \item Identify the categorical columns in the raw heart table and cast them to string.
+  \item Use the same stratified 75/25 split on the raw features.
+  \item Fit \texttt{CatBoostClassifier} with 150 iterations, depth 5, learning rate 0.08 and
+        the categorical columns declared.
+  \item Predict labels and probabilities; report accuracy, F1 and ROC-AUC.
+  \item Compare all four classifiers on the same split.
+\end{enumerate}
+
+\section{Reference Implementation}
+\begin{lstlisting}[style=mlcode,caption={CatBoost with native categorical features}]
+categorical_cols = X_clf_raw.select_dtypes(include=['object', 'category']).columns.tolist()
+cb_clf = cb.CatBoostClassifier(iterations=150, learning_rate=0.08, depth=5,
+                               cat_features=categorical_cols, random_seed=42, verbose=False)
+cb_clf.fit(X_tr_cb, y_tr_cb)
+\end{lstlisting}
+
+\section{Evaluation / Expected Output}
+\begin{table}[htbp]
+  \centering
+  \caption{Ensemble classification comparison on the same Heart Disease split (76 test samples).}
+  \begin{tabular}{@{}lrrr@{}}
+    \toprule
+    \textbf{Model} & \textbf{Accuracy} & \textbf{F1} & \textbf{ROC-AUC} \\
+    \midrule
+    Random Forest (RFC) & 0.7763 & 0.8046 & 0.8704 \\
+    XGBoost & 0.7763 & 0.8132 & 0.8509 \\
+    AdaBoost & \best{0.7895} & \best{0.8182} & \best{0.8714} \\
+    CatBoost & 0.7632 & 0.7955 & 0.8551 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+CatBoost performs at a similar level to the other ensembles without any manual one-hot
+encoding --- its native categorical handling does the encoding internally. On this tiny
+dataset the advanced target statistics cannot show their full advantage (they matter most with
+high-cardinality categories, e.g.\ thousands of city or user IDs); all differences are within
+noise for 76 test samples.
+
+\section{Viva / Discussion Questions}
+\begin{description}
+  \item[How does CatBoost treat categorical features?] It computes ordered target statistics
+  (the mean target per category on random permutations, with prior smoothing) rather than
+  one-hot vectors.
+  \item[Why should categories not be encoded using target leakage?] Plain target encoding uses
+  each row's own target when encoding that row, which leaks label information and inflates
+  training performance; ordered statistics avoid this.
+  \item[CatBoost vs ordinary one-hot encoding?] One-hot explodes dimensionality for
+  high-cardinality features and loses category statistics; CatBoost encodes compactly and
+  exploits target--category relationships with leakage control.
+\end{description}
+
+\section{Complete Code Listing}
+\input{code/exp12_catboost}

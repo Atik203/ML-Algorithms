@@ -1,0 +1,107 @@
+% ===========================================================================
+% exp16_hmm.tex - complete code listings for Experiment 16
+% Source: notebooks/08_hidden_markov_model.ipynb (executed)
+% ===========================================================================
+
+\begin{lstlisting}[style=mlcode,caption={Core libraries}]
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from hmmlearn.hmm import GaussianHMM
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+
+# ---- Load the real DAX stock index (daily closes 1991-1998) ----
+df_market = pd.read_csv('../data/stock_index.csv')
+dates = pd.to_datetime(df_market['Date'])
+print(f"Trading days: {len(df_market)} | {dates.iloc[0].date()} to {dates.iloc[-1].date()}")
+print(df_market.head(3).to_string(index=False))
+
+returns = df_market['Daily_Return'].values.reshape(-1, 1)   # HMM observations
+prices = df_market['Close'].values                          # only used for visualization
+\end{lstlisting}
+
+\begin{lstlisting}[style=mlcode,caption={Fit a 3-state Gaussian HMM with the Baum-Welch (EM) algorithm}]
+# ---- Fit a 3-state Gaussian HMM with the Baum-Welch (EM) algorithm ----
+n_components = 3
+hmm_model = GaussianHMM(
+    n_components=n_components,        # Bull / Sideways / Bear regimes
+    covariance_type="full",           # each state has its own full covariance Gaussian emission
+    n_iter=200,                       # EM iterations
+    random_state=42,
+    verbose=False
+)
+
+hmm_model.fit(returns)
+print("EM Training Converged:", hmm_model.monitor_.converged)
+print(f"Model Log-Likelihood: {hmm_model.score(returns):.2f}")
+
+# ---- Decode the most likely hidden state sequence with the Viterbi algorithm ----
+hidden_states = hmm_model.predict(returns)
+
+# ---- Sort regimes by volatility so labels have a consistent economic meaning ----
+# Regime 0: Low Volatility (Bull) | Regime 1: Moderate (Sideways) | Regime 2: High (Bear/Crisis)
+volatilities = [np.sqrt(hmm_model.covars_[i][0][0]) for i in range(n_components)]
+state_order = np.argsort(volatilities)                                           # ascending volatility
+state_mapping = {old_state: new_state for new_state, old_state in enumerate(state_order)}
+
+sorted_hidden_states = np.array([state_mapping[s] for s in hidden_states])       # relabel sequence
+sorted_means = [hmm_model.means_[old][0] for old in state_order]                 # reordered means
+sorted_stds  = [np.sqrt(hmm_model.covars_[old][0][0]) for old in state_order]    # reordered std devs
+
+# ---- Reorder the transition matrix to match the sorted regimes ----
+sorted_transmat = np.zeros((n_components, n_components))
+for i in range(n_components):
+    for j in range(n_components):
+        sorted_transmat[i, j] = hmm_model.transmat_[state_order[i], state_order[j]]
+
+regime_names = ["Bull (Low Vol)", "Sideways (Med Vol)", "Bear (High Vol)"]
+\end{lstlisting}
+
+\begin{lstlisting}[style=mlcode,caption={Transition probability matrix}]
+# ---- Transition probability matrix ----
+fig, ax = plt.subplots(figsize=(6, 4.5))
+sns.heatmap(sorted_transmat, annot=True, fmt='.3f', cmap='Blues', ax=ax,
+            xticklabels=regime_names, yticklabels=regime_names, cbar=False)
+ax.set_title("HMM Transition Probability Matrix ($A_{ij}$)", fontweight='bold')
+ax.set_xlabel("Transition To Regime")
+ax.set_ylabel("Current Regime")
+plt.tight_layout()
+plt.show()
+
+# ---- Viterbi-decoded regimes over the price series ----
+colors = ['forestgreen', 'royalblue', 'crimson']
+x = np.arange(len(prices))
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(13, 7), sharex=True, gridspec_kw={'height_ratios': [3, 1]})
+
+# Top: color every consecutive price segment by its decoded regime
+for i in range(len(prices) - 1):
+    ax1.plot([x[i], x[i + 1]], [prices[i], prices[i + 1]], color=colors[sorted_hidden_states[i]], lw=1.2)
+for i, name in enumerate(regime_names):
+    ax1.plot([], [], color=colors[i], label=name, lw=2.5)
+ax1.set_title("DAX Index 1991-1998 Colored by Decoded HMM Regime (Viterbi Path)", fontsize=13, fontweight='bold')
+ax1.set_ylabel("Index Level")
+ax1.legend(loc='upper left')
+
+# Bottom: raw sequence of decoded states over time
+ax2.scatter(x, sorted_hidden_states, c=[colors[s] for s in sorted_hidden_states], s=8, marker='|')
+ax2.set_yticks(range(n_components))
+ax2.set_yticklabels(regime_names)
+ax2.set_xlabel("Trading Day Index")
+
+# Label the x-axis with years (real dates)
+year_pos = np.where(dates.dt.year.diff().fillna(0).values != 0)[0]
+ax2.set_xticks(year_pos)
+ax2.set_xticklabels(dates.dt.year.iloc[year_pos].astype(str))
+
+plt.tight_layout()
+plt.show()
+\end{lstlisting}

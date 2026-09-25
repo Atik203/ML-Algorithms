@@ -1,0 +1,64 @@
+% ===========================================================================
+% exp08_rfr.tex - complete code listings for Experiment 8
+% Source: notebooks/04_ensemble_learning.ipynb (executed)
+% ===========================================================================
+
+\begin{lstlisting}[style=mlcode,caption={Core libraries}]
+# ---- Core libraries ----
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostRegressor, AdaBoostClassifier
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, accuracy_score, f1_score, roc_auc_score
+
+import xgboost as xgb
+import catboost as cb
+
+# Styling setup
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+plt.rcParams['font.sans-serif'] = 'DejaVu Sans'
+plt.rcParams['figure.figsize'] = (10, 6)
+plt.rcParams['figure.dpi'] = 110
+np.random.seed(42)
+\end{lstlisting}
+
+\begin{lstlisting}[style=mlcode,caption={Load the California Housing dataset (real-world regression benchmark)}]
+# ---- Load the California Housing dataset (real-world regression benchmark) ----
+housing = fetch_california_housing(as_frame=True)
+# Sample 5,000 rows so every ensemble trains quickly while remaining representative
+df_reg = housing.frame.sample(n=5000, random_state=42)
+
+X_reg = df_reg[housing.feature_names]   # 8 socio-economic / geographic features
+y_reg = df_reg['MedHouseVal']           # target: median house value
+
+# ---- Train/test split (80% / 20%) ----
+X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(
+    X_reg, y_reg, test_size=0.20, random_state=42
+)
+
+print(f"Regression Training Samples: {X_train_reg.shape[0]}, Test Samples: {X_test_reg.shape[0]}")
+df_reg.head()
+\end{lstlisting}
+
+\begin{lstlisting}[style=mlcode,caption={Random Forest Regression (bagging of decision trees)}]
+# ---- Random Forest Regression (bagging of decision trees) ----
+# n_estimators = number of trees, oob_score = estimate accuracy from out-of-bag samples
+rf_reg = RandomForestRegressor(n_estimators=150, max_depth=12, oob_score=True, random_state=42, n_jobs=-1)
+rf_reg.fit(X_train_reg, y_train_reg)
+
+# ---- Predict and evaluate ----
+y_pred_rf = rf_reg.predict(X_test_reg)
+r2_rf = r2_score(y_test_reg, y_pred_rf)                          # explained variance (1.0 = perfect)
+rmse_rf = root_mean_squared_error(y_test_reg, y_pred_rf)         # error in target units
+mae_rf = mean_absolute_error(y_test_reg, y_pred_rf)              # robust average error
+
+print(f"Random Forest Regressor Results:")
+print(f" - Out-of-Bag (OOB) R² Score: {rf_reg.oob_score_:.4f}")
+print(f" - Test R² Score:              {r2_rf:.4f}")
+print(f" - Test RMSE:                  {rmse_rf:.4f}")
+print(f" - Test MAE:                   {mae_rf:.4f}")
+\end{lstlisting}

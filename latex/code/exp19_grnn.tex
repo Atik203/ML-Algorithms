@@ -1,127 +1,9 @@
 % ===========================================================================
-% Category: Generalized Regression Neural Network
-% Generated from ML_Lab_Manual_Completed.md - edit the Markdown and re-run
-% scripts/build_latex_manual.py instead of editing this file by hand.
+% exp19_grnn.tex - complete code listings for Experiment 19
+% Source: notebooks/11_generalized_regression_neural_network.ipynb (executed)
 % ===========================================================================
 
-\chapter{Experiment 19: Generalized Regression Neural Network
-(GRNN)}\label{experiment-19-generalized-regression-neural-network-grnn}
-
-\textbf{Category:} Non-parametric regression
-
-\section{1. Objective}\label{objective}
-
-Implement GRNN-style kernel regression from scratch and study the effect
-of the smoothing parameter σ with cross-validation.
-
-\section{2. Dataset Used}\label{dataset-used}
-
-Real motorcycle impact data
-(\passthrough{\lstinline!data/motorcycle.csv!}, R
-\passthrough{\lstinline!MASS::mcycle!}): 133 observations of time after
-impact (ms) versus head acceleration (g). Time is standardized before
-computing kernel distances.
-
-\section{3. Required Libraries}\label{required-libraries}
-
-numpy, pandas, matplotlib, scikit-learn (API base classes, KFold,
-metrics)
-
-\section{4. Brief Theory}\label{brief-theory}
-
-GRNN predicts the Nadaraya-Watson conditional mean: ŷ(x) = Σ\_i y\_i
-exp(−\textbar\textbar x−x\_i\textbar\textbar²/2σ²) / Σ\_i
-exp(−\textbar\textbar x−x\_i\textbar\textbar²/2σ²). Layer structure:
-input → pattern (one Gaussian per training point) → summation (S = Σy\_i
-p\_i, D = Σp\_i) → output S/D. Training is one-pass (store the data); σ
-controls the bias-variance trade-off.
-
-\section{5. Procedure}\label{procedure}
-
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\tightlist
-\item
-  Load mcycle; standardize time.
-\item
-  Implement the GRNN class (\passthrough{\lstinline!fit!} stores data;
-  \passthrough{\lstinline!predict!} computes kernel weights).
-\item
-  Visualize σ = 0.05 / 0.25 / 1.0 (under/over-smoothing).
-\item
-  Select σ by 5-fold CV over 0.02\ldots1.0.
-\item
-  Refit on a 75\% split and evaluate on the 25\% held-out set (R²,
-  RMSE).
-\end{enumerate}
-
-\section{6. Reference Implementation}\label{reference-implementation}
-
-\begin{lstlisting}[language=Python]
-kernels = np.exp(-dist_sq / (2.0 * self.sigma ** 2))   # pattern layer
-D = np.sum(kernels, axis=1)                            # denominator
-S = np.dot(kernels, self.y_train_)                     # numerator
-return S / np.where(D < 1e-12, 1e-12, D)
-\end{lstlisting}
-
-\section{7. Results}\label{results}
-
-{\def\LTcaptype{none} % do not increment counter
-\begin{longtable}[]{@{}ll@{}}
-\toprule\noalign{}
-Item & Value \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-CV-selected σ & 0.080 (CV RMSE 25.00 g) \\
-Train R² & 0.8073 \\
-Test R² & 0.7255 \\
-Test RMSE & 22.78 g (acceleration range −134\ldots+75 g) \\
-\end{longtable}
-}
-
-σ = 0.05 shows local wiggles (variance), σ = 0.25-1.0 underfits the
-sharp deceleration peak. The 5-fold CV curve has a clear minimum at σ =
-0.08.
-
-\section{8. Discussion and Conclusion}\label{discussion-and-conclusion}
-
-GRNN is instant to train and needs only one hyperparameter. On the
-smooth 1D sine benchmark it reaches R² ≈ 0.95, but on real motorcycle
-data the test R² is 0.73 --- a single global σ cannot be simultaneously
-small at the impact discontinuity and large elsewhere. This is the
-classic bias-variance limitation of global-bandwidth kernel regression;
-adaptive bandwidths or local polynomial regression would improve it.
-
-\section{9. Answers to Viva Questions}\label{answers-to-viva-questions}
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Why is GRNN called non-parametric?} It does not learn a fixed
-  set of parameters; the training data itself forms the model
-  (memory-based kernel regression).
-\item
-  \textbf{What does σ control?} The smoothing bandwidth: small σ fits
-  noise (high variance), large σ over-smooths (high bias).
-\item
-  \textbf{How is GRNN related to kernel regression?} It is exactly the
-  Nadaraya-Watson Gaussian kernel regression estimator of E{[}y
-  \textbar{} x{]}, with one kernel per training observation.
-\end{itemize}
-
-\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
-
-\section{10. Complete Code Listing}\label{complete-code-listing}
-
-\emph{Full runnable program for this experiment, extracted from
-\passthrough{\lstinline!notebooks/11\_generalized\_regression\_neural\_network.ipynb!}
-(executed; results above are its actual output).}
-
-\textbf{Listing 19.1 --- Core libraries}
-
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=mlcode,caption={Core libraries}]
 # ---- Core libraries ----
 import numpy as np
 import pandas as pd
@@ -141,9 +23,7 @@ plt.rcParams['figure.dpi'] = 110
 np.random.seed(42)
 \end{lstlisting}
 
-\textbf{Listing 19.2 --- GRNN class (from scratch)}
-
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=mlcode,caption={GRNN class (from scratch)}]
 class GRNN(BaseEstimator, RegressorMixin):
     """
     Generalized Regression Neural Network (Specht, 1991) - vectorized implementation.
@@ -190,10 +70,7 @@ class GRNN(BaseEstimator, RegressorMixin):
 print("Custom vectorized GRNN class defined!")
 \end{lstlisting}
 
-\textbf{Listing 19.3 --- Load the real motorcycle impact data
-(MASS::mcycle)}
-
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=mlcode,caption={Load the real motorcycle impact data (MASS::mcycle)}]
 # ---- Load the real motorcycle impact data (MASS::mcycle) ----
 moto = pd.read_csv('../data/motorcycle.csv')
 X = StandardScaler().fit_transform(moto['times'].values.reshape(-1, 1))  # time after impact (scaled)
@@ -228,10 +105,7 @@ plt.tight_layout()
 plt.show()
 \end{lstlisting}
 
-\textbf{Listing 19.4 --- 5-fold CV grid search for the optimal smoothing
-sigma}
-
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=mlcode,caption={5-fold CV grid search for the optimal smoothing sigma}]
 # ---- 5-fold CV grid search for the optimal smoothing sigma ----
 sigma_candidates = np.linspace(0.02, 1.0, 50)
 cv_scores = []
@@ -267,10 +141,7 @@ plt.tight_layout()
 plt.show()
 \end{lstlisting}
 
-\textbf{Listing 19.5 --- Final model: refit with the CV-selected sigma
-and evaluate on a held-out split}
-
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[style=mlcode,caption={Final model: refit with the CV-selected sigma and evaluate on a held-out split}]
 # ---- Final model: refit with the CV-selected sigma and evaluate on a held-out split ----
 X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.25, random_state=42)
 final_model = GRNN(sigma=best_sigma).fit(X_tr, y_tr)

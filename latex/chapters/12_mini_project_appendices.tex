@@ -1,0 +1,112 @@
+% ===========================================================================
+% Part XII - Integrated Mini Project and Appendices
+% ===========================================================================
+
+\part{Integrated Mini Project and Appendices}
+
+% ---------------------------------------------------------------------------
+\chapter{Integrated Mini Project: Comparative Machine Learning Study}\label{exp:mini}
+
+\quickfacts
+  {Scope}{Compare algorithms from different families on identical data, splits and seeds}
+  {Protocol}{Fixed random seeds; untouched test sets; two or more metrics per task}
+  {Headline result}{Gradient boosting leads tabular regression; ensembles tie on small classification data; density clustering finds real seismic zones without labels}
+
+\section{Objective}
+For the final laboratory assessment, compare at least three algorithms from different
+families on one real-world dataset, with a controlled, explainable experiment rather than a
+search for the largest score.
+
+\section{Suggested Dataset}
+The manual's own experiments provide the comparison material: Heart Disease (classification),
+California Housing (regression), Mall Customers (clustering) and the USGS earthquake
+catalogue (density-based clustering).
+
+\section{Required Libraries}
+scikit-learn, xgboost, catboost, numpy, pandas, matplotlib.
+
+\placeholder
+
+\section{Workflow}
+\section{Comparative Results}
+\section{Discussion and Conclusions}
+\section{Viva / Discussion Questions}
+
+% ===========================================================================
+% Appendices
+% ===========================================================================
+
+\chapter{Appendix A: Quick Reference Formulas}
+
+\begin{longtable}{@{}p{0.30\textwidth}p{0.64\textwidth}@{}}
+\toprule
+\textbf{Concept} & \textbf{Formula / Definition} \\
+\midrule
+\endhead
+Euclidean distance & $d(x,y) = \sqrt{\sum_j (x_j - y_j)^2}$ \\
+K-means objective & $J = \sum_i \lVert x_i - \mu_{c_i} \rVert^2$ \\
+Regression MAE & $\mathrm{MAE} = \frac{1}{n}\sum_i |y_i - \hat{y}_i|$ \\
+Regression RMSE & $\mathrm{RMSE} = \sqrt{\frac{1}{n}\sum_i (y_i - \hat{y}_i)^2}$ \\
+$R^2$ & $R^2 = 1 - \mathrm{SS_{res}} / \mathrm{SS_{tot}}$ \\
+Precision & $\mathrm{TP} / (\mathrm{TP} + \mathrm{FP})$ \\
+Recall & $\mathrm{TP} / (\mathrm{TP} + \mathrm{FN})$ \\
+F1 & $2 \times \mathrm{Precision} \times \mathrm{Recall} / (\mathrm{Precision} + \mathrm{Recall})$ \\
+Sigmoid & $\sigma(z) = 1 / (1 + e^{-z})$ \\
+SVM margin idea & Maximize margin while penalizing violations via $C$ \\
+GRNN kernel & $w_i(x) = \exp\!\left(-\lVert x - x_i \rVert^2 / (2\sigma^2)\right)$ \\
+\bottomrule
+\end{longtable}
+
+\chapter{Appendix B: Reproducibility Checklist}
+
+\begin{itemize}
+  \item Python version recorded.
+  \item Package versions recorded.
+  \item Random seed recorded where supported (all experiments use seed 42).
+  \item Dataset source and version recorded (public datasets committed under \texttt{data/}).
+  \item Preprocessing steps recorded (scaling fitted on training data only; haversine radians for geospatial data).
+  \item Train/validation/test protocol recorded (stratified, chronological, early-stopping split, 5-fold CV).
+  \item Hyperparameters recorded.
+  \item Evaluation metrics defined before final testing.
+  \item Plots and tables saved with meaningful names.
+  \item Code runs from a clean environment or requirements file.
+\end{itemize}
+
+\chapter{Appendix C: Suggested Assessment Rubric}
+
+\begin{longtable}{@{}p{0.68\textwidth}r@{}}
+\toprule
+\textbf{Component} & \textbf{Suggested Weight} \\
+\midrule
+\endhead
+Pre-lab preparation / algorithm understanding & 10\% \\
+Correct implementation & 25\% \\
+Experimental design and preprocessing & 15\% \\
+Evaluation and visualization & 15\% \\
+Analysis and interpretation & 20\% \\
+Report quality / reproducibility & 10\% \\
+Viva / discussion & 5\% \\
+\bottomrule
+\end{longtable}
+
+\chapter{Appendix D: Student Experiment Record}
+
+\begin{longtable}{@{}p{0.36\textwidth}p{0.58\textwidth}@{}}
+\toprule
+\textbf{Field} & \textbf{Student Entry} \\
+\midrule
+\endhead
+Name & \\
+ID & \\
+Section & \\
+Experiment No. & \\
+Date & \\
+Dataset & \\
+Algorithm / Version & \\
+Key Hyperparameters & \\
+Random Seed & \\
+Main Result & \\
+Observation & \\
+Instructor Signature & \\
+\bottomrule
+\end{longtable}
