@@ -164,6 +164,9 @@
 % experiments run continuously (no page break before each chapter)
 \titleclass{\chapter}{straight}
 % Mini table of contents printed on every part-opening page
+% Repository link shown on every part page and in code references
+\newcommand{\repourl}{https://github.com/Atik203/ML-Algorithms}
+\newcommand{\repolink}{\href{\repourl}{\texttt{github.com/Atik203/ML-Algorithms}}}
 \newcommand{\parttoc}{%
   \begingroup
   \raggedright\normalfont\normalsize
@@ -172,6 +175,8 @@
   \small
   \startcontents[parts]%
   \printcontents[parts]{}{0}{}%
+  \vspace{4mm}%
+  \noindent{\small\sffamily\color{mlblue}Code and datasets: \repolink}%
   \endgroup}
 \titleformat{\part}[display]
   {\centering\normalfont\Huge\bfseries\color{mlblue}}

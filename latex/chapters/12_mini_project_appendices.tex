@@ -158,6 +158,45 @@ scikit-learn, xgboost, catboost, numpy, pandas, matplotlib.
         least two metrics per task; no test-set model selection was performed.
 \end{enumerate}
 
+\section{Recommended Comparative Table}
+For the final report, summarize every candidate model in one row of
+Table~\ref{tab:mini-comparative}.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Recommended comparative table for the mini-project report.}
+  \label{tab:mini-comparative}
+  \renewcommand{\arraystretch}{1.8}
+  \begin{tabular}{|p{0.09\textwidth}|p{0.18\textwidth}|p{0.13\textwidth}|p{0.13\textwidth}|p{0.11\textwidth}|p{0.18\textwidth}|}
+    \hline
+\rowcolor{mlblue!8}    \textbf{Model} & \textbf{Key hyperparameters} & \textbf{Validation metric} & \textbf{Test metric} & \textbf{Training time} & \textbf{Observation} \\
+    \hline
+    Baseline &  &  &  &  &  \\
+\hline
+    Model 1 &  &  &  &  &  \\
+\hline
+    Model 2 &  &  &  &  &  \\
+\hline
+    Model 3 &  &  &  &  &  \\
+\hline
+    Model 4 (optional) &  &  &  &  &  \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\section{Common Experimental Mistakes to Avoid}
+\begin{itemize}
+  \item Scaling the entire dataset before the train/test split, which can leak test-set information.
+  \item Selecting hyperparameters using the test set repeatedly.
+  \item Comparing models on different train/test partitions.
+  \item Reporting only accuracy on imbalanced classification problems.
+  \item Treating cluster labels as ground truth without understanding the evaluation method.
+  \item Changing several hyperparameters at once without recording the experiment.
+  \item Using private or sensitive data in external LLM services.
+  \item Claiming causation from feature importance or correlation alone.
+  \item Copying library output without explaining the underlying algorithm.
+\end{itemize}
+
 \section{Viva / Discussion Questions}
 \begin{enumerate}
   \item \textbf{Which model performed best overall?}\par\nobreak It is task-dependent: AdaBoost/RFC on small

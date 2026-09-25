@@ -2,3 +2,28 @@
 catboost_info/
 pdf/html/
 __pycache__/
+
+# LaTeX build outputs (rebuild with: cd latex && latexmk main.tex)
+latex/*.pdf
+latex/*.aux
+latex/*.log
+latex/*.out
+latex/*.toc
+latex/*.lof
+latex/*.lot
+latex/*.fls
+latex/*.fdb_latexmk
+latex/*.synctex.gz
+latex/*.synctex(busy)
+latex/*.listing
+latex/*.ptc
+latex/*.xdv
+latex/out/
+
+# Notebook PDFs (rebuild with: scripts/export_pdf.py)
+pdf/*.pdf
+
+# Manual binaries and markdown sources (this repo hosts the LaTeX source only)
+*.docx
+Machine_Learning_Lab_Manual.md
+ML_Lab_Manual_Completed.md
