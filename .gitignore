@@ -14,3 +14,5 @@ pdf/*.pdf
 *.docx
 Machine_Learning_Lab_Manual.md
 ML_Lab_Manual_Completed.md
+config.bat
+node_modules
