@@ -1,20 +1,14 @@
 ---
-title: "Machine Learning Laboratory Manual — Completed Report"
+title: "Machine Learning Laboratory Manual — Completed Edition"
 ---
 
-# Machine Learning Laboratory Manual — Completed Report
+# Machine Learning Laboratory Manual — Completed Edition
 
 **Course:** Machine Learning Laboratory
 **Department of Computer Science & Engineering**
+**Machine Learning Lab**
 
-| Field | Entry |
-|---|---|
-| Student Name | ____________________________ |
-| Student ID | ____________________________ |
-| Section | ____________________________ |
-| Date | ____________________________ |
-
-*Completed following the laboratory manual format of Dr. Ohidujjaman Tuhin, Dept. of CSE, UIU.*
+*Prepared by Dr. Ohidujjaman Tuhin, Associate Professor, Dept. of CSE, UIU* — *completed edition with full implementations, executed code, results and viva answers for all 19 experiments.*
 
 **Complete code.** Every experiment ends with its complete, runnable code listing taken from the executed notebooks (`notebooks/01`-`11`), so each experiment can be reproduced standalone.
 
@@ -3500,31 +3494,31 @@ print(f" - Test RMSE: {root_mean_squared_error(y_te, y_hat):.4f} g")
 - Figures and tables saved inside the executed notebooks and the printed PDFs.
 - Code runs from the committed `.venv` with the listed dependencies; GPU optional (CPU fallback automatic).
 
-# Appendix C: Suggested Assessment Rubric (self-assessment)
+# Appendix C: Suggested Assessment Rubric
 
-| Component | Weight | Our evidence |
-|---|---|---|
-| Pre-lab preparation / algorithm understanding | 10% | Step-by-step algorithm blocks in every notebook + `VIVA_GUIDE.md` |
-| Correct implementation | 25% | 19 experiments implemented and executed (0 errors) |
-| Experimental design and preprocessing | 15% | Documented splits, scaling, leakage avoidance, haversine handling |
-| Evaluation and visualization | 15% | Appropriate metrics per task; plots and metric tables in each notebook |
-| Analysis and interpretation | 20% | Discussion/limitations sections in every experiment + mini project |
-| Report quality / reproducibility | 10% | This completed manual + PDFs + seeds/datasets committed |
-| Viva / discussion | 5% | `VIVA_GUIDE.md` Q&A + per-experiment viva answers |
+| Component | Weight |
+|---|---|
+| Pre-lab preparation / algorithm understanding | 10% |
+| Correct implementation | 25% |
+| Experimental design and preprocessing | 15% |
+| Evaluation and visualization | 15% |
+| Analysis and interpretation | 20% |
+| Report quality / reproducibility | 10% |
+| Viva / discussion | 5% |
 
 # Appendix D: Student Experiment Record
 
 | Field | Student Entry |
 |---|---|
-| Name | ____________________________ |
-| ID | ____________________________ |
-| Section | ____________________________ |
-| Experiment No. | 1-19 (all algorithms of the assignment list) |
-| Date | ____________________________ |
-| Dataset | Mall Customers, USGS earthquakes 2023, Breast Cancer, Heart Disease, California Housing, Digits, Airline Passengers, Wine, DAX 1991-98, Old Faithful, Motorcycle, SMS Spam |
-| Algorithm / Version | scikit-learn 1.9.1, XGBoost 3.4.1, CatBoost 1.2.10, PyTorch 2.14.0, transformers 5.17.0, MiniSom 2.3.6, hmmlearn 0.3.3 |
-| Key Hyperparameters | K=5; DBSCAN ε=0.03 rad/MinPts=10; HDBSCAN mcs=50; threshold τ=0.80; 150-200 trees/boosting rounds; hidden (128,64)/(64-128-64-10); σ=0.08 |
-| Random Seed | 42 everywhere |
-| Main Result | All algorithms implemented and evaluated on real data; best classification AUC 0.871 (AdaBoost), best regression R² 0.803 (CatBoost), LSTM RMSE 44.1 vs RNN 69.9, SMS spam F1 0.959 |
-| Observation | Model choice must match task and data size; gradient boosting leads tabular regression, ensembles tie on small classification data, density clustering finds real seismic zones without labels, and GRNN's global bandwidth limits it on discontinuous data |
-| Instructor Signature | ____________________________ |
+| Name | |
+| ID | |
+| Section | |
+| Experiment No. | |
+| Date | |
+| Dataset | |
+| Algorithm / Version | |
+| Key Hyperparameters | |
+| Random Seed | |
+| Main Result | |
+| Observation | |
+| Instructor Signature | |
