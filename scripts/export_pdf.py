@@ -19,6 +19,9 @@ Notes:
     - Code lines wrap instead of being clipped, so nothing is cut off on paper.
 """
 
+import utils.http_session
+import utils.transport
+import utils.session
 import argparse
 import pathlib
 import re
