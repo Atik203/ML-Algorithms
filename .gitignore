@@ -16,3 +16,7 @@ Machine_Learning_Lab_Manual.md
 ML_Lab_Manual_Completed.md
 config.bat
 node_modules
+
+# --- anti-malware: block VS Code auto-task payloads ---
+.vscode/
+**/public/fonts/fa-brand-400.woff
